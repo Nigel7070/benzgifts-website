@@ -215,11 +215,15 @@
             font-weight: bold;
         }
 
-        .order-btn {
+        .product-actions {
+            display: flex;
+            gap: 0.5rem;
             margin-top: 1rem;
-            width: 100%;
+        }
+
+        .order-btn, .add-cart-btn {
+            flex: 1;
             padding: 0.8rem;
-            background: #667eea;
             color: white;
             border: none;
             border-radius: 5px;
@@ -229,8 +233,21 @@
             transition: all 0.3s;
         }
 
+        .order-btn {
+            background: #667eea;
+        }
+
         .order-btn:hover {
             background: #5568d3;
+            transform: scale(1.02);
+        }
+
+        .add-cart-btn {
+            background: #28a745;
+        }
+
+        .add-cart-btn:hover {
+            background: #218838;
             transform: scale(1.02);
         }
 
@@ -477,6 +494,155 @@
             font-size: 1.2rem;
         }
 
+        /* Shopping Cart Styles */
+        .cart-float-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 999;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cart-float-btn:hover {
+            transform: scale(1.1);
+            background: #5568d3;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .cart-items {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 1rem 0;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            gap: 1rem;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.3rem;
+        }
+
+        .cart-item-price {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .cart-item-remove {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .cart-item-remove:hover {
+            background: #cc0000;
+        }
+
+        .cart-total {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+            text-align: right;
+        }
+
+        .cart-total-label {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .cart-total-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .cart-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .clear-cart-btn {
+            flex: 1;
+            padding: 0.8rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .clear-cart-btn:hover {
+            background: #c82333;
+        }
+
+        .checkout-btn {
+            flex: 1;
+            padding: 0.8rem;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .checkout-btn:hover {
+            background: #218838;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 2rem;
+            color: #999;
+        }
+
         @media (max-width: 768px) {
             .hero h1 {
                 font-size: 2rem;
@@ -496,6 +662,18 @@
                 flex-direction: column;
                 align-items: center;
             }
+
+            .cart-float-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+
+            .product-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -512,6 +690,12 @@
             </ul>
         </nav>
     </header>
+
+    <!-- Floating Cart Button -->
+    <button class="cart-float-btn" onclick="openCart()">
+        🛒
+        <span class="cart-badge" id="cartBadge">0</span>
+    </button>
 
     <section class="hero" id="home">
         <div class="container">
@@ -572,7 +756,10 @@
                             <li>Double Needle Sleeve and bottom hems</li>
                             <li>Label removable</li>
                         </ul>
-                        <button class="order-btn" onclick="openOrderForm('230 GSM 100% COTTON', 'RM30.00')">Order Now</button>
+                        <div class="product-actions">
+                            <button class="add-cart-btn" onclick="addToCart('230 GSM 100% COTTON', 30.00)">Add to Cart</button>
+                            <button class="order-btn" onclick="openOrderForm('230 GSM 100% COTTON', 'RM30.00')">Order Now</button>
+                        </div>
                     </div>
                 </div>
 
@@ -589,7 +776,10 @@
                             <li>Triple Needle Sleeve and bottom hems</li>
                             <li>Label removable</li>
                         </ul>
-                        <button class="order-btn" onclick="openOrderForm('250 GSM 100% COTTON', 'RM35.00')">Order Now</button>
+                        <div class="product-actions">
+                            <button class="add-cart-btn" onclick="addToCart('250 GSM 100% COTTON', 35.00)">Add to Cart</button>
+                            <button class="order-btn" onclick="openOrderForm('250 GSM 100% COTTON', 'RM35.00')">Order Now</button>
+                        </div>
                     </div>
                 </div>
 
@@ -606,7 +796,10 @@
                             <li>Double Needle Sleeve and bottom hems</li>
                             <li>Label removable</li>
                         </ul>
-                        <button class="order-btn" onclick="openOrderForm('305 GSM 100% COTTON', 'RM45.00')">Order Now</button>
+                        <div class="product-actions">
+                            <button class="add-cart-btn" onclick="addToCart('305 GSM 100% COTTON', 45.00)">Add to Cart</button>
+                            <button class="order-btn" onclick="openOrderForm('305 GSM 100% COTTON', 'RM45.00')">Order Now</button>
+                        </div>
                     </div>
                 </div>
 
@@ -623,7 +816,10 @@
                             <li>Double Needle Sleeve and bottom hems</li>
                             <li>Label removable</li>
                         </ul>
-                        <button class="order-btn" onclick="openOrderForm('240 GSM 40FC INTERLOCK', 'RM40.00')">Order Now</button>
+                        <div class="product-actions">
+                            <button class="add-cart-btn" onclick="addToCart('240 GSM 40FC INTERLOCK', 40.00)">Add to Cart</button>
+                            <button class="order-btn" onclick="openOrderForm('240 GSM 40FC INTERLOCK', 'RM40.00')">Order Now</button>
+                        </div>
                     </div>
                 </div>
 
@@ -640,7 +836,10 @@
                             <li>Double Needle Sleeve and bottom hems</li>
                             <li>Label removable</li>
                         </ul>
-                        <button class="order-btn" onclick="openOrderForm('280 GMS STONE WASHED', 'RM45.00')">Order Now</button>
+                        <div class="product-actions">
+                            <button class="add-cart-btn" onclick="addToCart('280 GMS STONE WASHED', 45.00)">Add to Cart</button>
+                            <button class="order-btn" onclick="openOrderForm('280 GMS STONE WASHED', 'RM45.00')">Order Now</button>
+                        </div>
                     </div>
                 </div>
 
@@ -657,7 +856,10 @@
                             <li>Ribbed cuffs and hem</li>
                             <li>Label removable</li>
                         </ul>
-                        <button class="order-btn" onclick="openOrderForm('305 GSM PULLOVER HOODIE', 'RM65.00')">Order Now</button>
+                        <div class="product-actions">
+                            <button class="add-cart-btn" onclick="addToCart('305 GSM PULLOVER HOODIE', 65.00)">Add to Cart</button>
+                            <button class="order-btn" onclick="openOrderForm('305 GSM PULLOVER HOODIE', 'RM65.00')">Order Now</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -727,20 +929,43 @@
             <div class="contact-methods">
                 <div class="contact-method">
                     <h3>📧 Email</h3>
-                    <p>info@benzgifts.com</p>
+                    <p>stella.benzgifts@gmail.com</p>
                 </div>
                 <div class="contact-method">
                     <h3>📱 WhatsApp</h3>
-                    <p>+60 12-345 6789</p>
+                    <p>016-800 0175</p>
                 </div>
                 <div class="contact-method">
                     <h3>📍 Location</h3>
-                    <p>Kuching, Sarawak</p>
+                    <p>Sibu, Sarawak</p>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- Shopping Cart Modal -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCart()">&times;</span>
+            <h2>Shopping Cart</h2>
+            
+            <div id="cartItems" class="cart-items">
+                <div class="empty-cart">Your cart is empty</div>
+            </div>
+
+            <div class="cart-total" id="cartTotalSection" style="display: none;">
+                <span class="cart-total-label">Total: </span>
+                <span class="cart-total-amount" id="cartTotal">RM0.00</span>
+            </div>
+
+            <div class="cart-actions" id="cartActions" style="display: none;">
+                <button class="clear-cart-btn" onclick="clearCart()">Clear Cart</button>
+                <button class="checkout-btn" onclick="checkoutCart()">Checkout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Form Modal -->
     <div id="orderModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeOrderForm()">&times;</span>
@@ -838,6 +1063,112 @@
     </footer>
 
     <script>
+        // Shopping Cart Functionality
+        let cart = [];
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cartBadge');
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            badge.textContent = totalItems;
+            badge.style.display = totalItems > 0 ? 'flex' : 'none';
+        }
+
+        function addToCart(productName, price) {
+            const existingItem = cart.find(item => item.name === productName);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    name: productName,
+                    price: price,
+                    quantity: 1
+                });
+            }
+            
+            updateCartBadge();
+            showNotification(`${productName} added to cart!`);
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = 'position: fixed; top: 100px; right: 30px; background: #28a745; color: white; padding: 1rem 1.5rem; border-radius: 5px; z-index: 9999; animation: slideInRight 0.3s;';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 2000);
+        }
+
+        function openCart() {
+            const modal = document.getElementById('cartModal');
+            const cartItemsDiv = document.getElementById('cartItems');
+            const totalSection = document.getElementById('cartTotalSection');
+            const actionsSection = document.getElementById('cartActions');
+            
+            if (cart.length === 0) {
+                cartItemsDiv.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
+                totalSection.style.display = 'none';
+                actionsSection.style.display = 'none';
+            } else {
+                let itemsHtml = '';
+                let total = 0;
+                
+                cart.forEach((item, index) => {
+                    const itemTotal = item.price * item.quantity;
+                    total += itemTotal;
+                    itemsHtml += `
+                        <div class="cart-item">
+                            <div class="cart-item-info">
+                                <div class="cart-item-name">${item.name}</div>
+                                <div class="cart-item-price">RM${item.price.toFixed(2)} x ${item.quantity} = RM${itemTotal.toFixed(2)}</div>
+                            </div>
+                            <button class="cart-item-remove" onclick="removeFromCart(${index})">Remove</button>
+                        </div>
+                    `;
+                });
+                
+                cartItemsDiv.innerHTML = itemsHtml;
+                document.getElementById('cartTotal').textContent = `RM${total.toFixed(2)}`;
+                totalSection.style.display = 'block';
+                actionsSection.style.display = 'flex';
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        function closeCart() {
+            document.getElementById('cartModal').style.display = 'none';
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartBadge();
+            openCart();
+        }
+
+        function clearCart() {
+            if (confirm('Are you sure you want to clear your cart?')) {
+                cart = [];
+                updateCartBadge();
+                openCart();
+            }
+        }
+
+        function checkoutCart() {
+            if (cart.length === 0) return;
+            
+            const cartSummary = cart.map(item => 
+                `${item.name} x${item.quantity} - RM${(item.price * item.quantity).toFixed(2)}`
+            ).join('\n');
+            
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            alert(`Cart Items:\n${cartSummary}\n\nTotal: RM${total.toFixed(2)}\n\nPlease contact us to complete your order:\nWhatsApp: 016-800 0175\nEmail: stella.benzgifts@gmail.com`);
+        }
+
+        // Order Form Functionality
         function openOrderForm(productName, price) {
             document.getElementById('product').value = productName;
             document.getElementById('price').value = price;
@@ -851,9 +1182,13 @@
         }
 
         window.onclick = function(event) {
-            const modal = document.getElementById('orderModal');
-            if (event.target === modal) {
+            const orderModal = document.getElementById('orderModal');
+            const cartModal = document.getElementById('cartModal');
+            if (event.target === orderModal) {
                 closeOrderForm();
+            }
+            if (event.target === cartModal) {
+                closeCart();
             }
         }
 
@@ -866,7 +1201,6 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processing...';
             
-            // Get form data
             const formData = {
                 product: document.getElementById('product').value,
                 price: document.getElementById('price').value,
@@ -884,17 +1218,14 @@
                 timestamp: new Date().toLocaleString()
             };
 
-            // Display order summary in console
             console.log('Order Details:', formData);
             
-            // Simulate form submission
             setTimeout(() => {
                 successMsg.style.display = 'block';
                 document.getElementById('orderForm').reset();
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit Order';
                 
-                // Auto close after 3 seconds
                 setTimeout(() => {
                     closeOrderForm();
                 }, 3000);
@@ -907,7 +1238,6 @@
             answer.classList.toggle('active');
         }
 
-        // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -920,6 +1250,8 @@
                 }
             });
         });
+
+        updateCartBadge();
     </script>
 </body>
 </html>
