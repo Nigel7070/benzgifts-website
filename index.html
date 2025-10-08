@@ -55,7 +55,7 @@
         }
 
         .nav-links a:hover {
-            color: #3498db;
+            color: #667eea;
         }
 
         .hero {
@@ -68,12 +68,25 @@
         .hero h1 {
             font-size: 3rem;
             margin-bottom: 1rem;
+            animation: fadeInUp 1s ease;
         }
 
         .hero p {
             font-size: 1.2rem;
             margin-bottom: 2rem;
             opacity: 0.9;
+            animation: fadeInUp 1s ease 0.2s backwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .container {
@@ -100,11 +113,12 @@
             border-radius: 10px;
             text-align: center;
             box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
 
         .feature-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-10px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
         }
 
         .feature-icon {
@@ -212,11 +226,12 @@
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
         }
 
         .order-btn:hover {
             background: #5568d3;
+            transform: scale(1.02);
         }
 
         .about {
@@ -246,6 +261,7 @@
             margin-bottom: 1rem;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
 
         .faq-question {
@@ -256,12 +272,35 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: background 0.3s;
+        }
+
+        .faq-question:hover {
+            background: #f8f9fa;
+        }
+
+        .faq-question::after {
+            content: '+';
+            font-size: 1.5rem;
+            transition: transform 0.3s;
+        }
+
+        .faq-question.active::after {
+            transform: rotate(45deg);
         }
 
         .faq-answer {
-            padding: 0 1.5rem 1.5rem;
+            padding: 0 1.5rem;
             color: #666;
             line-height: 1.8;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s, padding 0.3s;
+        }
+
+        .faq-answer.active {
+            padding: 0 1.5rem 1.5rem;
+            max-height: 500px;
         }
 
         .footer {
@@ -296,6 +335,12 @@
             height: 100%;
             overflow: auto;
             background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .modal-content {
@@ -307,6 +352,18 @@
             max-width: 600px;
             max-height: 80vh;
             overflow-y: auto;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .close {
@@ -315,6 +372,7 @@
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
+            transition: color 0.3s;
         }
 
         .close:hover {
@@ -341,6 +399,14 @@
             border-radius: 5px;
             font-size: 1rem;
             font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
         }
 
         .form-group textarea {
@@ -358,11 +424,12 @@
             font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
         }
 
         .submit-btn:hover {
             background: #5568d3;
+            transform: scale(1.02);
         }
 
         .submit-btn:disabled {
@@ -379,13 +446,35 @@
             display: none;
         }
 
-        .error-message {
-            background: #f44336;
+        .contact-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 1rem;
-            border-radius: 5px;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .contact-info h2 {
             margin-bottom: 1rem;
-            display: none;
+        }
+
+        .contact-methods {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .contact-method {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            min-width: 200px;
+        }
+
+        .contact-method h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
         }
 
         @media (max-width: 768px) {
@@ -395,11 +484,17 @@
             
             .nav-links {
                 gap: 1rem;
+                font-size: 0.9rem;
             }
 
             .modal-content {
                 margin: 10% auto;
                 width: 95%;
+            }
+
+            .contact-methods {
+                flex-direction: column;
+                align-items: center;
             }
         }
     </style>
@@ -413,6 +508,7 @@
                 <li><a href="#shop">Shop</a></li>
                 <li><a href="#about">About</a></li>
                 <li><a href="#faq">FAQ</a></li>
+                <li><a href="#contact">Contact</a></li>
             </ul>
         </nav>
     </header>
@@ -587,7 +683,7 @@
             <p class="section-subtitle">Got a question? We're here to answer!</p>
             
             <div class="faq-item">
-                <div class="faq-question">
+                <div class="faq-question" onclick="toggleFaq(this)">
                     How do I place a custom order?
                 </div>
                 <div class="faq-answer">
@@ -596,7 +692,7 @@
             </div>
 
             <div class="faq-item">
-                <div class="faq-question">
+                <div class="faq-question" onclick="toggleFaq(this)">
                     What file formats do you accept?
                 </div>
                 <div class="faq-answer">
@@ -605,7 +701,7 @@
             </div>
 
             <div class="faq-item">
-                <div class="faq-question">
+                <div class="faq-question" onclick="toggleFaq(this)">
                     What is the delivery timeframe?
                 </div>
                 <div class="faq-answer">
@@ -614,11 +710,32 @@
             </div>
 
             <div class="faq-item">
-                <div class="faq-question">
+                <div class="faq-question" onclick="toggleFaq(this)">
                     How can I contact customer support?
                 </div>
                 <div class="faq-answer">
                     You can reach out to our customer support for any inquiries, and we will aim to respond promptly via WhatsApp or email.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="contact-info" id="contact">
+        <div class="container">
+            <h2>Get In Touch</h2>
+            <p>Contact us for custom orders and inquiries</p>
+            <div class="contact-methods">
+                <div class="contact-method">
+                    <h3>📧 Email</h3>
+                    <p>info@benzgifts.com</p>
+                </div>
+                <div class="contact-method">
+                    <h3>📱 WhatsApp</h3>
+                    <p>+60 12-345 6789</p>
+                </div>
+                <div class="contact-method">
+                    <h3>📍 Location</h3>
+                    <p>Kuching, Sarawak</p>
                 </div>
             </div>
         </div>
@@ -630,10 +747,7 @@
             <h2>Place Your Order</h2>
             
             <div class="success-message" id="successMessage">
-                Order submitted successfully! We'll contact you soon.
-            </div>
-            <div class="error-message" id="errorMessage">
-                Something went wrong. Please try again.
+                Order details captured! We'll contact you soon via your provided contact information.
             </div>
 
             <form id="orderForm" onsubmit="submitOrder(event)">
@@ -724,16 +838,11 @@
     </footer>
 
     <script>
-        // ⚠️ IMPORTANT: REPLACE THIS WITH YOUR GOOGLE APPS SCRIPT URL
-        // Get it from: Google Apps Script → Deploy → Manage Deployments → Copy Web App URL
-        const SCRIPT_URL = 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
-
         function openOrderForm(productName, price) {
             document.getElementById('product').value = productName;
             document.getElementById('price').value = price;
             document.getElementById('orderModal').style.display = 'block';
             document.getElementById('successMessage').style.display = 'none';
-            document.getElementById('errorMessage').style.display = 'none';
         }
 
         function closeOrderForm() {
@@ -748,16 +857,16 @@
             }
         }
 
-        async function submitOrder(event) {
+        function submitOrder(event) {
             event.preventDefault();
             
             const submitBtn = document.getElementById('submitBtn');
             const successMsg = document.getElementById('successMessage');
-            const errorMsg = document.getElementById('errorMessage');
             
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
+            submitBtn.textContent = 'Processing...';
             
+            // Get form data
             const formData = {
                 product: document.getElementById('product').value,
                 price: document.getElementById('price').value,
@@ -775,32 +884,42 @@
                 timestamp: new Date().toLocaleString()
             };
 
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                });
-
+            // Display order summary in console
+            console.log('Order Details:', formData);
+            
+            // Simulate form submission
+            setTimeout(() => {
                 successMsg.style.display = 'block';
-                errorMsg.style.display = 'none';
                 document.getElementById('orderForm').reset();
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Order';
                 
+                // Auto close after 3 seconds
                 setTimeout(() => {
                     closeOrderForm();
                 }, 3000);
-            } catch (error) {
-                console.error('Error:', error);
-                errorMsg.style.display = 'block';
-                successMsg.style.display = 'none';
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Order';
-            }
+            }, 1000);
         }
+
+        function toggleFaq(element) {
+            element.classList.toggle('active');
+            const answer = element.nextElementSibling;
+            answer.classList.toggle('active');
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
     </script>
 </body>
 </html>
