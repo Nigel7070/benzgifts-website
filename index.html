@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Benzgifts - Premium Custom T-Shirts & Apparel</title>
+    
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         * {
             margin: 0;
@@ -45,6 +49,7 @@
             display: flex;
             gap: 2rem;
             list-style: none;
+            align-items: center;
         }
 
         .nav-links a {
@@ -56,6 +61,58 @@
 
         .nav-links a:hover {
             color: #667eea;
+        }
+
+        .auth-btn {
+            padding: 0.5rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .auth-btn:hover {
+            background: #5568d3;
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-email {
+            cursor: pointer;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 5px;
+            margin-top: 0.5rem;
+            min-width: 200px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .dropdown-menu.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
         }
 
         .hero {
@@ -454,13 +511,26 @@
             cursor: not-allowed;
         }
 
-        .success-message {
-            background: #4caf50;
-            color: white;
+        .success-message, .error-message, .info-message {
             padding: 1rem;
             border-radius: 5px;
             margin-bottom: 1rem;
             display: none;
+        }
+
+        .success-message {
+            background: #4caf50;
+            color: white;
+        }
+
+        .error-message {
+            background: #f44336;
+            color: white;
+        }
+
+        .info-message {
+            background: #2196F3;
+            color: white;
         }
 
         .contact-info {
@@ -494,7 +564,6 @@
             font-size: 1.2rem;
         }
 
-        /* Shopping Cart Styles */
         .cart-float-btn {
             position: fixed;
             bottom: 30px;
@@ -687,11 +756,13 @@
                 <li><a href="#about">About</a></li>
                 <li><a href="#faq">FAQ</a></li>
                 <li><a href="#contact">Contact</a></li>
+                <li id="authSection">
+                    <button class="auth-btn" onclick="openAuthModal()">Login / Sign Up</button>
+                </li>
             </ul>
         </nav>
     </header>
 
-    <!-- Floating Cart Button -->
     <button class="cart-float-btn" onclick="openCart()">
         🛒
         <span class="cart-badge" id="cartBadge">0</span>
@@ -943,6 +1014,31 @@
         </div>
     </section>
 
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAuthModal()">&times;</span>
+            <h2>Welcome to Benzgifts</h2>
+            
+            <div class="success-message" id="authSuccess"></div>
+            <div class="error-message" id="authError"></div>
+            <div class="info-message" id="authInfo"></div>
+
+            <form id="authForm" onsubmit="handleAuth(event)">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="authEmail" placeholder="Enter your email" required>
+                </div>
+
+                <button type="submit" class="submit-btn" id="authSubmitBtn">Send Magic Link</button>
+                
+                <p style="text-align: center; margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                    We'll send you a magic link to sign in or create your account
+                </p>
+            </form>
+        </div>
+    </div>
+
     <!-- Shopping Cart Modal -->
     <div id="cartModal" class="modal">
         <div class="modal-content">
@@ -971,64 +1067,64 @@
             <span class="close" onclick="closeOrderForm()">&times;</span>
             <h2>Place Your Order</h2>
             
-            <div class="success-message" id="successMessage">
-                Order details captured! We'll contact you soon via your provided contact information.
+            <div class="success-message" id="orderSuccess">
+                Order details captured! We'll contact you soon.
             </div>
 
             <form id="orderForm" onsubmit="submitOrder(event)">
                 <div class="form-group">
                     <label>Product</label>
-                    <input type="text" id="product" name="product" readonly>
+                    <input type="text" id="product" readonly>
                 </div>
 
                 <div class="form-group">
                     <label>Price</label>
-                    <input type="text" id="price" name="price" readonly>
+                    <input type="text" id="price" readonly>
                 </div>
 
                 <div class="form-group">
                     <label>Full Name *</label>
-                    <input type="text" id="name" name="name" required>
+                    <input type="text" id="orderName" required>
                 </div>
 
                 <div class="form-group">
                     <label>Email *</label>
-                    <input type="email" id="email" name="email" required>
+                    <input type="email" id="orderEmail" required>
                 </div>
 
                 <div class="form-group">
                     <label>Phone Number *</label>
-                    <input type="tel" id="phone" name="phone" required>
+                    <input type="tel" id="phone" required>
                 </div>
 
                 <div class="form-group">
                     <label>Address *</label>
-                    <textarea id="address" name="address" required></textarea>
+                    <textarea id="address" required></textarea>
                 </div>
 
                 <div class="form-group">
                     <label>City *</label>
-                    <input type="text" id="city" name="city" required>
+                    <input type="text" id="city" required>
                 </div>
 
                 <div class="form-group">
                     <label>Postal Code *</label>
-                    <input type="text" id="postalCode" name="postalCode" required>
+                    <input type="text" id="postalCode" required>
                 </div>
 
                 <div class="form-group">
                     <label>State *</label>
-                    <input type="text" id="state" name="state" required>
+                    <input type="text" id="state" required>
                 </div>
 
                 <div class="form-group">
                     <label>Quantity *</label>
-                    <input type="number" id="quantity" name="quantity" min="1" required>
+                    <input type="number" id="quantity" min="1" required>
                 </div>
 
                 <div class="form-group">
                     <label>Size *</label>
-                    <select id="size" name="size" required>
+                    <select id="size" required>
                         <option value="">Select Size</option>
                         <option value="XS">XS</option>
                         <option value="S">S</option>
@@ -1042,15 +1138,15 @@
 
                 <div class="form-group">
                     <label>Custom Design Requirements</label>
-                    <textarea id="customDesign" name="customDesign" placeholder="Describe your custom design requirements (optional)"></textarea>
+                    <textarea id="customDesign" placeholder="Describe your custom design requirements (optional)"></textarea>
                 </div>
 
                 <div class="form-group">
                     <label>Additional Notes</label>
-                    <textarea id="notes" name="notes" placeholder="Any other information we should know (optional)"></textarea>
+                    <textarea id="notes" placeholder="Any other information we should know (optional)"></textarea>
                 </div>
 
-                <button type="submit" class="submit-btn" id="submitBtn">Submit Order</button>
+                <button type="submit" class="submit-btn" id="orderSubmitBtn">Submit Order</button>
             </form>
         </div>
     </div>
@@ -1063,7 +1159,118 @@
     </footer>
 
     <script>
-        // Shopping Cart Functionality
+        // Supabase Configuration - ALREADY CONFIGURED WITH YOUR CREDENTIALS
+        const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
+
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Check authentication state
+        let currentUser = null;
+
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                updateAuthUI(true);
+            } else {
+                updateAuthUI(false);
+            }
+        }
+
+        function updateAuthUI(isLoggedIn) {
+            const authSection = document.getElementById('authSection');
+            
+            if (isLoggedIn && currentUser) {
+                authSection.innerHTML = `
+                    <div class="user-menu">
+                        <span class="user-email" onclick="toggleUserMenu()">${currentUser.email}</span>
+                        <div class="dropdown-menu" id="userDropdown">
+                            <div class="dropdown-item" onclick="handleLogout()">Logout</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                authSection.innerHTML = `
+                    <button class="auth-btn" onclick="openAuthModal()">Login / Sign Up</button>
+                `;
+            }
+        }
+
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        async function handleAuth(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('authEmail').value;
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const infoMsg = document.getElementById('authInfo');
+            const errorMsg = document.getElementById('authError');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+            errorMsg.style.display = 'none';
+            infoMsg.style.display = 'none';
+
+            try {
+                const { error } = await supabase.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        emailRedirectTo: window.location.origin
+                    }
+                });
+
+                if (error) throw error;
+
+                infoMsg.textContent = `Magic link sent to ${email}! Check your inbox.`;
+                infoMsg.style.display = 'block';
+                document.getElementById('authForm').reset();
+                
+            } catch (error) {
+                errorMsg.textContent = error.message;
+                errorMsg.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Magic Link';
+            }
+        }
+
+        async function handleLogout() {
+            await supabase.auth.signOut();
+            currentUser = null;
+            updateAuthUI(false);
+            showNotification('Logged out successfully');
+        }
+
+        function openAuthModal() {
+            document.getElementById('authModal').style.display = 'block';
+            document.getElementById('authInfo').style.display = 'none';
+            document.getElementById('authError').style.display = 'none';
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+            document.getElementById('authForm').reset();
+        }
+
+        // Listen for auth changes
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN') {
+                currentUser = session.user;
+                updateAuthUI(true);
+                closeAuthModal();
+                showNotification('Welcome back!');
+            } else if (event === 'SIGNED_OUT') {
+                currentUser = null;
+                updateAuthUI(false);
+            }
+        });
+
+        // Shopping Cart
         let cart = [];
 
         function updateCartBadge() {
@@ -1079,11 +1286,7 @@
             if (existingItem) {
                 existingItem.quantity += 1;
             } else {
-                cart.push({
-                    name: productName,
-                    price: price,
-                    quantity: 1
-                });
+                cart.push({ name: productName, price: price, quantity: 1 });
             }
             
             updateCartBadge();
@@ -1095,10 +1298,7 @@
             notification.style.cssText = 'position: fixed; top: 100px; right: 30px; background: #28a745; color: white; padding: 1rem 1.5rem; border-radius: 5px; z-index: 9999; animation: slideInRight 0.3s;';
             notification.textContent = message;
             document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 2000);
+            setTimeout(() => notification.remove(), 2000);
         }
 
         function openCart() {
@@ -1165,15 +1365,18 @@
             
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             
-            alert(`Cart Items:\n${cartSummary}\n\nTotal: RM${total.toFixed(2)}\n\nPlease contact us to complete your order:\nWhatsApp: 016-800 0175\nEmail: stella.benzgifts@gmail.com`);
+            alert(`Cart Items:\n${cartSummary}\n\nTotal: RM${total.toFixed(2)}\n\nPlease contact us:\nWhatsApp: 016-800 0175\nEmail: stella.benzgifts@gmail.com`);
         }
 
-        // Order Form Functionality
         function openOrderForm(productName, price) {
             document.getElementById('product').value = productName;
             document.getElementById('price').value = price;
             document.getElementById('orderModal').style.display = 'block';
-            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('orderSuccess').style.display = 'none';
+            
+            if (currentUser) {
+                document.getElementById('orderEmail').value = currentUser.email;
+            }
         }
 
         function closeOrderForm() {
@@ -1184,19 +1387,18 @@
         window.onclick = function(event) {
             const orderModal = document.getElementById('orderModal');
             const cartModal = document.getElementById('cartModal');
-            if (event.target === orderModal) {
-                closeOrderForm();
-            }
-            if (event.target === cartModal) {
-                closeCart();
-            }
+            const authModal = document.getElementById('authModal');
+            
+            if (event.target === orderModal) closeOrderForm();
+            if (event.target === cartModal) closeCart();
+            if (event.target === authModal) closeAuthModal();
         }
 
         function submitOrder(event) {
             event.preventDefault();
             
-            const submitBtn = document.getElementById('submitBtn');
-            const successMsg = document.getElementById('successMessage');
+            const submitBtn = document.getElementById('orderSubmitBtn');
+            const successMsg = document.getElementById('orderSuccess');
             
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processing...';
@@ -1204,8 +1406,8 @@
             const formData = {
                 product: document.getElementById('product').value,
                 price: document.getElementById('price').value,
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
+                name: document.getElementById('orderName').value,
+                email: document.getElementById('orderEmail').value,
                 phone: document.getElementById('phone').value,
                 address: document.getElementById('address').value,
                 city: document.getElementById('city').value,
@@ -1215,6 +1417,7 @@
                 size: document.getElementById('size').value,
                 customDesign: document.getElementById('customDesign').value,
                 notes: document.getElementById('notes').value,
+                userEmail: currentUser ? currentUser.email : 'Guest',
                 timestamp: new Date().toLocaleString()
             };
 
@@ -1226,31 +1429,25 @@
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit Order';
                 
-                setTimeout(() => {
-                    closeOrderForm();
-                }, 3000);
+                setTimeout(() => closeOrderForm(), 3000);
             }, 1000);
         }
 
         function toggleFaq(element) {
             element.classList.toggle('active');
-            const answer = element.nextElementSibling;
-            answer.classList.toggle('active');
+            element.nextElementSibling.classList.toggle('active');
         }
 
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
         });
 
+        // Initialize
+        checkAuth();
         updateCartBadge();
     </script>
 </body>
