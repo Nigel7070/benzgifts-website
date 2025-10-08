@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benzgifts - Premium Custom T-Shirts & Apparel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .header {
+            background: #fff;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #3498db;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5rem 2rem;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .features {
+            padding: 4rem 2rem;
+            background: #f8f9fa;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 3rem;
+        }
+
+        .products {
+            padding: 4rem 2rem;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .product-image {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+
+        .product-info {
+            padding: 1.5rem;
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .product-specs {
+            list-style: none;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .product-specs li {
+            padding: 0.3rem 0;
+            padding-left: 1.2rem;
+            position: relative;
+        }
+
+        .product-specs li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .order-btn {
+            margin-top: 1rem;
+            width: 100%;
+            padding: 0.8rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .order-btn:hover {
+            background: #5568d3;
+        }
+
+        .about {
+            padding: 4rem 2rem;
+            background: #f8f9fa;
+        }
+
+        .about-content {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .about-content p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .faq {
+            padding: 4rem 2rem;
+        }
+
+        .faq-item {
+            background: white;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .faq-question {
+            padding: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .faq-answer {
+            padding: 0 1.5rem 1.5rem;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .submit-btn:hover {
+            background: #5568d3;
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .success-message {
+            background: #4caf50;
+            color: white;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .error-message {
+            background: #f44336;
+            color: white;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">Benzgifts</div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#shop">Shop</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#faq">FAQ</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero" id="home">
+        <div class="container">
+            <h1>Stand Out From The Crowd With Custom T-shirts</h1>
+            <p>Premium Quality Apparel for Your Brand</p>
+            <a href="#shop" class="cta-button">Explore Products</a>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📦</div>
+                    <h3>No Minimum Quantity</h3>
+                    <p>Order as few or as many as you need</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✨</div>
+                    <h3>Premium Workmanship</h3>
+                    <p>Superior quality in every stitch</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧵</div>
+                    <h3>Variety of Heavyweight Fabric</h3>
+                    <p>Choose from multiple premium fabrics</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✂️</div>
+                    <h3>Variety of Oversized Cutting</h3>
+                    <p>Modern fits for contemporary style</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Premium Printing Solutions</h3>
+                    <p>DTG, DTF, and silkscreen options</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="products" id="shop">
+        <div class="container">
+            <h2 class="section-title">Our Products</h2>
+            <p class="section-subtitle">Showing all 6 results</p>
+            
+            <div class="products-grid">
+                <div class="product-card">
+                    <div class="product-image">👕</div>
+                    <div class="product-info">
+                        <div class="product-price">RM30.00</div>
+                        <div class="product-name">230 GSM 100% COTTON</div>
+                        <ul class="product-specs">
+                            <li>230GSM ( 6.78 oz/yd )</li>
+                            <li>100% Ring Spun Cotton Preshrunk</li>
+                            <li>Loose Fit Cutting</li>
+                            <li>2.5CM Rib Collar</li>
+                            <li>Double Needle Sleeve and bottom hems</li>
+                            <li>Label removable</li>
+                        </ul>
+                        <button class="order-btn" onclick="openOrderForm('230 GSM 100% COTTON', 'RM30.00')">Order Now</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">👕</div>
+                    <div class="product-info">
+                        <div class="product-price">RM35.00</div>
+                        <div class="product-name">250 GSM 100% COTTON</div>
+                        <ul class="product-specs">
+                            <li>250GSM ( 7.37 oz/yd )</li>
+                            <li>100% Ring Spun Cotton Preshrunk</li>
+                            <li>Oversized Fit Cutting</li>
+                            <li>2.5CM Rib Collar</li>
+                            <li>Triple Needle Sleeve and bottom hems</li>
+                            <li>Label removable</li>
+                        </ul>
+                        <button class="order-btn" onclick="openOrderForm('250 GSM 100% COTTON', 'RM35.00')">Order Now</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">👕</div>
+                    <div class="product-info">
+                        <div class="product-price">RM45.00</div>
+                        <div class="product-name">305 GSM 100% COTTON</div>
+                        <ul class="product-specs">
+                            <li>305GSM ( 8.85 oz/yd )</li>
+                            <li>100% Ring Spun Cotton Preshrunk</li>
+                            <li>Oversized Fit Cutting</li>
+                            <li>3CM Rib Collar</li>
+                            <li>Double Needle Sleeve and bottom hems</li>
+                            <li>Label removable</li>
+                        </ul>
+                        <button class="order-btn" onclick="openOrderForm('305 GSM 100% COTTON', 'RM45.00')">Order Now</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">👕</div>
+                    <div class="product-info">
+                        <div class="product-price">RM40.00</div>
+                        <div class="product-name">240 GSM 40FC INTERLOCK</div>
+                        <ul class="product-specs">
+                            <li>240GSM ( 7.08 oz/yd )</li>
+                            <li>100% 40Thread Count Premium Interlock Cotton</li>
+                            <li>Loose Fit Cutting</li>
+                            <li>2.5CM Knit Collar</li>
+                            <li>Double Needle Sleeve and bottom hems</li>
+                            <li>Label removable</li>
+                        </ul>
+                        <button class="order-btn" onclick="openOrderForm('240 GSM 40FC INTERLOCK', 'RM40.00')">Order Now</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">👕</div>
+                    <div class="product-info">
+                        <div class="product-price">RM45.00</div>
+                        <div class="product-name">280 GMS STONE WASHED</div>
+                        <ul class="product-specs">
+                            <li>280GSM ( 8.26 oz/yd )</li>
+                            <li>100% Ring Spun Cotton / Acid Washed</li>
+                            <li>Oversized Fit Cutting</li>
+                            <li>2.5CM Rib Collar</li>
+                            <li>Double Needle Sleeve and bottom hems</li>
+                            <li>Label removable</li>
+                        </ul>
+                        <button class="order-btn" onclick="openOrderForm('280 GMS STONE WASHED', 'RM45.00')">Order Now</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">🧥</div>
+                    <div class="product-info">
+                        <div class="product-price">RM65.00</div>
+                        <div class="product-name">305 GSM PULLOVER HOODIE</div>
+                        <ul class="product-specs">
+                            <li>305GSM ( 8.85 oz/yd )</li>
+                            <li>80% Premium Cotton & 20% Polyester</li>
+                            <li>Loose Fit Cutting</li>
+                            <li>Hooded neckline</li>
+                            <li>Ribbed cuffs and hem</li>
+                            <li>Label removable</li>
+                        </ul>
+                        <button class="order-btn" onclick="openOrderForm('305 GSM PULLOVER HOODIE', 'RM65.00')">Order Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="about" id="about">
+        <div class="container">
+            <h2 class="section-title">Benzgifts: Redefining Premium T-Shirts</h2>
+            <div class="about-content">
+                <p>Benzgifts was founded with a clear mission: to offer premium quality T-shirts at accessible price points, specifically tailored for emerging clothing brands. From the outset, we differentiated ourselves through our commitment to high-quality materials, launching with an exclusive range of fabrics including Lycra Spandex and 40FC Interlock. These products quickly gained widespread acclaim for their superior feel and durability.</p>
+                
+                <p>In 2023, Benzgifts expanded its capabilities by introducing state-of-the-art DTG printing services and broadening our product line. This new collection featured 100% cotton T-shirts in 230gsm, 250gsm, and 305gsm weights, alongside our distinctive stone-washed fabrics.</p>
+                
+                <p>Through continuous innovation and a customer-centric approach, Benzgifts has become a trusted leader in the market, renowned for delivering high-quality apparel that meets the demands of today's clothing entrepreneurs.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="faq" id="faq">
+        <div class="container">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <p class="section-subtitle">Got a question? We're here to answer!</p>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    How do I place a custom order?
+                </div>
+                <div class="faq-answer">
+                    Choose from premium fabrics like 100% cotton (230gsm, 250gsm, 305gsm), 40FC Interlock, and stone-washed options. Select from DTG (Direct-to-Garment), Silkscreen, DTF (Direct-to-Film), or embroidery for your designs. Submit your own designs and mockups to us. Ensure all files are in high resolution. Choose from a range of size options. We accommodate both small and large orders. Each product undergoes strict quality checks to maintain top standards.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    What file formats do you accept?
+                </div>
+                <div class="faq-answer">
+                    We accept files in PNG, PDF, AI, PSD, and more. Please ensure the files are high resolution, have a transparent background, and are at least 300DPI.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    What is the delivery timeframe?
+                </div>
+                <div class="faq-answer">
+                    We aim to deliver products within 2 weeks. For orders of more than 500 pieces, please contact our customer support for an exact lead time.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    How can I contact customer support?
+                </div>
+                <div class="faq-answer">
+                    You can reach out to our customer support for any inquiries, and we will aim to respond promptly via WhatsApp or email.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeOrderForm()">&times;</span>
+            <h2>Place Your Order</h2>
+            
+            <div class="success-message" id="successMessage">
+                Order submitted successfully! We'll contact you soon.
+            </div>
+            <div class="error-message" id="errorMessage">
+                Something went wrong. Please try again.
+            </div>
+
+            <form id="orderForm" onsubmit="submitOrder(event)">
+                <div class="form-group">
+                    <label>Product</label>
+                    <input type="text" id="product" name="product" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Price</label>
+                    <input type="text" id="price" name="price" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Phone Number *</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Address *</label>
+                    <textarea id="address" name="address" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>City *</label>
+                    <input type="text" id="city" name="city" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Postal Code *</label>
+                    <input type="text" id="postalCode" name="postalCode" required>
+                </div>
+
+                <div class="form-group">
+                    <label>State *</label>
+                    <input type="text" id="state" name="state" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Quantity *</label>
+                    <input type="number" id="quantity" name="quantity" min="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Size *</label>
+                    <select id="size" name="size" required>
+                        <option value="">Select Size</option>
+                        <option value="XS">XS</option>
+                        <option value="S">S</option>
+                        <option value="M">M</option>
+                        <option value="L">L</option>
+                        <option value="XL">XL</option>
+                        <option value="XXL">XXL</option>
+                        <option value="3XL">3XL</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Custom Design Requirements</label>
+                    <textarea id="customDesign" name="customDesign" placeholder="Describe your custom design requirements (optional)"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Additional Notes</label>
+                    <textarea id="notes" name="notes" placeholder="Any other information we should know (optional)"></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">Submit Order</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Benzgifts. All rights reserved.</p>
+            <p>Premium Custom Apparel Solutions</p>
+        </div>
+    </footer>
+
+    <script>
+        // ⚠️ IMPORTANT: REPLACE THIS WITH YOUR GOOGLE APPS SCRIPT URL
+        // Get it from: Google Apps Script → Deploy → Manage Deployments → Copy Web App URL
+        const SCRIPT_URL = 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+
+        function openOrderForm(productName, price) {
+            document.getElementById('product').value = productName;
+            document.getElementById('price').value = price;
+            document.getElementById('orderModal').style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function closeOrderForm() {
+            document.getElementById('orderModal').style.display = 'none';
+            document.getElementById('orderForm').reset();
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('orderModal');
+            if (event.target === modal) {
+                closeOrderForm();
+            }
+        }
+
+        async function submitOrder(event) {
+            event.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            const formData = {
+                product: document.getElementById('product').value,
+                price: document.getElementById('price').value,
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                city: document.getElementById('city').value,
+                postalCode: document.getElementById('postalCode').value,
+                state: document.getElementById('state').value,
+                quantity: document.getElementById('quantity').value,
+                size: document.getElementById('size').value,
+                customDesign: document.getElementById('customDesign').value,
+                notes: document.getElementById('notes').value,
+                timestamp: new Date().toLocaleString()
+            };
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                successMsg.style.display = 'block';
+                errorMsg.style.display = 'none';
+                document.getElementById('orderForm').reset();
+                
+                setTimeout(() => {
+                    closeOrderForm();
+                }, 3000);
+            } catch (error) {
+                console.error('Error:', error);
+                errorMsg.style.display = 'block';
+                successMsg.style.display = 'none';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Order';
+            }
+        }
+    </script>
+</body>
+</html>
