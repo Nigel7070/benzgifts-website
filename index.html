@@ -1417,9 +1417,21 @@
     </footer>
 
     <script>
+        // ============================================
+        // CONFIGURATION - UPDATE THESE VALUES
+        // ============================================
+        
         // Supabase Configuration
         const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
+
+        // Google Sheets Configuration
+        // IMPORTANT: Replace this with your actual Google Apps Script Web App URL
+        const GOOGLE_SHEETS_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -1428,7 +1440,37 @@
         let selectedCartItems = new Set();
         let checkoutItems = [];
 
-        // Page Navigation
+        // ============================================
+        // GOOGLE SHEETS FUNCTIONS
+        // ============================================
+
+        async function sendToGoogleSheets(orderData) {
+            if (GOOGLE_SHEETS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+                console.warn('Google Sheets URL not configured. Skipping data submission.');
+                return false;
+            }
+
+            try {
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderData)
+                });
+                console.log('Data sent to Google Sheets successfully');
+                return true;
+            } catch (error) {
+                console.error('Error sending to Google Sheets:', error);
+                return false;
+            }
+        }
+
+        // ============================================
+        // PAGE NAVIGATION
+        // ============================================
+
         function showPage(pageName) {
             document.querySelectorAll('.page-container').forEach(page => {
                 page.classList.remove('active');
@@ -1445,15 +1487,41 @@
             }, 100);
         }
 
-        // Auth Functions
+        // ============================================
+        // AUTH FUNCTIONS
+        // ============================================
+
         async function checkAuth() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                currentUser = session.user;
-                updateAuthUI(true);
-                await loadUserProfile();
-                await loadCartFromDB();
-            } else {
+            try {
+                // Check if there's a hash in the URL (magic link callback)
+                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                if (hashParams.get('access_token')) {
+                    console.log('Magic link detected, processing authentication...');
+                    // Exchange the token
+                    const { data, error } = await supabase.auth.getSession();
+                    if (error) throw error;
+                }
+
+                // Get current session
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (session) {
+                    console.log('User authenticated:', session.user.email);
+                    currentUser = session.user;
+                    updateAuthUI(true);
+                    await loadUserProfile();
+                    await loadCartFromDB();
+                    
+                    // Clean up URL after successful auth
+                    if (window.location.hash) {
+                        window.history.replaceState(null, '', window.location.pathname);
+                    }
+                } else {
+                    console.log('No active session');
+                    updateAuthUI(false);
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
                 updateAuthUI(false);
             }
         }
@@ -1542,7 +1610,10 @@
             document.getElementById('authForm').reset();
         }
 
+        // Listen for auth state changes
         supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log('Auth state changed:', event);
+            
             if (event === 'SIGNED_IN') {
                 currentUser = session.user;
                 updateAuthUI(true);
@@ -1556,7 +1627,10 @@
             }
         });
 
-        // Profile Functions
+        // ============================================
+        // PROFILE FUNCTIONS
+        // ============================================
+
         async function showProfilePage() {
             showPage('profile');
             await loadUserProfile();
@@ -1628,7 +1702,10 @@
             }
         }
 
-        // Cart Functions
+        // ============================================
+        // CART FUNCTIONS
+        // ============================================
+
         async function addToCart(productName, price) {
             const existingItem = cart.find(item => item.name === productName);
             
@@ -1703,7 +1780,7 @@
 
         function showNotification(message) {
             const notification = document.createElement('div');
-            notification.style.cssText = 'position: fixed; top: 100px; right: 30px; background: #28a745; color: white; padding: 1rem 1.5rem; border-radius: 5px; z-index: 9999;';
+            notification.style.cssText = 'position: fixed; top: 100px; right: 30px; background: #28a745; color: white; padding: 1rem 1.5rem; border-radius: 5px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
             notification.textContent = message;
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 2000);
@@ -1808,7 +1885,10 @@
             }
         }
 
-        // Checkout Functions
+        // ============================================
+        // CHECKOUT FUNCTIONS
+        // ============================================
+
         async function proceedToCheckout() {
             if (selectedCartItems.size === 0) {
                 alert('Please select items to checkout');
@@ -1882,23 +1962,28 @@
             successMsg.style.display = 'none';
             errorMsg.style.display = 'none';
 
+            const totalAmount = checkoutItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
             const orderData = {
-                items: checkoutItems,
-                customer: {
-                    name: document.getElementById('checkoutName').value,
-                    email: document.getElementById('checkoutEmail').value,
-                    phone: document.getElementById('checkoutPhone').value,
-                    address: document.getElementById('checkoutAddress').value,
-                    city: document.getElementById('checkoutCity').value,
-                    postalCode: document.getElementById('checkoutPostalCode').value,
-                    state: document.getElementById('checkoutState').value,
-                    notes: document.getElementById('checkoutNotes').value
-                },
-                total: checkoutItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-                timestamp: new Date().toLocaleString()
+                type: 'Checkout',
+                timestamp: new Date().toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' }),
+                items: checkoutItems.map(item => `${item.name} (Qty: ${item.quantity})`).join(', '),
+                name: document.getElementById('checkoutName').value,
+                email: document.getElementById('checkoutEmail').value,
+                phone: document.getElementById('checkoutPhone').value,
+                address: document.getElementById('checkoutAddress').value,
+                city: document.getElementById('checkoutCity').value,
+                postalCode: document.getElementById('checkoutPostalCode').value,
+                state: document.getElementById('checkoutState').value,
+                notes: document.getElementById('checkoutNotes').value,
+                total: `RM${totalAmount.toFixed(2)}`,
+                userEmail: currentUser ? currentUser.email : 'Guest'
             };
 
-            console.log('Order submitted:', orderData);
+            console.log('Checkout order submitted:', orderData);
+
+            // Send to Google Sheets
+            await sendToGoogleSheets(orderData);
 
             setTimeout(async () => {
                 successMsg.textContent = 'Order placed successfully! We will contact you soon.';
@@ -1929,6 +2014,10 @@
                 }, 3000);
             }, 1500);
         }
+
+        // ============================================
+        // DIRECT ORDER FUNCTIONS
+        // ============================================
 
         async function openOrderForm(productName, price) {
             document.getElementById('product').value = productName;
@@ -1961,17 +2050,7 @@
             document.getElementById('orderForm').reset();
         }
 
-        window.onclick = function(event) {
-            const orderModal = document.getElementById('orderModal');
-            const cartModal = document.getElementById('cartModal');
-            const authModal = document.getElementById('authModal');
-            
-            if (event.target === orderModal) closeOrderForm();
-            if (event.target === cartModal) closeCart();
-            if (event.target === authModal) closeAuthModal();
-        }
-
-        function submitOrder(event) {
+        async function submitOrder(event) {
             event.preventDefault();
             
             const submitBtn = document.getElementById('orderSubmitBtn');
@@ -1980,9 +2059,10 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processing...';
             
-            const formData = {
-                product: document.getElementById('product').value,
-                price: document.getElementById('price').value,
+            const orderData = {
+                type: 'Direct Order',
+                timestamp: new Date().toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' }),
+                items: document.getElementById('product').value,
                 name: document.getElementById('orderName').value,
                 email: document.getElementById('orderEmail').value,
                 phone: document.getElementById('orderPhone').value,
@@ -1994,11 +2074,14 @@
                 size: document.getElementById('orderSize').value,
                 customDesign: document.getElementById('orderCustomDesign').value,
                 notes: document.getElementById('orderNotes').value,
-                userEmail: currentUser ? currentUser.email : 'Guest',
-                timestamp: new Date().toLocaleString()
+                total: document.getElementById('price').value,
+                userEmail: currentUser ? currentUser.email : 'Guest'
             };
 
-            console.log('Order Details:', formData);
+            console.log('Direct order submitted:', orderData);
+            
+            // Send to Google Sheets
+            await sendToGoogleSheets(orderData);
             
             setTimeout(() => {
                 successMsg.style.display = 'block';
@@ -2010,20 +2093,58 @@
             }, 1000);
         }
 
+        // ============================================
+        // FAQ TOGGLE
+        // ============================================
+
         function toggleFaq(element) {
             element.classList.toggle('active');
             element.nextElementSibling.classList.toggle('active');
         }
 
-        // Initialize
-        checkAuth();
+        // ============================================
+        // MODAL CLOSE ON OUTSIDE CLICK
+        // ============================================
+
+        window.onclick = function(event) {
+            const orderModal = document.getElementById('orderModal');
+            const cartModal = document.getElementById('cartModal');
+            const authModal = document.getElementById('authModal');
+            
+            if (event.target === orderModal) closeOrderForm();
+            if (event.target === cartModal) closeCart();
+            if (event.target === authModal) closeAuthModal();
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        // Wait for Supabase to process auth callbacks
+        setTimeout(() => {
+            checkAuth();
+        }, 100);
+        
         updateCartBadge();
 
+        // Save cart before page unload
         window.addEventListener('beforeunload', async () => {
             if (currentUser) {
                 await saveCartToDB();
             }
         });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.querySelector('.user-menu');
+            const dropdown = document.getElementById('userDropdown');
+            
+            if (userMenu && dropdown && !userMenu.contains(event.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+
+        console.log('Benzgifts website loaded successfully!');
     </script>
 </body>
 </html>
