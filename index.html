@@ -880,6 +880,9 @@
                 <li><a onclick="scrollToSection('about')">About</a></li>
                 <li><a onclick="scrollToSection('faq')">FAQ</a></li>
                 <li><a onclick="scrollToSection('contact')">Contact</a></li>
+                <li id="adminNavLink" style="display: none;">
+                    <a onclick="goToAdminPanel()" style="color: #667eea; font-weight: 600;">⚙️ Admin</a>
+                </li>
                 <li id="authSection">
                     <button class="auth-btn" onclick="openAuthModal()">Login / Sign Up</button>
                 </li>
@@ -1428,6 +1431,9 @@
         // Google Sheets Configuration
         const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzkdMCh4wtgoSLd4PwGg4Sr2cI4eUG-L-8PrweNGjTtSglGyzb-43aw68Tb-FbJabI1/exec';
 
+        // Admin emails
+        const ADMIN_EMAILS = ['stella.benzgifts@gmail.com', 'himynameisblink123@gmail.com'];
+
         // ============================================
         // INITIALIZATION
         // ============================================
@@ -1527,6 +1533,7 @@
 
         function updateAuthUI(isLoggedIn) {
             const authSection = document.getElementById('authSection');
+            const adminNavLink = document.getElementById('adminNavLink');
             
             if (isLoggedIn && currentUser) {
                 authSection.innerHTML = `
@@ -1538,11 +1545,23 @@
                         </div>
                     </div>
                 `;
+                
+                // Show admin link if user is admin
+                if (ADMIN_EMAILS.includes(currentUser.email)) {
+                    adminNavLink.style.display = 'block';
+                } else {
+                    adminNavLink.style.display = 'none';
+                }
             } else {
                 authSection.innerHTML = `
                     <button class="auth-btn" onclick="openAuthModal()">Login / Sign Up</button>
                 `;
+                adminNavLink.style.display = 'none';
             }
+        }
+
+        function goToAdminPanel() {
+            window.location.href = 'admin.html';
         }
 
         function toggleUserMenu() {
