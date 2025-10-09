@@ -43,6 +43,7 @@
             font-size: 1.8rem;
             font-weight: bold;
             color: #2c3e50;
+            cursor: pointer;
         }
 
         .nav-links {
@@ -57,6 +58,7 @@
             color: #555;
             font-weight: 500;
             transition: color 0.3s;
+            cursor: pointer;
         }
 
         .nav-links a:hover {
@@ -109,10 +111,23 @@
             padding: 0.8rem 1rem;
             cursor: pointer;
             transition: background 0.3s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
         }
 
         .dropdown-item:hover {
             background: #f8f9fa;
+        }
+
+        .page-container {
+            display: none;
+        }
+
+        .page-container.active {
+            display: block;
         }
 
         .hero {
@@ -620,6 +635,10 @@
             gap: 1rem;
         }
 
+        .cart-item-select {
+            margin-right: 0.5rem;
+        }
+
         .cart-item-info {
             flex: 1;
         }
@@ -706,10 +725,39 @@
             background: #218838;
         }
 
+        .checkout-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
         .empty-cart {
             text-align: center;
             padding: 2rem;
             color: #999;
+        }
+
+        .profile-container {
+            max-width: 800px;
+            margin: 4rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .profile-header h1 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-form {
+            display: grid;
+            gap: 1.5rem;
         }
 
         @media (max-width: 768px) {
@@ -749,13 +797,13 @@
 <body>
     <header class="header">
         <nav class="nav">
-            <div class="logo">Benzgifts</div>
+            <div class="logo" onclick="showPage('home')">Benzgifts</div>
             <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#shop">Shop</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#faq">FAQ</a></li>
-                <li><a href="#contact">Contact</a></li>
+                <li><a onclick="showPage('home')">Home</a></li>
+                <li><a onclick="scrollToSection('shop')">Shop</a></li>
+                <li><a onclick="scrollToSection('about')">About</a></li>
+                <li><a onclick="scrollToSection('faq')">FAQ</a></li>
+                <li><a onclick="scrollToSection('contact')">Contact</a></li>
                 <li id="authSection">
                     <button class="auth-btn" onclick="openAuthModal()">Login / Sign Up</button>
                 </li>
@@ -768,251 +816,306 @@
         <span class="cart-badge" id="cartBadge">0</span>
     </button>
 
-    <section class="hero" id="home">
-        <div class="container">
-            <h1>Stand Out From The Crowd With Custom T-shirts</h1>
-            <p>Premium Quality Apparel for Your Brand</p>
-            <a href="#shop" class="cta-button">Explore Products</a>
-        </div>
-    </section>
-
-    <section class="features">
-        <div class="container">
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">📦</div>
-                    <h3>No Minimum Quantity</h3>
-                    <p>Order as few or as many as you need</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">✨</div>
-                    <h3>Premium Workmanship</h3>
-                    <p>Superior quality in every stitch</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🧵</div>
-                    <h3>Variety of Heavyweight Fabric</h3>
-                    <p>Choose from multiple premium fabrics</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">✂️</div>
-                    <h3>Variety of Oversized Cutting</h3>
-                    <p>Modern fits for contemporary style</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🎨</div>
-                    <h3>Premium Printing Solutions</h3>
-                    <p>DTG, DTF, and silkscreen options</p>
-                </div>
+    <!-- HOME PAGE -->
+    <div id="homePage" class="page-container active">
+        <section class="hero" id="home">
+            <div class="container">
+                <h1>Stand Out From The Crowd With Custom T-shirts</h1>
+                <p>Premium Quality Apparel for Your Brand</p>
+                <a onclick="scrollToSection('shop')" class="cta-button" style="cursor: pointer;">Explore Products</a>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="products" id="shop">
-        <div class="container">
-            <h2 class="section-title">Our Products</h2>
-            <p class="section-subtitle">Showing all 6 results</p>
-            
-            <div class="products-grid">
-                <div class="product-card">
-                    <div class="product-image">👕</div>
-                    <div class="product-info">
-                        <div class="product-price">RM30.00</div>
-                        <div class="product-name">230 GSM 100% COTTON</div>
-                        <ul class="product-specs">
-                            <li>230GSM ( 6.78 oz/yd )</li>
-                            <li>100% Ring Spun Cotton Preshrunk</li>
-                            <li>Loose Fit Cutting</li>
-                            <li>2.5CM Rib Collar</li>
-                            <li>Double Needle Sleeve and bottom hems</li>
-                            <li>Label removable</li>
-                        </ul>
-                        <div class="product-actions">
-                            <button class="add-cart-btn" onclick="addToCart('230 GSM 100% COTTON', 30.00)">Add to Cart</button>
-                            <button class="order-btn" onclick="openOrderForm('230 GSM 100% COTTON', 'RM30.00')">Order Now</button>
-                        </div>
+        <section class="features">
+            <div class="container">
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📦</div>
+                        <h3>No Minimum Quantity</h3>
+                        <p>Order as few or as many as you need</p>
                     </div>
-                </div>
-
-                <div class="product-card">
-                    <div class="product-image">👕</div>
-                    <div class="product-info">
-                        <div class="product-price">RM35.00</div>
-                        <div class="product-name">250 GSM 100% COTTON</div>
-                        <ul class="product-specs">
-                            <li>250GSM ( 7.37 oz/yd )</li>
-                            <li>100% Ring Spun Cotton Preshrunk</li>
-                            <li>Oversized Fit Cutting</li>
-                            <li>2.5CM Rib Collar</li>
-                            <li>Triple Needle Sleeve and bottom hems</li>
-                            <li>Label removable</li>
-                        </ul>
-                        <div class="product-actions">
-                            <button class="add-cart-btn" onclick="addToCart('250 GSM 100% COTTON', 35.00)">Add to Cart</button>
-                            <button class="order-btn" onclick="openOrderForm('250 GSM 100% COTTON', 'RM35.00')">Order Now</button>
-                        </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">✨</div>
+                        <h3>Premium Workmanship</h3>
+                        <p>Superior quality in every stitch</p>
                     </div>
-                </div>
-
-                <div class="product-card">
-                    <div class="product-image">👕</div>
-                    <div class="product-info">
-                        <div class="product-price">RM45.00</div>
-                        <div class="product-name">305 GSM 100% COTTON</div>
-                        <ul class="product-specs">
-                            <li>305GSM ( 8.85 oz/yd )</li>
-                            <li>100% Ring Spun Cotton Preshrunk</li>
-                            <li>Oversized Fit Cutting</li>
-                            <li>3CM Rib Collar</li>
-                            <li>Double Needle Sleeve and bottom hems</li>
-                            <li>Label removable</li>
-                        </ul>
-                        <div class="product-actions">
-                            <button class="add-cart-btn" onclick="addToCart('305 GSM 100% COTTON', 45.00)">Add to Cart</button>
-                            <button class="order-btn" onclick="openOrderForm('305 GSM 100% COTTON', 'RM45.00')">Order Now</button>
-                        </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🧵</div>
+                        <h3>Variety of Heavyweight Fabric</h3>
+                        <p>Choose from multiple premium fabrics</p>
                     </div>
-                </div>
-
-                <div class="product-card">
-                    <div class="product-image">👕</div>
-                    <div class="product-info">
-                        <div class="product-price">RM40.00</div>
-                        <div class="product-name">240 GSM 40FC INTERLOCK</div>
-                        <ul class="product-specs">
-                            <li>240GSM ( 7.08 oz/yd )</li>
-                            <li>100% 40Thread Count Premium Interlock Cotton</li>
-                            <li>Loose Fit Cutting</li>
-                            <li>2.5CM Knit Collar</li>
-                            <li>Double Needle Sleeve and bottom hems</li>
-                            <li>Label removable</li>
-                        </ul>
-                        <div class="product-actions">
-                            <button class="add-cart-btn" onclick="addToCart('240 GSM 40FC INTERLOCK', 40.00)">Add to Cart</button>
-                            <button class="order-btn" onclick="openOrderForm('240 GSM 40FC INTERLOCK', 'RM40.00')">Order Now</button>
-                        </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">✂️</div>
+                        <h3>Variety of Oversized Cutting</h3>
+                        <p>Modern fits for contemporary style</p>
                     </div>
-                </div>
-
-                <div class="product-card">
-                    <div class="product-image">👕</div>
-                    <div class="product-info">
-                        <div class="product-price">RM45.00</div>
-                        <div class="product-name">280 GMS STONE WASHED</div>
-                        <ul class="product-specs">
-                            <li>280GSM ( 8.26 oz/yd )</li>
-                            <li>100% Ring Spun Cotton / Acid Washed</li>
-                            <li>Oversized Fit Cutting</li>
-                            <li>2.5CM Rib Collar</li>
-                            <li>Double Needle Sleeve and bottom hems</li>
-                            <li>Label removable</li>
-                        </ul>
-                        <div class="product-actions">
-                            <button class="add-cart-btn" onclick="addToCart('280 GMS STONE WASHED', 45.00)">Add to Cart</button>
-                            <button class="order-btn" onclick="openOrderForm('280 GMS STONE WASHED', 'RM45.00')">Order Now</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card">
-                    <div class="product-image">🧥</div>
-                    <div class="product-info">
-                        <div class="product-price">RM65.00</div>
-                        <div class="product-name">305 GSM PULLOVER HOODIE</div>
-                        <ul class="product-specs">
-                            <li>305GSM ( 8.85 oz/yd )</li>
-                            <li>80% Premium Cotton & 20% Polyester</li>
-                            <li>Loose Fit Cutting</li>
-                            <li>Hooded neckline</li>
-                            <li>Ribbed cuffs and hem</li>
-                            <li>Label removable</li>
-                        </ul>
-                        <div class="product-actions">
-                            <button class="add-cart-btn" onclick="addToCart('305 GSM PULLOVER HOODIE', 65.00)">Add to Cart</button>
-                            <button class="order-btn" onclick="openOrderForm('305 GSM PULLOVER HOODIE', 'RM65.00')">Order Now</button>
-                        </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎨</div>
+                        <h3>Premium Printing Solutions</h3>
+                        <p>DTG, DTF, and silkscreen options</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="about" id="about">
-        <div class="container">
-            <h2 class="section-title">Benzgifts: Redefining Premium T-Shirts</h2>
-            <div class="about-content">
-                <p>Benzgifts was founded with a clear mission: to offer premium quality T-shirts at accessible price points, specifically tailored for emerging clothing brands. From the outset, we differentiated ourselves through our commitment to high-quality materials, launching with an exclusive range of fabrics including Lycra Spandex and 40FC Interlock. These products quickly gained widespread acclaim for their superior feel and durability.</p>
+        <section class="products" id="shop">
+            <div class="container">
+                <h2 class="section-title">Our Products</h2>
+                <p class="section-subtitle">Showing all 6 results</p>
                 
-                <p>In 2023, Benzgifts expanded its capabilities by introducing state-of-the-art DTG printing services and broadening our product line. This new collection featured 100% cotton T-shirts in 230gsm, 250gsm, and 305gsm weights, alongside our distinctive stone-washed fabrics.</p>
+                <div class="products-grid">
+                    <div class="product-card">
+                        <div class="product-image">👕</div>
+                        <div class="product-info">
+                            <div class="product-price">RM30.00</div>
+                            <div class="product-name">230 GSM 100% COTTON</div>
+                            <ul class="product-specs">
+                                <li>230GSM ( 6.78 oz/yd )</li>
+                                <li>100% Ring Spun Cotton Preshrunk</li>
+                                <li>Loose Fit Cutting</li>
+                                <li>2.5CM Rib Collar</li>
+                                <li>Double Needle Sleeve and bottom hems</li>
+                                <li>Label removable</li>
+                            </ul>
+                            <div class="product-actions">
+                                <button class="add-cart-btn" onclick="addToCart('230 GSM 100% COTTON', 30.00)">Add to Cart</button>
+                                <button class="order-btn" onclick="openOrderForm('230 GSM 100% COTTON', 'RM30.00')">Order Now</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="product-image">👕</div>
+                        <div class="product-info">
+                            <div class="product-price">RM35.00</div>
+                            <div class="product-name">250 GSM 100% COTTON</div>
+                            <ul class="product-specs">
+                                <li>250GSM ( 7.37 oz/yd )</li>
+                                <li>100% Ring Spun Cotton Preshrunk</li>
+                                <li>Oversized Fit Cutting</li>
+                                <li>2.5CM Rib Collar</li>
+                                <li>Triple Needle Sleeve and bottom hems</li>
+                                <li>Label removable</li>
+                            </ul>
+                            <div class="product-actions">
+                                <button class="add-cart-btn" onclick="addToCart('250 GSM 100% COTTON', 35.00)">Add to Cart</button>
+                                <button class="order-btn" onclick="openOrderForm('250 GSM 100% COTTON', 'RM35.00')">Order Now</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="product-image">👕</div>
+                        <div class="product-info">
+                            <div class="product-price">RM45.00</div>
+                            <div class="product-name">305 GSM 100% COTTON</div>
+                            <ul class="product-specs">
+                                <li>305GSM ( 8.85 oz/yd )</li>
+                                <li>100% Ring Spun Cotton Preshrunk</li>
+                                <li>Oversized Fit Cutting</li>
+                                <li>3CM Rib Collar</li>
+                                <li>Double Needle Sleeve and bottom hems</li>
+                                <li>Label removable</li>
+                            </ul>
+                            <div class="product-actions">
+                                <button class="add-cart-btn" onclick="addToCart('305 GSM 100% COTTON', 45.00)">Add to Cart</button>
+                                <button class="order-btn" onclick="openOrderForm('305 GSM 100% COTTON', 'RM45.00')">Order Now</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="product-image">👕</div>
+                        <div class="product-info">
+                            <div class="product-price">RM40.00</div>
+                            <div class="product-name">240 GSM 40FC INTERLOCK</div>
+                            <ul class="product-specs">
+                                <li>240GSM ( 7.08 oz/yd )</li>
+                                <li>100% 40Thread Count Premium Interlock Cotton</li>
+                                <li>Loose Fit Cutting</li>
+                                <li>2.5CM Knit Collar</li>
+                                <li>Double Needle Sleeve and bottom hems</li>
+                                <li>Label removable</li>
+                            </ul>
+                            <div class="product-actions">
+                                <button class="add-cart-btn" onclick="addToCart('240 GSM 40FC INTERLOCK', 40.00)">Add to Cart</button>
+                                <button class="order-btn" onclick="openOrderForm('240 GSM 40FC INTERLOCK', 'RM40.00')">Order Now</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="product-image">👕</div>
+                        <div class="product-info">
+                            <div class="product-price">RM45.00</div>
+                            <div class="product-name">280 GMS STONE WASHED</div>
+                            <ul class="product-specs">
+                                <li>280GSM ( 8.26 oz/yd )</li>
+                                <li>100% Ring Spun Cotton / Acid Washed</li>
+                                <li>Oversized Fit Cutting</li>
+                                <li>2.5CM Rib Collar</li>
+                                <li>Double Needle Sleeve and bottom hems</li>
+                                <li>Label removable</li>
+                            </ul>
+                            <div class="product-actions">
+                                <button class="add-cart-btn" onclick="addToCart('280 GMS STONE WASHED', 45.00)">Add to Cart</button>
+                                <button class="order-btn" onclick="openOrderForm('280 GMS STONE WASHED', 'RM45.00')">Order Now</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="product-image">🧥</div>
+                        <div class="product-info">
+                            <div class="product-price">RM65.00</div>
+                            <div class="product-name">305 GSM PULLOVER HOODIE</div>
+                            <ul class="product-specs">
+                                <li>305GSM ( 8.85 oz/yd )</li>
+                                <li>80% Premium Cotton & 20% Polyester</li>
+                                <li>Loose Fit Cutting</li>
+                                <li>Hooded neckline</li>
+                                <li>Ribbed cuffs and hem</li>
+                                <li>Label removable</li>
+                            </ul>
+                            <div class="product-actions">
+                                <button class="add-cart-btn" onclick="addToCart('305 GSM PULLOVER HOODIE', 65.00)">Add to Cart</button>
+                                <button class="order-btn" onclick="openOrderForm('305 GSM PULLOVER HOODIE', 'RM65.00')">Order Now</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="about" id="about">
+            <div class="container">
+                <h2 class="section-title">Benzgifts: Redefining Premium T-Shirts</h2>
+                <div class="about-content">
+                    <p>Benzgifts was founded with a clear mission: to offer premium quality T-shirts at accessible price points, specifically tailored for emerging clothing brands. From the outset, we differentiated ourselves through our commitment to high-quality materials, launching with an exclusive range of fabrics including Lycra Spandex and 40FC Interlock. These products quickly gained widespread acclaim for their superior feel and durability.</p>
+                    
+                    <p>In 2023, Benzgifts expanded its capabilities by introducing state-of-the-art DTG printing services and broadening our product line. This new collection featured 100% cotton T-shirts in 230gsm, 250gsm, and 305gsm weights, alongside our distinctive stone-washed fabrics.</p>
+                    
+                    <p>Through continuous innovation and a customer-centric approach, Benzgifts has become a trusted leader in the market, renowned for delivering high-quality apparel that meets the demands of today's clothing entrepreneurs.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="faq" id="faq">
+            <div class="container">
+                <h2 class="section-title">Frequently Asked Questions</h2>
+                <p class="section-subtitle">Got a question? We're here to answer!</p>
                 
-                <p>Through continuous innovation and a customer-centric approach, Benzgifts has become a trusted leader in the market, renowned for delivering high-quality apparel that meets the demands of today's clothing entrepreneurs.</p>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        How do I place a custom order?
+                    </div>
+                    <div class="faq-answer">
+                        Choose from premium fabrics like 100% cotton (230gsm, 250gsm, 305gsm), 40FC Interlock, and stone-washed options. Select from DTG (Direct-to-Garment), Silkscreen, DTF (Direct-to-Film), or embroidery for your designs. Submit your own designs and mockups to us. Ensure all files are in high resolution. Choose from a range of size options. We accommodate both small and large orders. Each product undergoes strict quality checks to maintain top standards.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        What file formats do you accept?
+                    </div>
+                    <div class="faq-answer">
+                        We accept files in PNG, PDF, AI, PSD, and more. Please ensure the files are high resolution, have a transparent background, and are at least 300DPI.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        What is the delivery timeframe?
+                    </div>
+                    <div class="faq-answer">
+                        We aim to deliver products within 2 weeks. For orders of more than 500 pieces, please contact our customer support for an exact lead time.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        How can I contact customer support?
+                    </div>
+                    <div class="faq-answer">
+                        You can reach out to our customer support for any inquiries, and we will aim to respond promptly via WhatsApp or email.
+                    </div>
+                </div>
             </div>
+        </section>
+
+        <section class="contact-info" id="contact">
+            <div class="container">
+                <h2>Get In Touch</h2>
+                <p>Contact us for custom orders and inquiries</p>
+                <div class="contact-methods">
+                    <div class="contact-method">
+                        <h3>📧 Email</h3>
+                        <p>stella.benzgifts@gmail.com</p>
+                    </div>
+                    <div class="contact-method">
+                        <h3>📱 WhatsApp</h3>
+                        <p>016-800 0175</p>
+                    </div>
+                    <div class="contact-method">
+                        <h3>📍 Location</h3>
+                        <p>Sibu, Sarawak</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- PROFILE PAGE -->
+    <div id="profilePage" class="page-container">
+        <div class="profile-container">
+            <div class="profile-header">
+                <h1>My Profile</h1>
+                <p style="color: #666;">Manage your personal information</p>
+            </div>
+
+            <div class="success-message" id="profileSuccess"></div>
+            <div class="error-message" id="profileError"></div>
+
+            <form id="profileForm" class="profile-form" onsubmit="saveProfile(event)">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="profileEmail" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="profileName" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Phone Number *</label>
+                    <input type="tel" id="profilePhone" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Address *</label>
+                    <textarea id="profileAddress" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>City *</label>
+                    <input type="text" id="profileCity" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Postal Code *</label>
+                    <input type="text" id="profilePostalCode" required>
+                </div>
+
+                <div class="form-group">
+                    <label>State *</label>
+                    <input type="text" id="profileState" required>
+                </div>
+
+                <button type="submit" class="submit-btn" id="profileSubmitBtn">Save Profile</button>
+            </form>
         </div>
-    </section>
-
-    <section class="faq" id="faq">
-        <div class="container">
-            <h2 class="section-title">Frequently Asked Questions</h2>
-            <p class="section-subtitle">Got a question? We're here to answer!</p>
-            
-            <div class="faq-item">
-                <div class="faq-question" onclick="toggleFaq(this)">
-                    How do I place a custom order?
-                </div>
-                <div class="faq-answer">
-                    Choose from premium fabrics like 100% cotton (230gsm, 250gsm, 305gsm), 40FC Interlock, and stone-washed options. Select from DTG (Direct-to-Garment), Silkscreen, DTF (Direct-to-Film), or embroidery for your designs. Submit your own designs and mockups to us. Ensure all files are in high resolution. Choose from a range of size options. We accommodate both small and large orders. Each product undergoes strict quality checks to maintain top standards.
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question" onclick="toggleFaq(this)">
-                    What file formats do you accept?
-                </div>
-                <div class="faq-answer">
-                    We accept files in PNG, PDF, AI, PSD, and more. Please ensure the files are high resolution, have a transparent background, and are at least 300DPI.
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question" onclick="toggleFaq(this)">
-                    What is the delivery timeframe?
-                </div>
-                <div class="faq-answer">
-                    We aim to deliver products within 2 weeks. For orders of more than 500 pieces, please contact our customer support for an exact lead time.
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question" onclick="toggleFaq(this)">
-                    How can I contact customer support?
-                </div>
-                <div class="faq-answer">
-                    You can reach out to our customer support for any inquiries, and we will aim to respond promptly via WhatsApp or email.
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="contact-info" id="contact">
-        <div class="container">
-            <h2>Get In Touch</h2>
-            <p>Contact us for custom orders and inquiries</p>
-            <div class="contact-methods">
-                <div class="contact-method">
-                    <h3>📧 Email</h3>
-                    <p>stella.benzgifts@gmail.com</p>
-                </div>
-                <div class="contact-method">
-                    <h3>📱 WhatsApp</h3>
-                    <p>016-800 0175</p>
-                </div>
-                <div class="contact-method">
-                    <h3>📍 Location</h3>
-                    <p>Sibu, Sarawak</p>
-                </div>
-            </div>
-        </div>
-    </section>
+    </div>
 
     <!-- Auth Modal -->
     <div id="authModal" class="modal">
@@ -1050,13 +1153,13 @@
             </div>
 
             <div class="cart-total" id="cartTotalSection" style="display: none;">
-                <span class="cart-total-label">Total: </span>
+                <span class="cart-total-label">Total (Selected): </span>
                 <span class="cart-total-amount" id="cartTotal">RM0.00</span>
             </div>
 
             <div class="cart-actions" id="cartActions" style="display: none;">
                 <button class="clear-cart-btn" onclick="clearCart()">Clear Cart</button>
-                <button class="checkout-btn" onclick="checkoutCart()">Checkout</button>
+                <button class="checkout-btn" onclick="checkoutCart()" id="checkoutBtn">Checkout</button>
             </div>
         </div>
     </div>
@@ -1094,37 +1197,37 @@
 
                 <div class="form-group">
                     <label>Phone Number *</label>
-                    <input type="tel" id="phone" required>
+                    <input type="tel" id="orderPhone" required>
                 </div>
 
                 <div class="form-group">
                     <label>Address *</label>
-                    <textarea id="address" required></textarea>
+                    <textarea id="orderAddress" required></textarea>
                 </div>
 
                 <div class="form-group">
                     <label>City *</label>
-                    <input type="text" id="city" required>
+                    <input type="text" id="orderCity" required>
                 </div>
 
                 <div class="form-group">
                     <label>Postal Code *</label>
-                    <input type="text" id="postalCode" required>
+                    <input type="text" id="orderPostalCode" required>
                 </div>
 
                 <div class="form-group">
                     <label>State *</label>
-                    <input type="text" id="state" required>
+                    <input type="text" id="orderState" required>
                 </div>
 
                 <div class="form-group">
                     <label>Quantity *</label>
-                    <input type="number" id="quantity" min="1" required>
+                    <input type="number" id="orderQuantity" min="1" required>
                 </div>
 
                 <div class="form-group">
                     <label>Size *</label>
-                    <select id="size" required>
+                    <select id="orderSize" required>
                         <option value="">Select Size</option>
                         <option value="XS">XS</option>
                         <option value="S">S</option>
@@ -1138,12 +1241,12 @@
 
                 <div class="form-group">
                     <label>Custom Design Requirements</label>
-                    <textarea id="customDesign" placeholder="Describe your custom design requirements (optional)"></textarea>
+                    <textarea id="orderCustomDesign" placeholder="Describe your custom design requirements (optional)"></textarea>
                 </div>
 
                 <div class="form-group">
                     <label>Additional Notes</label>
-                    <textarea id="notes" placeholder="Any other information we should know (optional)"></textarea>
+                    <textarea id="orderNotes" placeholder="Any other information we should know (optional)"></textarea>
                 </div>
 
                 <button type="submit" class="submit-btn" id="orderSubmitBtn">Submit Order</button>
@@ -1159,21 +1262,41 @@
     </footer>
 
     <script>
-        // Supabase Configuration - ALREADY CONFIGURED WITH YOUR CREDENTIALS
+        // Supabase Configuration
         const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
 
-        // Initialize Supabase client
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Check authentication state
         let currentUser = null;
+        let cart = [];
+        let selectedCartItems = new Set();
 
+        // Page Navigation
+        function showPage(pageName) {
+            document.querySelectorAll('.page-container').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageName + 'Page').classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function scrollToSection(sectionId) {
+            showPage('home');
+            setTimeout(() => {
+                const element = document.getElementById(sectionId);
+                if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        // Auth Functions
         async function checkAuth() {
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 currentUser = session.user;
                 updateAuthUI(true);
+                await loadUserProfile();
+                await loadCartFromDB();
             } else {
                 updateAuthUI(false);
             }
@@ -1187,6 +1310,7 @@
                     <div class="user-menu">
                         <span class="user-email" onclick="toggleUserMenu()">${currentUser.email}</span>
                         <div class="dropdown-menu" id="userDropdown">
+                            <div class="dropdown-item" onclick="showProfilePage()">My Profile</div>
                             <div class="dropdown-item" onclick="handleLogout()">Logout</div>
                         </div>
                     </div>
@@ -1240,9 +1364,14 @@
         }
 
         async function handleLogout() {
+            await saveCartToDB();
             await supabase.auth.signOut();
             currentUser = null;
+            cart = [];
+            selectedCartItems.clear();
             updateAuthUI(false);
+            updateCartBadge();
+            showPage('home');
             showNotification('Logged out successfully');
         }
 
@@ -1257,12 +1386,13 @@
             document.getElementById('authForm').reset();
         }
 
-        // Listen for auth changes
-        supabase.auth.onAuthStateChange((event, session) => {
+        supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN') {
                 currentUser = session.user;
                 updateAuthUI(true);
                 closeAuthModal();
+                await loadUserProfile();
+                await loadCartFromDB();
                 showNotification('Welcome back!');
             } else if (event === 'SIGNED_OUT') {
                 currentUser = null;
@@ -1270,17 +1400,80 @@
             }
         });
 
-        // Shopping Cart
-        let cart = [];
-
-        function updateCartBadge() {
-            const badge = document.getElementById('cartBadge');
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            badge.textContent = totalItems;
-            badge.style.display = totalItems > 0 ? 'flex' : 'none';
+        // Profile Functions
+        async function showProfilePage() {
+            showPage('profile');
+            await loadUserProfile();
         }
 
-        function addToCart(productName, price) {
+        async function loadUserProfile() {
+            if (!currentUser) return;
+
+            document.getElementById('profileEmail').value = currentUser.email;
+
+            const { data, error } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+
+            if (data) {
+                document.getElementById('profileName').value = data.full_name || '';
+                document.getElementById('profilePhone').value = data.phone || '';
+                document.getElementById('profileAddress').value = data.address || '';
+                document.getElementById('profileCity').value = data.city || '';
+                document.getElementById('profilePostalCode').value = data.postal_code || '';
+                document.getElementById('profileState').value = data.state || '';
+            }
+        }
+
+        async function saveProfile(event) {
+            event.preventDefault();
+            
+            const submitBtn = document.getElementById('profileSubmitBtn');
+            const successMsg = document.getElementById('profileSuccess');
+            const errorMsg = document.getElementById('profileError');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+            successMsg.style.display = 'none';
+            errorMsg.style.display = 'none';
+
+            const profileData = {
+                id: currentUser.id,
+                full_name: document.getElementById('profileName').value,
+                phone: document.getElementById('profilePhone').value,
+                address: document.getElementById('profileAddress').value,
+                city: document.getElementById('profileCity').value,
+                postal_code: document.getElementById('profilePostalCode').value,
+                state: document.getElementById('profileState').value,
+                updated_at: new Date().toISOString()
+            };
+
+            try {
+                const { error } = await supabase
+                    .from('user_profiles')
+                    .upsert(profileData);
+
+                if (error) throw error;
+
+                successMsg.textContent = 'Profile saved successfully!';
+                successMsg.style.display = 'block';
+                
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 3000);
+            } catch (error) {
+                errorMsg.textContent = error.message;
+                errorMsg.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Profile';
+            }
+        }
+
+        // Cart Functions with Database
+        async function addToCart(productName, price) {
             const existingItem = cart.find(item => item.name === productName);
             
             if (existingItem) {
@@ -1291,6 +1484,67 @@
             
             updateCartBadge();
             showNotification(`${productName} added to cart!`);
+            
+            if (currentUser) {
+                await saveCartToDB();
+            }
+        }
+
+        async function saveCartToDB() {
+            if (!currentUser) return;
+
+            try {
+                // Delete existing cart items
+                await supabase
+                    .from('cart_items')
+                    .delete()
+                    .eq('user_id', currentUser.id);
+
+                // Insert new cart items
+                if (cart.length > 0) {
+                    const cartItems = cart.map(item => ({
+                        user_id: currentUser.id,
+                        product_name: item.name,
+                        product_price: item.price,
+                        quantity: item.quantity
+                    }));
+
+                    await supabase
+                        .from('cart_items')
+                        .insert(cartItems);
+                }
+            } catch (error) {
+                console.error('Error saving cart:', error);
+            }
+        }
+
+        async function loadCartFromDB() {
+            if (!currentUser) return;
+
+            try {
+                const { data, error } = await supabase
+                    .from('cart_items')
+                    .select('*')
+                    .eq('user_id', currentUser.id);
+
+                if (data) {
+                    cart = data.map(item => ({
+                        name: item.product_name,
+                        price: parseFloat(item.product_price),
+                        quantity: item.quantity
+                    }));
+                    updateCartBadge();
+                }
+            } catch (error) {
+                console.error('Error loading cart:', error);
+            }
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cartBadge');
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            badge.textContent = totalItems;
+            badge.style.display = totalItems > 0 ? 'flex' : 'none';
         }
 
         function showNotification(message) {
@@ -1306,6 +1560,7 @@
             const cartItemsDiv = document.getElementById('cartItems');
             const totalSection = document.getElementById('cartTotalSection');
             const actionsSection = document.getElementById('cartActions');
+            const checkoutBtn = document.getElementById('checkoutBtn');
             
             if (cart.length === 0) {
                 cartItemsDiv.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
@@ -1313,13 +1568,15 @@
                 actionsSection.style.display = 'none';
             } else {
                 let itemsHtml = '';
-                let total = 0;
                 
                 cart.forEach((item, index) => {
                     const itemTotal = item.price * item.quantity;
-                    total += itemTotal;
+                    const isSelected = selectedCartItems.has(index);
                     itemsHtml += `
                         <div class="cart-item">
+                            <input type="checkbox" class="cart-item-select" 
+                                   ${isSelected ? 'checked' : ''} 
+                                   onchange="toggleCartItem(${index})">
                             <div class="cart-item-info">
                                 <div class="cart-item-name">${item.name}</div>
                                 <div class="cart-item-price">RM${item.price.toFixed(2)} x ${item.quantity} = RM${itemTotal.toFixed(2)}</div>
@@ -1330,45 +1587,95 @@
                 });
                 
                 cartItemsDiv.innerHTML = itemsHtml;
-                document.getElementById('cartTotal').textContent = `RM${total.toFixed(2)}`;
+                updateCartTotal();
                 totalSection.style.display = 'block';
                 actionsSection.style.display = 'flex';
+                checkoutBtn.disabled = selectedCartItems.size === 0;
             }
             
             modal.style.display = 'block';
+        }
+
+        function toggleCartItem(index) {
+            if (selectedCartItems.has(index)) {
+                selectedCartItems.delete(index);
+            } else {
+                selectedCartItems.add(index);
+            }
+            updateCartTotal();
+            document.getElementById('checkoutBtn').disabled = selectedCartItems.size === 0;
+        }
+
+        function updateCartTotal() {
+            let total = 0;
+            selectedCartItems.forEach(index => {
+                const item = cart[index];
+                total += item.price * item.quantity;
+            });
+            document.getElementById('cartTotal').textContent = `RM${total.toFixed(2)}`;
         }
 
         function closeCart() {
             document.getElementById('cartModal').style.display = 'none';
         }
 
-        function removeFromCart(index) {
+        async function removeFromCart(index) {
             cart.splice(index, 1);
+            selectedCartItems.delete(index);
+            
+            // Rebuild selected items set with new indices
+            const newSelected = new Set();
+            selectedCartItems.forEach(oldIndex => {
+                if (oldIndex > index) {
+                    newSelected.add(oldIndex - 1);
+                } else if (oldIndex < index) {
+                    newSelected.add(oldIndex);
+                }
+            });
+            selectedCartItems = newSelected;
+            
             updateCartBadge();
             openCart();
+            
+            if (currentUser) {
+                await saveCartToDB();
+            }
         }
 
-        function clearCart() {
+        async function clearCart() {
             if (confirm('Are you sure you want to clear your cart?')) {
                 cart = [];
+                selectedCartItems.clear();
                 updateCartBadge();
                 openCart();
+                
+                if (currentUser) {
+                    await saveCartToDB();
+                }
             }
         }
 
         function checkoutCart() {
-            if (cart.length === 0) return;
+            if (selectedCartItems.size === 0) {
+                alert('Please select items to checkout');
+                return;
+            }
             
-            const cartSummary = cart.map(item => 
+            const selectedItems = [];
+            selectedCartItems.forEach(index => {
+                selectedItems.push(cart[index]);
+            });
+            
+            const cartSummary = selectedItems.map(item => 
                 `${item.name} x${item.quantity} - RM${(item.price * item.quantity).toFixed(2)}`
             ).join('\n');
             
-            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const total = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             
-            alert(`Cart Items:\n${cartSummary}\n\nTotal: RM${total.toFixed(2)}\n\nPlease contact us:\nWhatsApp: 016-800 0175\nEmail: stella.benzgifts@gmail.com`);
+            alert(`Selected Items:\n${cartSummary}\n\nTotal: RM${total.toFixed(2)}\n\nPlease contact us:\nWhatsApp: 016-800 0175\nEmail: stella.benzgifts@gmail.com`);
         }
 
-        function openOrderForm(productName, price) {
+        async function openOrderForm(productName, price) {
             document.getElementById('product').value = productName;
             document.getElementById('price').value = price;
             document.getElementById('orderModal').style.display = 'block';
@@ -1376,6 +1683,22 @@
             
             if (currentUser) {
                 document.getElementById('orderEmail').value = currentUser.email;
+                
+                // Load profile data
+                const { data } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (data) {
+                    document.getElementById('orderName').value = data.full_name || '';
+                    document.getElementById('orderPhone').value = data.phone || '';
+                    document.getElementById('orderAddress').value = data.address || '';
+                    document.getElementById('orderCity').value = data.city || '';
+                    document.getElementById('orderPostalCode').value = data.postal_code || '';
+                    document.getElementById('orderState').value = data.state || '';
+                }
             }
         }
 
@@ -1408,15 +1731,15 @@
                 price: document.getElementById('price').value,
                 name: document.getElementById('orderName').value,
                 email: document.getElementById('orderEmail').value,
-                phone: document.getElementById('phone').value,
-                address: document.getElementById('address').value,
-                city: document.getElementById('city').value,
-                postalCode: document.getElementById('postalCode').value,
-                state: document.getElementById('state').value,
-                quantity: document.getElementById('quantity').value,
-                size: document.getElementById('size').value,
-                customDesign: document.getElementById('customDesign').value,
-                notes: document.getElementById('notes').value,
+                phone: document.getElementById('orderPhone').value,
+                address: document.getElementById('orderAddress').value,
+                city: document.getElementById('orderCity').value,
+                postalCode: document.getElementById('orderPostalCode').value,
+                state: document.getElementById('orderState').value,
+                quantity: document.getElementById('orderQuantity').value,
+                size: document.getElementById('orderSize').value,
+                customDesign: document.getElementById('orderCustomDesign').value,
+                notes: document.getElementById('orderNotes').value,
                 userEmail: currentUser ? currentUser.email : 'Guest',
                 timestamp: new Date().toLocaleString()
             };
@@ -1438,17 +1761,16 @@
             element.nextElementSibling.classList.toggle('active');
         }
 
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            });
-        });
-
         // Initialize
         checkAuth();
         updateCartBadge();
+
+        // Save cart before page unload
+        window.addEventListener('beforeunload', async () => {
+            if (currentUser) {
+                await saveCartToDB();
+            }
+        });
     </script>
 </body>
 </html>
