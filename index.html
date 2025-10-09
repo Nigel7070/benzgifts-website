@@ -19,6 +19,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             line-height: 1.6;
             color: #333;
+            background: #f8f9fa;
         }
 
         .header {
@@ -408,6 +409,7 @@
             border-radius: 5px;
             font-weight: bold;
             transition: transform 0.3s;
+            cursor: pointer;
         }
 
         .cta-button:hover {
@@ -736,28 +738,102 @@
             color: #999;
         }
 
-        .profile-container {
-            max-width: 800px;
+        .profile-container, .checkout-container {
+            max-width: 1200px;
             margin: 4rem auto;
             padding: 2rem;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
         }
 
-        .profile-header {
+        .profile-header, .checkout-header {
             text-align: center;
             margin-bottom: 2rem;
         }
 
-        .profile-header h1 {
+        .profile-header h1, .checkout-header h1 {
             color: #2c3e50;
             margin-bottom: 0.5rem;
         }
 
         .profile-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
             display: grid;
             gap: 1.5rem;
+        }
+
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .checkout-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        }
+
+        .checkout-section h2 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .order-item-name {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .order-item-details {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .order-item-price {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .order-summary {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+        }
+
+        .summary-total {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid #667eea;
+        }
+
+        @media (max-width: 968px) {
+            .checkout-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
@@ -822,7 +898,7 @@
             <div class="container">
                 <h1>Stand Out From The Crowd With Custom T-shirts</h1>
                 <p>Premium Quality Apparel for Your Brand</p>
-                <a onclick="scrollToSection('shop')" class="cta-button" style="cursor: pointer;">Explore Products</a>
+                <a onclick="scrollToSection('shop')" class="cta-button">Explore Products</a>
             </div>
         </section>
 
@@ -1117,6 +1193,85 @@
         </div>
     </div>
 
+    <!-- CHECKOUT PAGE -->
+    <div id="checkoutPage" class="page-container">
+        <div class="checkout-container">
+            <div class="checkout-header">
+                <h1>Checkout</h1>
+                <p style="color: #666;">Complete your order</p>
+            </div>
+
+            <div class="success-message" id="checkoutSuccess"></div>
+            <div class="error-message" id="checkoutError"></div>
+
+            <div class="checkout-grid">
+                <!-- Order Summary -->
+                <div class="checkout-section">
+                    <h2>Order Summary</h2>
+                    <div id="checkoutItems"></div>
+                    <div class="order-summary">
+                        <div class="summary-row">
+                            <span>Subtotal:</span>
+                            <span id="checkoutSubtotal">RM0.00</span>
+                        </div>
+                        <div class="summary-row summary-total">
+                            <span>Total:</span>
+                            <span id="checkoutTotalAmount">RM0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping Form -->
+                <div class="checkout-section">
+                    <h2>Shipping Information</h2>
+                    <form id="checkoutForm" onsubmit="submitCheckout(event)">
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" id="checkoutName" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" id="checkoutEmail" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Phone Number *</label>
+                            <input type="tel" id="checkoutPhone" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Address *</label>
+                            <textarea id="checkoutAddress" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>City *</label>
+                            <input type="text" id="checkoutCity" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Postal Code *</label>
+                            <input type="text" id="checkoutPostalCode" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>State *</label>
+                            <input type="text" id="checkoutState" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Additional Notes</label>
+                            <textarea id="checkoutNotes" placeholder="Any special instructions for delivery (optional)"></textarea>
+                        </div>
+
+                        <button type="submit" class="submit-btn" id="checkoutSubmitBtn">Place Order</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Auth Modal -->
     <div id="authModal" class="modal">
         <div class="modal-content">
@@ -1159,7 +1314,7 @@
 
             <div class="cart-actions" id="cartActions" style="display: none;">
                 <button class="clear-cart-btn" onclick="clearCart()">Clear Cart</button>
-                <button class="checkout-btn" onclick="checkoutCart()" id="checkoutBtn">Checkout</button>
+                <button class="checkout-btn" onclick="proceedToCheckout()" id="checkoutBtn">Checkout</button>
             </div>
         </div>
     </div>
@@ -1271,6 +1426,7 @@
         let currentUser = null;
         let cart = [];
         let selectedCartItems = new Set();
+        let checkoutItems = [];
 
         // Page Navigation
         function showPage(pageName) {
@@ -1472,7 +1628,7 @@
             }
         }
 
-        // Cart Functions with Database
+        // Cart Functions
         async function addToCart(productName, price) {
             const existingItem = cart.find(item => item.name === productName);
             
@@ -1494,13 +1650,11 @@
             if (!currentUser) return;
 
             try {
-                // Delete existing cart items
                 await supabase
                     .from('cart_items')
                     .delete()
                     .eq('user_id', currentUser.id);
 
-                // Insert new cart items
                 if (cart.length > 0) {
                     const cartItems = cart.map(item => ({
                         user_id: currentUser.id,
@@ -1549,7 +1703,7 @@
 
         function showNotification(message) {
             const notification = document.createElement('div');
-            notification.style.cssText = 'position: fixed; top: 100px; right: 30px; background: #28a745; color: white; padding: 1rem 1.5rem; border-radius: 5px; z-index: 9999; animation: slideInRight 0.3s;';
+            notification.style.cssText = 'position: fixed; top: 100px; right: 30px; background: #28a745; color: white; padding: 1rem 1.5rem; border-radius: 5px; z-index: 9999;';
             notification.textContent = message;
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 2000);
@@ -1623,7 +1777,6 @@
             cart.splice(index, 1);
             selectedCartItems.delete(index);
             
-            // Rebuild selected items set with new indices
             const newSelected = new Set();
             selectedCartItems.forEach(oldIndex => {
                 if (oldIndex > index) {
@@ -1655,24 +1808,126 @@
             }
         }
 
-        function checkoutCart() {
+        // Checkout Functions
+        async function proceedToCheckout() {
             if (selectedCartItems.size === 0) {
                 alert('Please select items to checkout');
                 return;
             }
-            
-            const selectedItems = [];
+
+            checkoutItems = [];
             selectedCartItems.forEach(index => {
-                selectedItems.push(cart[index]);
+                checkoutItems.push(cart[index]);
             });
-            
-            const cartSummary = selectedItems.map(item => 
-                `${item.name} x${item.quantity} - RM${(item.price * item.quantity).toFixed(2)}`
-            ).join('\n');
-            
-            const total = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            
-            alert(`Selected Items:\n${cartSummary}\n\nTotal: RM${total.toFixed(2)}\n\nPlease contact us:\nWhatsApp: 016-800 0175\nEmail: stella.benzgifts@gmail.com`);
+
+            closeCart();
+            await loadCheckoutPage();
+            showPage('checkout');
+        }
+
+        async function loadCheckoutPage() {
+            // Display checkout items
+            const checkoutItemsDiv = document.getElementById('checkoutItems');
+            let itemsHtml = '';
+            let total = 0;
+
+            checkoutItems.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                itemsHtml += `
+                    <div class="order-item">
+                        <div>
+                            <div class="order-item-name">${item.name}</div>
+                            <div class="order-item-details">Quantity: ${item.quantity}</div>
+                        </div>
+                        <div class="order-item-price">RM${itemTotal.toFixed(2)}</div>
+                    </div>
+                `;
+            });
+
+            checkoutItemsDiv.innerHTML = itemsHtml;
+            document.getElementById('checkoutSubtotal').textContent = `RM${total.toFixed(2)}`;
+            document.getElementById('checkoutTotalAmount').textContent = `RM${total.toFixed(2)}`;
+
+            // Auto-fill form with user data
+            if (currentUser) {
+                document.getElementById('checkoutEmail').value = currentUser.email;
+
+                const { data } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (data) {
+                    document.getElementById('checkoutName').value = data.full_name || '';
+                    document.getElementById('checkoutPhone').value = data.phone || '';
+                    document.getElementById('checkoutAddress').value = data.address || '';
+                    document.getElementById('checkoutCity').value = data.city || '';
+                    document.getElementById('checkoutPostalCode').value = data.postal_code || '';
+                    document.getElementById('checkoutState').value = data.state || '';
+                }
+            }
+        }
+
+        async function submitCheckout(event) {
+            event.preventDefault();
+
+            const submitBtn = document.getElementById('checkoutSubmitBtn');
+            const successMsg = document.getElementById('checkoutSuccess');
+            const errorMsg = document.getElementById('checkoutError');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing Order...';
+            successMsg.style.display = 'none';
+            errorMsg.style.display = 'none';
+
+            const orderData = {
+                items: checkoutItems,
+                customer: {
+                    name: document.getElementById('checkoutName').value,
+                    email: document.getElementById('checkoutEmail').value,
+                    phone: document.getElementById('checkoutPhone').value,
+                    address: document.getElementById('checkoutAddress').value,
+                    city: document.getElementById('checkoutCity').value,
+                    postalCode: document.getElementById('checkoutPostalCode').value,
+                    state: document.getElementById('checkoutState').value,
+                    notes: document.getElementById('checkoutNotes').value
+                },
+                total: checkoutItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                timestamp: new Date().toLocaleString()
+            };
+
+            console.log('Order submitted:', orderData);
+
+            setTimeout(async () => {
+                successMsg.textContent = 'Order placed successfully! We will contact you soon.';
+                successMsg.style.display = 'block';
+
+                // Remove checked out items from cart
+                const remainingCart = [];
+                cart.forEach((item, index) => {
+                    if (!selectedCartItems.has(index)) {
+                        remainingCart.push(item);
+                    }
+                });
+                cart = remainingCart;
+                selectedCartItems.clear();
+                checkoutItems = [];
+                
+                updateCartBadge();
+                if (currentUser) {
+                    await saveCartToDB();
+                }
+
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Place Order';
+
+                setTimeout(() => {
+                    showPage('home');
+                    showNotification('Thank you for your order!');
+                }, 3000);
+            }, 1500);
         }
 
         async function openOrderForm(productName, price) {
@@ -1684,7 +1939,6 @@
             if (currentUser) {
                 document.getElementById('orderEmail').value = currentUser.email;
                 
-                // Load profile data
                 const { data } = await supabase
                     .from('user_profiles')
                     .select('*')
@@ -1765,7 +2019,6 @@
         checkAuth();
         updateCartBadge();
 
-        // Save cart before page unload
         window.addEventListener('beforeunload', async () => {
             if (currentUser) {
                 await saveCartToDB();
