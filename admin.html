@@ -610,23 +610,14 @@
     <div id="loginPage" class="active">
         <div class="login-container">
             <div class="login-box">
-                <h1>🔐 Admin Login</h1>
-                <p>Sign in to access the admin panel</p>
+                <h1>🔐 Admin Access Required</h1>
+                <p>Please log in from the main website first</p>
                 
-                <div class="error-message" id="loginError"></div>
+                <button class="submit-btn" onclick="goToMainSite()">Go to Main Website</button>
                 
-                <form id="loginForm" onsubmit="handleLogin(event)">
-                    <div class="form-group">
-                        <label>Email Address</label>
-                        <input type="email" id="loginEmail" placeholder="admin@benzgifts.com" required>
-                    </div>
-                    
-                    <button type="submit" class="submit-btn" id="loginBtn">Send Magic Link</button>
-                    
-                    <p style="text-align: center; margin-top: 1rem; color: #666; font-size: 0.9rem;">
-                        We'll send you a secure magic link to sign in
-                    </p>
-                </form>
+                <p style="text-align: center; margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                    You need to be logged in with an admin account to access this panel
+                </p>
             </div>
         </div>
     </div>
@@ -638,7 +629,10 @@
                 <h1>📦 Benzgifts Admin Panel</h1>
                 <p>Manage your products and inventory</p>
             </div>
-            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button class="logout-btn" onclick="goToMainSite()">← Back to Website</button>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
         </header>
 
         <div class="container">
@@ -659,6 +653,21 @@
                 <div class="stat-card">
                     <h3>Out of Stock</h3>
                     <div class="stat-value" id="outOfStockProducts">0</div>
+                </div>
+            </div>
+
+            <!-- Admin Management Section -->
+            <div class="products-table" style="margin-bottom: 2rem;">
+                <div style="padding: 1.5rem; border-bottom: 2px solid #f0f0f0;">
+                    <h2 style="margin: 0; color: #2c3e50;">👥 Admin Management</h2>
+                    <p style="color: #666; margin-top: 0.5rem;">Add or remove admin users who can access this panel</p>
+                </div>
+                <div style="padding: 1.5rem;">
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <input type="email" id="newAdminEmail" placeholder="Enter admin email address" style="flex: 1; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem;">
+                        <button onclick="addAdmin()" style="padding: 0.8rem 2rem; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: 600; cursor: pointer;">Add Admin</button>
+                    </div>
+                    <div id="adminsList" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
                 </div>
             </div>
 
@@ -830,6 +839,7 @@
         let selectedImages = [];
         let selectedColors = [];
         let editingProductId = null;
+        let adminEmails = [...ADMIN_EMAILS]; // Copy to allow runtime modifications
 
         // ============================================
         // AUTHENTICATION
@@ -837,28 +847,21 @@
 
         async function checkAuth() {
             try {
-                const hashParams = new URLSearchParams(window.location.hash.substring(1));
-                if (hashParams.get('access_token')) {
-                    const { data, error } = await supabase.auth.getSession();
-                    if (error) throw error;
-                }
-
                 const { data: { session } } = await supabase.auth.getSession();
                 
                 if (session) {
                     currentUser = session.user;
                     
+                    // Load admin list from Supabase
+                    await loadAdminList();
+                    
                     // Check if user is admin
-                    if (ADMIN_EMAILS.includes(currentUser.email)) {
+                    if (adminEmails.includes(currentUser.email)) {
                         showDashboard();
                         await loadProducts();
                     } else {
-                        showError('loginError', 'Access denied. You are not authorized as an admin.');
-                        await supabase.auth.signOut();
-                    }
-                    
-                    if (window.location.hash) {
-                        window.history.replaceState(null, '', window.location.pathname);
+                        alert('Access denied. You are not authorized as an admin.');
+                        goToMainSite();
                     }
                 } else {
                     showLoginPage();
@@ -869,48 +872,19 @@
             }
         }
 
-        async function handleLogin(event) {
-            event.preventDefault();
-            
-            const email = document.getElementById('loginEmail').value;
-            const loginBtn = document.getElementById('loginBtn');
-            const errorMsg = document.getElementById('loginError');
-            
-            // Check if email is in admin list
-            if (!ADMIN_EMAILS.includes(email)) {
-                showError('loginError', 'This email is not authorized for admin access.');
-                return;
-            }
-
-            loginBtn.disabled = true;
-            loginBtn.textContent = 'Sending...';
-            errorMsg.style.display = 'none';
-
+        async function handleLogout() {
             try {
-                const { error } = await supabase.auth.signInWithOtp({
-                    email: email,
-                    options: {
-                        emailRedirectTo: window.location.origin + window.location.pathname
-                    }
-                });
-
-                if (error) throw error;
-
-                alert(`Magic link sent to ${email}! Check your inbox.`);
-                document.getElementById('loginForm').reset();
-                
+                await supabase.auth.signOut();
+                currentUser = null;
+                window.location.href = 'index.html';
             } catch (error) {
-                showError('loginError', error.message);
-            } finally {
-                loginBtn.disabled = false;
-                loginBtn.textContent = 'Send Magic Link';
+                console.error('Logout error:', error);
+                alert('Error logging out. Please try again.');
             }
         }
 
-        async function handleLogout() {
-            await supabase.auth.signOut();
-            currentUser = null;
-            showLoginPage();
+        function goToMainSite() {
+            window.location.href = 'index.html';
         }
 
         function showLoginPage() {
@@ -921,22 +895,108 @@
         function showDashboard() {
             document.getElementById('loginPage').classList.remove('active');
             document.getElementById('adminDashboard').classList.add('active');
+            displayAdminList();
         }
 
-        supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' && session) {
-                currentUser = session.user;
-                if (ADMIN_EMAILS.includes(currentUser.email)) {
-                    showDashboard();
-                    await loadProducts();
-                } else {
-                    showError('loginError', 'Access denied.');
-                    await supabase.auth.signOut();
+        // ============================================
+        // ADMIN MANAGEMENT
+        // ============================================
+
+        async function loadAdminList() {
+            try {
+                const { data, error } = await supabase
+                    .from('admin_users')
+                    .select('email');
+
+                if (error && error.code !== 'PGRST116') { // PGRST116 = table doesn't exist
+                    throw error;
                 }
-            } else if (event === 'SIGNED_OUT') {
-                showLoginPage();
+
+                if (data && data.length > 0) {
+                    adminEmails = data.map(admin => admin.email);
+                } else {
+                    // If no admins in database, save the default ones
+                    await saveAdminList();
+                }
+            } catch (error) {
+                console.error('Error loading admin list:', error);
+                // Use default ADMIN_EMAILS if there's an error
+                adminEmails = [...ADMIN_EMAILS];
             }
-        });
+        }
+
+        async function saveAdminList() {
+            try {
+                // Delete all existing admins
+                await supabase
+                    .from('admin_users')
+                    .delete()
+                    .neq('email', '');
+
+                // Insert current admin list
+                const admins = adminEmails.map(email => ({ email }));
+                const { error } = await supabase
+                    .from('admin_users')
+                    .insert(admins);
+
+                if (error) throw error;
+            } catch (error) {
+                console.error('Error saving admin list:', error);
+            }
+        }
+
+        function displayAdminList() {
+            const adminsList = document.getElementById('adminsList');
+            adminsList.innerHTML = adminEmails.map((email, index) => `
+                <span class="color-tag">
+                    ${email}
+                    ${adminEmails.length > 1 ? `<button type="button" onclick="removeAdmin(${index})">×</button>` : ''}
+                </span>
+            `).join('');
+        }
+
+        async function addAdmin() {
+            const emailInput = document.getElementById('newAdminEmail');
+            const email = emailInput.value.trim().toLowerCase();
+
+            if (!email) {
+                alert('Please enter an email address');
+                return;
+            }
+
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('Please enter a valid email address');
+                return;
+            }
+
+            if (adminEmails.includes(email)) {
+                alert('This email is already an admin');
+                return;
+            }
+
+            adminEmails.push(email);
+            await saveAdminList();
+            displayAdminList();
+            emailInput.value = '';
+            alert(`${email} has been added as an admin`);
+        }
+
+        async function removeAdmin(index) {
+            if (adminEmails.length === 1) {
+                alert('Cannot remove the last admin. Add another admin first.');
+                return;
+            }
+
+            const email = adminEmails[index];
+            if (confirm(`Remove ${email} from admin list?`)) {
+                adminEmails.splice(index, 1);
+                await saveAdminList();
+                displayAdminList();
+                alert(`${email} has been removed from admin list`);
+            }
+        }
 
         // ============================================
         // PRODUCTS MANAGEMENT
