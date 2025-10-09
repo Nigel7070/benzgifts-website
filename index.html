@@ -250,6 +250,12 @@
             font-size: 3rem;
         }
 
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         .product-info {
             padding: 1.5rem;
         }
@@ -940,127 +946,13 @@
         <section class="products" id="shop">
             <div class="container">
                 <h2 class="section-title">Our Products</h2>
-                <p class="section-subtitle">Showing all 6 results</p>
+                <p class="section-subtitle" id="productsCount">Loading products...</p>
                 
-                <div class="products-grid">
-                    <div class="product-card">
-                        <div class="product-image">👕</div>
-                        <div class="product-info">
-                            <div class="product-price">RM30.00</div>
-                            <div class="product-name">230 GSM 100% COTTON</div>
-                            <ul class="product-specs">
-                                <li>230GSM ( 6.78 oz/yd )</li>
-                                <li>100% Ring Spun Cotton Preshrunk</li>
-                                <li>Loose Fit Cutting</li>
-                                <li>2.5CM Rib Collar</li>
-                                <li>Double Needle Sleeve and bottom hems</li>
-                                <li>Label removable</li>
-                            </ul>
-                            <div class="product-actions">
-                                <button class="add-cart-btn" onclick="addToCart('230 GSM 100% COTTON', 30.00)">Add to Cart</button>
-                                <button class="order-btn" onclick="openOrderForm('230 GSM 100% COTTON', 'RM30.00')">Order Now</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="product-card">
-                        <div class="product-image">👕</div>
-                        <div class="product-info">
-                            <div class="product-price">RM35.00</div>
-                            <div class="product-name">250 GSM 100% COTTON</div>
-                            <ul class="product-specs">
-                                <li>250GSM ( 7.37 oz/yd )</li>
-                                <li>100% Ring Spun Cotton Preshrunk</li>
-                                <li>Oversized Fit Cutting</li>
-                                <li>2.5CM Rib Collar</li>
-                                <li>Triple Needle Sleeve and bottom hems</li>
-                                <li>Label removable</li>
-                            </ul>
-                            <div class="product-actions">
-                                <button class="add-cart-btn" onclick="addToCart('250 GSM 100% COTTON', 35.00)">Add to Cart</button>
-                                <button class="order-btn" onclick="openOrderForm('250 GSM 100% COTTON', 'RM35.00')">Order Now</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="product-card">
-                        <div class="product-image">👕</div>
-                        <div class="product-info">
-                            <div class="product-price">RM45.00</div>
-                            <div class="product-name">305 GSM 100% COTTON</div>
-                            <ul class="product-specs">
-                                <li>305GSM ( 8.85 oz/yd )</li>
-                                <li>100% Ring Spun Cotton Preshrunk</li>
-                                <li>Oversized Fit Cutting</li>
-                                <li>3CM Rib Collar</li>
-                                <li>Double Needle Sleeve and bottom hems</li>
-                                <li>Label removable</li>
-                            </ul>
-                            <div class="product-actions">
-                                <button class="add-cart-btn" onclick="addToCart('305 GSM 100% COTTON', 45.00)">Add to Cart</button>
-                                <button class="order-btn" onclick="openOrderForm('305 GSM 100% COTTON', 'RM45.00')">Order Now</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="product-card">
-                        <div class="product-image">👕</div>
-                        <div class="product-info">
-                            <div class="product-price">RM40.00</div>
-                            <div class="product-name">240 GSM 40FC INTERLOCK</div>
-                            <ul class="product-specs">
-                                <li>240GSM ( 7.08 oz/yd )</li>
-                                <li>100% 40Thread Count Premium Interlock Cotton</li>
-                                <li>Loose Fit Cutting</li>
-                                <li>2.5CM Knit Collar</li>
-                                <li>Double Needle Sleeve and bottom hems</li>
-                                <li>Label removable</li>
-                            </ul>
-                            <div class="product-actions">
-                                <button class="add-cart-btn" onclick="addToCart('240 GSM 40FC INTERLOCK', 40.00)">Add to Cart</button>
-                                <button class="order-btn" onclick="openOrderForm('240 GSM 40FC INTERLOCK', 'RM40.00')">Order Now</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="product-card">
-                        <div class="product-image">👕</div>
-                        <div class="product-info">
-                            <div class="product-price">RM45.00</div>
-                            <div class="product-name">280 GMS STONE WASHED</div>
-                            <ul class="product-specs">
-                                <li>280GSM ( 8.26 oz/yd )</li>
-                                <li>100% Ring Spun Cotton / Acid Washed</li>
-                                <li>Oversized Fit Cutting</li>
-                                <li>2.5CM Rib Collar</li>
-                                <li>Double Needle Sleeve and bottom hems</li>
-                                <li>Label removable</li>
-                            </ul>
-                            <div class="product-actions">
-                                <button class="add-cart-btn" onclick="addToCart('280 GMS STONE WASHED', 45.00)">Add to Cart</button>
-                                <button class="order-btn" onclick="openOrderForm('280 GMS STONE WASHED', 'RM45.00')">Order Now</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="product-card">
-                        <div class="product-image">🧥</div>
-                        <div class="product-info">
-                            <div class="product-price">RM65.00</div>
-                            <div class="product-name">305 GSM PULLOVER HOODIE</div>
-                            <ul class="product-specs">
-                                <li>305GSM ( 8.85 oz/yd )</li>
-                                <li>80% Premium Cotton & 20% Polyester</li>
-                                <li>Loose Fit Cutting</li>
-                                <li>Hooded neckline</li>
-                                <li>Ribbed cuffs and hem</li>
-                                <li>Label removable</li>
-                            </ul>
-                            <div class="product-actions">
-                                <button class="add-cart-btn" onclick="addToCart('305 GSM PULLOVER HOODIE', 65.00)">Add to Cart</button>
-                                <button class="order-btn" onclick="openOrderForm('305 GSM PULLOVER HOODIE', 'RM65.00')">Order Now</button>
-                            </div>
-                        </div>
+                <div class="products-grid" id="productsGrid">
+                    <!-- Products will be loaded dynamically from Supabase -->
+                    <div style="text-align: center; grid-column: 1 / -1; padding: 2rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">⏳</div>
+                        <p>Loading products...</p>
                     </div>
                 </div>
             </div>
@@ -1721,16 +1613,120 @@
         }
 
         // ============================================
+        // PRODUCTS FUNCTIONS
+        // ============================================
+
+        async function loadProducts() {
+            try {
+                const { data: products, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .gte('stock_quantity', 0) // Only show products with stock
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                displayProducts(products || []);
+            } catch (error) {
+                console.error('Error loading products:', error);
+                document.getElementById('productsGrid').innerHTML = `
+                    <div style="text-align: center; grid-column: 1 / -1; padding: 2rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">❌</div>
+                        <p>Failed to load products. Please refresh the page.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayProducts(products) {
+            const productsGrid = document.getElementById('productsGrid');
+            const productsCount = document.getElementById('productsCount');
+            
+            productsCount.textContent = `Showing ${products.length} results`;
+
+            if (products.length === 0) {
+                productsGrid.innerHTML = `
+                    <div style="text-align: center; grid-column: 1 / -1; padding: 2rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">📦</div>
+                        <p>No products available at the moment.</p>
+                        <p style="color: #666; margin-top: 0.5rem;">Check back later for new arrivals!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            productsGrid.innerHTML = products.map(product => {
+                const mainImage = product.images && product.images.length > 0 ? product.images[0] : null;
+                const specsList = product.specifications && product.specifications.length > 0 
+                    ? product.specifications.map(spec => `<li>${spec}</li>`).join('')
+                    : '<li>Premium quality product</li><li>Custom printing available</li>';
+                
+                const availableSizes = product.sizes && product.sizes.length > 0 
+                    ? product.sizes.join(', ')
+                    : 'XS, S, M, L, XL, XXL, 3XL';
+
+                return `
+                    <div class="product-card">
+                        <div class="product-image">
+                            ${mainImage 
+                                ? `<img src="${mainImage}" alt="${product.name}" onerror="this.style.display='none'; this.parentNode.innerHTML='👕';">`
+                                : '👕'
+                            }
+                        </div>
+                        <div class="product-info">
+                            <div class="product-price">RM${parseFloat(product.price).toFixed(2)}</div>
+                            <div class="product-name">${product.name}</div>
+                            <ul class="product-specs">
+                                ${specsList}
+                                <li>Available sizes: ${availableSizes}</li>
+                                ${product.colors && product.colors.length > 0 
+                                    ? `<li>Available colors: ${product.colors.join(', ')}</li>` 
+                                    : ''
+                                }
+                                <li>Stock: ${product.stock_quantity} units</li>
+                            </ul>
+                            <div class="product-actions">
+                                <button class="add-cart-btn" onclick="addToCart('${product.name}', ${product.price}, '${product.id}')">
+                                    ${product.stock_quantity > 0 ? 'Add to Cart' : 'Out of Stock'}
+                                </button>
+                                <button class="order-btn" onclick="openOrderForm('${product.name}', 'RM${parseFloat(product.price).toFixed(2)}', '${product.id}')" ${product.stock_quantity === 0 ? 'disabled' : ''}>
+                                    Order Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============================================
         // CART FUNCTIONS
         // ============================================
 
-        async function addToCart(productName, price) {
-            const existingItem = cart.find(item => item.name === productName);
+        async function addToCart(productName, price, productId) {
+            // Check stock availability
+            const { data: product } = await supabase
+                .from('products')
+                .select('stock_quantity')
+                .eq('id', productId)
+                .single();
+
+            if (product && product.stock_quantity === 0) {
+                showNotification('Sorry, this product is out of stock!');
+                return;
+            }
+
+            const existingItem = cart.find(item => item.name === productName && item.productId === productId);
             
             if (existingItem) {
                 existingItem.quantity += 1;
             } else {
-                cart.push({ name: productName, price: price, quantity: 1 });
+                cart.push({ 
+                    name: productName, 
+                    price: price, 
+                    quantity: 1,
+                    productId: productId
+                });
             }
             
             updateCartBadge();
@@ -1755,7 +1751,8 @@
                         user_id: currentUser.id,
                         product_name: item.name,
                         product_price: item.price,
-                        quantity: item.quantity
+                        quantity: item.quantity,
+                        product_id: item.productId
                     }));
 
                     await supabase
@@ -1780,7 +1777,8 @@
                     cart = data.map(item => ({
                         name: item.product_name,
                         price: parseFloat(item.product_price),
-                        quantity: item.quantity
+                        quantity: item.quantity,
+                        productId: item.product_id
                     }));
                     updateCartBadge();
                 }
@@ -1913,6 +1911,30 @@
                 return;
             }
 
+            // Check stock availability before proceeding
+            let allInStock = true;
+            const outOfStockItems = [];
+
+            for (const index of selectedCartItems) {
+                const item = cart[index];
+                const { data: product } = await supabase
+                    .from('products')
+                    .select('stock_quantity, name')
+                    .eq('id', item.productId)
+                    .single();
+
+                if (product && product.stock_quantity < item.quantity) {
+                    allInStock = false;
+                    outOfStockItems.push(`${product.name} (only ${product.stock_quantity} available)`);
+                }
+            }
+
+            if (!allInStock) {
+                alert(`Some items in your cart are out of stock:\n${outOfStockItems.join('\n')}\n\nPlease update your cart and try again.`);
+                openCart();
+                return;
+            }
+
             checkoutItems = [];
             selectedCartItems.forEach(index => {
                 checkoutItems.push(cart[index]);
@@ -2000,10 +2022,27 @@
 
             console.log('Checkout order submitted:', orderData);
 
-            // Send to Google Sheets
-            await sendToGoogleSheets(orderData);
+            try {
+                // Send to Google Sheets
+                await sendToGoogleSheets(orderData);
 
-            setTimeout(async () => {
+                // Update stock quantities in database
+                for (const item of checkoutItems) {
+                    const { data: product } = await supabase
+                        .from('products')
+                        .select('stock_quantity')
+                        .eq('id', item.productId)
+                        .single();
+
+                    if (product) {
+                        const newStock = product.stock_quantity - item.quantity;
+                        await supabase
+                            .from('products')
+                            .update({ stock_quantity: newStock })
+                            .eq('id', item.productId);
+                    }
+                }
+
                 successMsg.textContent = 'Order placed successfully! We will contact you soon.';
                 successMsg.style.display = 'block';
 
@@ -2023,6 +2062,9 @@
                     await saveCartToDB();
                 }
 
+                // Reload products to update stock display
+                await loadProducts();
+
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Place Order';
 
@@ -2030,14 +2072,20 @@
                     showPage('home');
                     showNotification('Thank you for your order!');
                 }, 3000);
-            }, 1500);
+            } catch (error) {
+                console.error('Error processing checkout:', error);
+                errorMsg.textContent = 'Failed to process order. Please try again.';
+                errorMsg.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Place Order';
+            }
         }
 
         // ============================================
         // DIRECT ORDER FUNCTIONS
         // ============================================
 
-        async function openOrderForm(productName, price) {
+        async function openOrderForm(productName, price, productId) {
             document.getElementById('product').value = productName;
             document.getElementById('price').value = price;
             document.getElementById('orderModal').style.display = 'block';
@@ -2141,6 +2189,7 @@
         // Wait for Supabase to process auth callbacks
         setTimeout(() => {
             checkAuth();
+            loadProducts(); // Load products on page load
         }, 100);
         
         updateCartBadge();
