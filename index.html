@@ -941,6 +941,11 @@
             <div class="container">
                 <h2 class="section-title">Our Products</h2>
                 <p class="section-subtitle">Loading products...</p>
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <button onclick="loadProducts()" style="padding: 0.8rem 2rem; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                        🔄 Refresh Products
+                    </button>
+                </div>
                 
                 <div class="products-grid">
                     <!-- Products will be loaded dynamically from database -->
@@ -2180,10 +2185,15 @@
         // INITIALIZATION
         // ============================================
 
+        console.log('Initializing Benzgifts website...');
+
         // Wait for Supabase to process auth callbacks
         setTimeout(async () => {
+            console.log('Checking authentication...');
             await checkAuth();
-            await loadProducts(); // Load products from database
+            console.log('Loading products from database...');
+            await loadProducts();
+            console.log('Initialization complete!');
         }, 100);
         
         updateCartBadge();
