@@ -1361,71 +1361,44 @@
         }
 
         // ============================================
-        // PRODUCTS LOADING
+        // PRODUCTS LOADING - SIMPLIFIED VERSION
         // ============================================
 
         async function loadProducts() {
-            console.log('=== loadProducts START ===');
+            console.log('Loading products...');
             const productsGrid = document.querySelector('.products-grid');
             const subtitle = document.querySelector('.section-subtitle');
             
-            console.log('Elements found:', { productsGrid: !!productsGrid, subtitle: !!subtitle });
-            
             try {
-                console.log('Setting subtitle to "Loading products..."');
                 if (subtitle) subtitle.textContent = 'Loading products...';
                 
-                console.log('About to query Supabase...');
-                console.log('Supabase client exists:', !!supabase);
-                console.log('Supabase URL:', SUPABASE_URL);
-                
-                // Add timeout to prevent hanging forever
-                const queryPromise = supabase
+                // Simple query - no timeout, no fancy stuff
+                const result = await supabase
                     .from('products')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+                    .select('*');
                 
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Query timeout after 10 seconds')), 10000)
-                );
-                
-                console.log('Executing query with 10s timeout...');
-                const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
+                console.log('Query result:', result);
 
-                console.log('Query completed!');
-                console.log('Error:', error);
-                console.log('Data received:', data);
-                console.log('Data length:', data?.length);
-
-                if (error) {
-                    console.error('Supabase returned an error:', error);
-                    throw error;
+                if (result.error) {
+                    throw new Error(result.error.message);
                 }
 
-                allProducts = data || [];
-                console.log('Assigned to allProducts. Total:', allProducts.length);
+                allProducts = result.data || [];
+                console.log(`Loaded ${allProducts.length} products`);
                 
-                console.log('About to call displayProducts()...');
                 displayProducts();
-                console.log('displayProducts() completed');
-                console.log('=== loadProducts END SUCCESS ===');
             } catch (error) {
-                console.error('=== loadProducts CAUGHT ERROR ===');
-                console.error('Error object:', error);
-                console.error('Error name:', error?.name);
-                console.error('Error message:', error?.message);
-                console.error('Error stack:', error?.stack);
+                console.error('Error loading products:', error);
                 
                 if (subtitle) subtitle.textContent = 'Error loading products';
                 if (productsGrid) {
                     productsGrid.innerHTML = `
                         <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: #dc3545;">
                             <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
-                            <p><strong>Error loading products</strong></p>
+                            <p><strong>Cannot load products</strong></p>
                             <p style="font-size: 0.9rem; color: #666; margin: 1rem;">${error?.message || 'Unknown error'}</p>
-                            <p style="font-size: 0.85rem; color: #999;">Check browser console for details (Press F12)</p>
-                            <button onclick="window.refreshProducts()" style="margin-top: 1rem; padding: 0.8rem 2rem; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                                Try Again
+                            <button onclick="window.refreshProducts()" style="margin-top: 1rem; padding: 0.8rem 2rem; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                                🔄 Try Again
                             </button>
                         </div>
                     `;
