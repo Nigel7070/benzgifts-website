@@ -1821,20 +1821,44 @@
         }
 
         async function addToCartAndCheckout(productName, price, productId = null) {
-            // Add to cart
-            await addToCart(productName, price, productId);
+            console.log('Buy Now clicked:', productName);
             
-            // Find the item index in cart
+            // Add to cart
+            const existingItem = cart.find(item => item.name === productName);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ 
+                    name: productName, 
+                    price: price, 
+                    quantity: 1,
+                    productId: productId 
+                });
+            }
+            
+            updateCartBadge();
+            
+            if (currentUser) {
+                await saveCartToDB();
+            }
+            
+            // Find the item in cart
             const itemIndex = cart.findIndex(item => item.name === productName);
             
-            // Auto-select this item
-            selectedCartItems.clear();
-            selectedCartItems.add(itemIndex);
+            console.log('Item index:', itemIndex);
             
-            // Go directly to checkout
+            // Set up checkout with just this item
             checkoutItems = [cart[itemIndex]];
+            
+            console.log('Checkout items:', checkoutItems);
+            
+            // Go to checkout page
             await loadCheckoutPage();
             showPage('checkout');
+            window.scrollTo(0, 0);
+            
+            console.log('Navigated to checkout');
         }
 
         async function saveCartToDB() {
