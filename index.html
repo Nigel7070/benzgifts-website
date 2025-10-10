@@ -1361,32 +1361,44 @@
         }
 
         // ============================================
-        // PRODUCTS LOADING - SIMPLIFIED VERSION
+        // PRODUCTS LOADING - DIRECT FETCH VERSION
         // ============================================
 
         async function loadProducts() {
-            console.log('Loading products...');
+            console.log('Loading products with direct fetch...');
             const productsGrid = document.querySelector('.products-grid');
             const subtitle = document.querySelector('.section-subtitle');
             
             try {
                 if (subtitle) subtitle.textContent = 'Loading products...';
                 
-                // Simple query - no timeout, no fancy stuff
-                const result = await supabase
-                    .from('products')
-                    .select('*');
+                // Try direct REST API call instead of Supabase client
+                const url = `${SUPABASE_URL}/rest/v1/products?select=*`;
+                console.log('Fetching from:', url);
                 
-                console.log('Query result:', result);
-
-                if (result.error) {
-                    throw new Error(result.error.message);
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-
-                allProducts = result.data || [];
-                console.log(`Loaded ${allProducts.length} products`);
                 
+                const data = await response.json();
+                console.log('Data received:', data);
+                console.log('Number of products:', data.length);
+                
+                allProducts = data || [];
                 displayProducts();
+                
+                console.log('Products loaded successfully!');
             } catch (error) {
                 console.error('Error loading products:', error);
                 
