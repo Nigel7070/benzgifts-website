@@ -1360,86 +1360,142 @@
         // ============================================
 
         async function loadProducts() {
+            const productsGrid = document.querySelector('.products-grid');
+            const subtitle = document.querySelector('.section-subtitle');
+            
             try {
+                subtitle.textContent = 'Loading products...';
+                
                 const { data, error } = await supabase
                     .from('products')
                     .select('*')
                     .order('created_at', { ascending: false });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase error:', error);
+                    throw error;
+                }
 
+                console.log('Products loaded:', data); // Debug log
                 allProducts = data || [];
                 displayProducts();
             } catch (error) {
                 console.error('Error loading products:', error);
+                subtitle.textContent = 'Error loading products';
+                productsGrid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: #dc3545;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
+                        <p><strong>Error loading products</strong></p>
+                        <p style="font-size: 0.9rem; color: #666;">${error.message}</p>
+                        <button onclick="loadProducts()" style="margin-top: 1rem; padding: 0.8rem 2rem; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            Try Again
+                        </button>
+                    </div>
+                `;
             }
         }
 
         function displayProducts() {
             const productsGrid = document.querySelector('.products-grid');
+            const subtitle = document.querySelector('.section-subtitle');
             
-            if (allProducts.length === 0) {
-                productsGrid.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: #999;">
-                        <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
-                        <p>No products available at the moment. Check back soon!</p>
-                    </div>
-                `;
-                return;
-            }
+            try {
+                if (allProducts.length === 0) {
+                    subtitle.textContent = 'No products available';
+                    productsGrid.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: #999;">
+                            <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
+                            <p>No products available at the moment. Check back soon!</p>
+                        </div>
+                    `;
+                    return;
+                }
 
-            productsGrid.innerHTML = allProducts.map(product => {
-                const imageUrl = product.images && product.images.length > 0 ? product.images[0] : '';
-                const imageDisplay = imageUrl ? 
-                    `<img src="${imageUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="${product.name}">` : 
-                    '👕';
-                
-                const stockStatus = product.stock_quantity > 0 ? 'In Stock' : 'Out of Stock';
-                const stockColor = product.stock_quantity > 0 ? '#28a745' : '#dc3545';
-                
-                return `
-                    <div class="product-card">
-                        <div class="product-image">${imageDisplay}</div>
-                        <div class="product-info">
-                            <div class="product-price">RM${parseFloat(product.price).toFixed(2)}</div>
-                            <div class="product-name">${product.name}</div>
-                            <div style="margin-bottom: 0.5rem;">
-                                <span style="color: ${stockColor}; font-weight: 600; font-size: 0.9rem;">
-                                    ${stockStatus} ${product.stock_quantity > 0 ? `(${product.stock_quantity} available)` : ''}
-                                </span>
-                            </div>
-                            ${product.colors && product.colors.length > 0 ? `
+                subtitle.textContent = `Showing all ${allProducts.length} results`;
+
+                productsGrid.innerHTML = allProducts.map(product => {
+                    try {
+                        // Safely get image URL
+                        let imageDisplay = '👕';
+                        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+                            const imageUrl = product.images[0];
+                            if (imageUrl && typeof imageUrl === 'string') {
+                                imageDisplay = `<img src="${imageUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="${product.name || 'Product'}" onerror="this.parentElement.innerHTML='👕'">`;
+                            }
+                        }
+                        
+                        const stockStatus = product.stock_quantity > 0 ? 'In Stock' : 'Out of Stock';
+                        const stockColor = product.stock_quantity > 0 ? '#28a745' : '#dc3545';
+                        
+                        // Safely display colors
+                        let colorsHtml = '';
+                        if (product.colors && Array.isArray(product.colors) && product.colors.length > 0) {
+                            colorsHtml = `
                                 <div style="margin-bottom: 0.5rem;">
                                     <strong style="font-size: 0.9rem;">Colors:</strong> 
                                     <span style="font-size: 0.9rem;">${product.colors.join(', ')}</span>
                                 </div>
-                            ` : ''}
-                            ${product.sizes && product.sizes.length > 0 ? `
+                            `;
+                        }
+                        
+                        // Safely display sizes
+                        let sizesHtml = '';
+                        if (product.sizes && Array.isArray(product.sizes) && product.sizes.length > 0) {
+                            sizesHtml = `
                                 <div style="margin-bottom: 0.5rem;">
                                     <strong style="font-size: 0.9rem;">Sizes:</strong> 
                                     <span style="font-size: 0.9rem;">${product.sizes.join(', ')}</span>
                                 </div>
-                            ` : ''}
-                            <ul class="product-specs">
-                                ${product.specifications ? product.specifications.map(spec => `<li>${spec}</li>`).join('') : ''}
-                            </ul>
-                            <div class="product-actions">
-                                ${product.stock_quantity > 0 ? `
-                                    <button class="add-cart-btn" onclick="addToCart('${product.name}', ${product.price}, '${product.id}')">Add to Cart</button>
-                                    <button class="order-btn" onclick="openOrderForm('${product.name}', 'RM${parseFloat(product.price).toFixed(2)}', '${product.id}')">Order Now</button>
-                                ` : `
-                                    <button class="order-btn" disabled style="background: #ccc; cursor: not-allowed;">Out of Stock</button>
-                                `}
+                            `;
+                        }
+                        
+                        // Safely display specifications
+                        let specsHtml = '';
+                        if (product.specifications && Array.isArray(product.specifications) && product.specifications.length > 0) {
+                            specsHtml = product.specifications.map(spec => `<li>${spec || ''}</li>`).join('');
+                        }
+                        
+                        return `
+                            <div class="product-card">
+                                <div class="product-image">${imageDisplay}</div>
+                                <div class="product-info">
+                                    <div class="product-price">RM${parseFloat(product.price || 0).toFixed(2)}</div>
+                                    <div class="product-name">${product.name || 'Unnamed Product'}</div>
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <span style="color: ${stockColor}; font-weight: 600; font-size: 0.9rem;">
+                                            ${stockStatus} ${product.stock_quantity > 0 ? `(${product.stock_quantity} available)` : ''}
+                                        </span>
+                                    </div>
+                                    ${colorsHtml}
+                                    ${sizesHtml}
+                                    ${specsHtml ? `<ul class="product-specs">${specsHtml}</ul>` : ''}
+                                    <div class="product-actions">
+                                        ${product.stock_quantity > 0 ? `
+                                            <button class="add-cart-btn" onclick="addToCart('${(product.name || 'Product').replace(/'/g, "\\'")}', ${parseFloat(product.price || 0)}, '${product.id}')">Add to Cart</button>
+                                            <button class="order-btn" onclick="openOrderForm('${(product.name || 'Product').replace(/'/g, "\\'")}', 'RM${parseFloat(product.price || 0).toFixed(2)}', '${product.id}')">Order Now</button>
+                                        ` : `
+                                            <button class="order-btn" disabled style="background: #ccc; cursor: not-allowed;">Out of Stock</button>
+                                        `}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        `;
+                    } catch (productError) {
+                        console.error('Error rendering product:', product, productError);
+                        return ''; // Skip this product if there's an error
+                    }
+                }).join('');
+
+                console.log('Products displayed successfully');
+            } catch (error) {
+                console.error('Error displaying products:', error);
+                subtitle.textContent = 'Error displaying products';
+                productsGrid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: #dc3545;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
+                        <p>Error displaying products. Please refresh the page.</p>
                     </div>
                 `;
-            }).join('');
-
-            // Update product count
-            const subtitle = document.querySelector('.section-subtitle');
-            if (subtitle) {
-                subtitle.textContent = `Showing all ${allProducts.length} results`;
             }
         }
 
