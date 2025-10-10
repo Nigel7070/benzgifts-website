@@ -1365,38 +1365,56 @@
         // ============================================
 
         async function loadProducts() {
+            console.log('=== loadProducts START ===');
             const productsGrid = document.querySelector('.products-grid');
             const subtitle = document.querySelector('.section-subtitle');
             
+            console.log('Elements found:', { productsGrid: !!productsGrid, subtitle: !!subtitle });
+            
             try {
-                subtitle.textContent = 'Loading products...';
+                console.log('Setting subtitle to "Loading products..."');
+                if (subtitle) subtitle.textContent = 'Loading products...';
+                
+                console.log('About to query Supabase...');
+                console.log('Supabase client exists:', !!supabase);
                 
                 const { data, error } = await supabase
                     .from('products')
                     .select('*')
                     .order('created_at', { ascending: false });
 
+                console.log('Supabase query complete!');
+                console.log('Error:', error);
+                console.log('Data:', data);
+
                 if (error) {
                     console.error('Supabase error:', error);
                     throw error;
                 }
 
-                console.log('Products loaded:', data); // Debug log
                 allProducts = data || [];
+                console.log('Total products:', allProducts.length);
                 displayProducts();
+                console.log('=== loadProducts END SUCCESS ===');
             } catch (error) {
-                console.error('Error loading products:', error);
-                subtitle.textContent = 'Error loading products';
-                productsGrid.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: #dc3545;">
-                        <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
-                        <p><strong>Error loading products</strong></p>
-                        <p style="font-size: 0.9rem; color: #666;">${error.message}</p>
-                        <button onclick="loadProducts()" style="margin-top: 1rem; padding: 0.8rem 2rem; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                            Try Again
-                        </button>
-                    </div>
-                `;
+                console.error('=== loadProducts ERROR ===', error);
+                console.error('Error name:', error?.name);
+                console.error('Error message:', error?.message);
+                console.error('Error stack:', error?.stack);
+                
+                if (subtitle) subtitle.textContent = 'Error loading products';
+                if (productsGrid) {
+                    productsGrid.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: #dc3545;">
+                            <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
+                            <p><strong>Error loading products</strong></p>
+                            <p style="font-size: 0.9rem; color: #666;">${error?.message || 'Unknown error'}</p>
+                            <button onclick="window.refreshProducts()" style="margin-top: 1rem; padding: 0.8rem 2rem; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                Try Again
+                            </button>
+                        </div>
+                    `;
+                }
             }
         }
 
