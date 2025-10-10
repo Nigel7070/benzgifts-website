@@ -1377,27 +1377,41 @@
                 
                 console.log('About to query Supabase...');
                 console.log('Supabase client exists:', !!supabase);
+                console.log('Supabase URL:', SUPABASE_URL);
                 
-                const { data, error } = await supabase
+                // Add timeout to prevent hanging forever
+                const queryPromise = supabase
                     .from('products')
                     .select('*')
                     .order('created_at', { ascending: false });
+                
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Query timeout after 10 seconds')), 10000)
+                );
+                
+                console.log('Executing query with 10s timeout...');
+                const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
-                console.log('Supabase query complete!');
+                console.log('Query completed!');
                 console.log('Error:', error);
-                console.log('Data:', data);
+                console.log('Data received:', data);
+                console.log('Data length:', data?.length);
 
                 if (error) {
-                    console.error('Supabase error:', error);
+                    console.error('Supabase returned an error:', error);
                     throw error;
                 }
 
                 allProducts = data || [];
-                console.log('Total products:', allProducts.length);
+                console.log('Assigned to allProducts. Total:', allProducts.length);
+                
+                console.log('About to call displayProducts()...');
                 displayProducts();
+                console.log('displayProducts() completed');
                 console.log('=== loadProducts END SUCCESS ===');
             } catch (error) {
-                console.error('=== loadProducts ERROR ===', error);
+                console.error('=== loadProducts CAUGHT ERROR ===');
+                console.error('Error object:', error);
                 console.error('Error name:', error?.name);
                 console.error('Error message:', error?.message);
                 console.error('Error stack:', error?.stack);
@@ -1408,7 +1422,8 @@
                         <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: #dc3545;">
                             <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
                             <p><strong>Error loading products</strong></p>
-                            <p style="font-size: 0.9rem; color: #666;">${error?.message || 'Unknown error'}</p>
+                            <p style="font-size: 0.9rem; color: #666; margin: 1rem;">${error?.message || 'Unknown error'}</p>
+                            <p style="font-size: 0.85rem; color: #999;">Check browser console for details (Press F12)</p>
                             <button onclick="window.refreshProducts()" style="margin-top: 1rem; padding: 0.8rem 2rem; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
                                 Try Again
                             </button>
