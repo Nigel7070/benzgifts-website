@@ -1656,25 +1656,53 @@
         }
 
         async function handleLogout() {
+            console.log('Logout button clicked');
+            
+            if (!confirm('Are you sure you want to logout?')) {
+                return;
+            }
+            
             try {
-                console.log('Logging out...');
-                await saveCartToDB();
-                const { error } = await supabase.auth.signOut();
-                if (error) throw error;
+                console.log('Starting logout process...');
                 
+                // Save cart first
+                if (currentUser) {
+                    await saveCartToDB();
+                    console.log('Cart saved');
+                }
+                
+                // Sign out from Supabase
+                console.log('Signing out from Supabase...');
+                const { error } = await supabase.auth.signOut();
+                
+                if (error) {
+                    console.error('Supabase signOut error:', error);
+                    throw error;
+                }
+                
+                console.log('Successfully signed out from Supabase');
+                
+                // Clear local data
                 currentUser = null;
                 cart = [];
                 selectedCartItems.clear();
+                checkoutItems = [];
+                
+                // Update UI
                 updateAuthUI(false);
                 updateCartBadge();
                 showPage('home');
-                showNotification('Logged out successfully');
                 
-                // Reload page to clear all state
-                setTimeout(() => window.location.reload(), 500);
+                console.log('Logout complete, reloading page...');
+                
+                // Reload page after short delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+                
             } catch (error) {
                 console.error('Logout error:', error);
-                alert('Error logging out: ' + error.message);
+                alert('Error logging out: ' + error.message + '. Please refresh the page manually.');
             }
         }
 
@@ -1821,7 +1849,7 @@
         }
 
         async function addToCartAndCheckout(productName, price, productId = null) {
-            console.log('Buy Now clicked:', productName);
+            console.log('Order Now clicked:', productName);
             
             // Add to cart
             const existingItem = cart.find(item => item.name === productName);
@@ -1838,27 +1866,23 @@
             }
             
             updateCartBadge();
+            showNotification(`${productName} added to cart!`);
             
             if (currentUser) {
                 await saveCartToDB();
             }
             
-            // Find the item in cart
+            // Find the item index in cart
             const itemIndex = cart.findIndex(item => item.name === productName);
             
-            console.log('Item index:', itemIndex);
+            // Auto-select this item
+            selectedCartItems.clear();
+            selectedCartItems.add(itemIndex);
             
-            // Set up checkout with just this item
-            checkoutItems = [cart[itemIndex]];
+            // Open cart modal
+            openCart();
             
-            console.log('Checkout items:', checkoutItems);
-            
-            // Go to checkout page
-            await loadCheckoutPage();
-            showPage('checkout');
-            window.scrollTo(0, 0);
-            
-            console.log('Navigated to checkout');
+            console.log('Cart opened with item selected');
         }
 
         async function saveCartToDB() {
@@ -1925,6 +1949,7 @@
         }
 
         function openCart() {
+            console.log('Opening cart...');
             const modal = document.getElementById('cartModal');
             const cartItemsDiv = document.getElementById('cartItems');
             const totalSection = document.getElementById('cartTotalSection');
@@ -1936,13 +1961,6 @@
                 totalSection.style.display = 'none';
                 actionsSection.style.display = 'none';
             } else {
-                // Auto-select all items if none are selected
-                if (selectedCartItems.size === 0) {
-                    cart.forEach((item, index) => {
-                        selectedCartItems.add(index);
-                    });
-                }
-                
                 let itemsHtml = '';
                 
                 cart.forEach((item, index) => {
@@ -1966,20 +1984,37 @@
                 updateCartTotal();
                 totalSection.style.display = 'block';
                 actionsSection.style.display = 'flex';
-                checkoutBtn.disabled = selectedCartItems.size === 0;
+                
+                // Enable/disable checkout button
+                if (checkoutBtn) {
+                    checkoutBtn.disabled = selectedCartItems.size === 0;
+                    console.log('Checkout button disabled:', checkoutBtn.disabled);
+                    console.log('Selected items count:', selectedCartItems.size);
+                }
             }
             
             modal.style.display = 'block';
+            console.log('Cart modal opened');
         }
 
         function toggleCartItem(index) {
+            console.log('Toggling cart item:', index);
+            
             if (selectedCartItems.has(index)) {
                 selectedCartItems.delete(index);
             } else {
                 selectedCartItems.add(index);
             }
+            
+            console.log('Selected items now:', selectedCartItems);
+            
             updateCartTotal();
-            document.getElementById('checkoutBtn').disabled = selectedCartItems.size === 0;
+            
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            if (checkoutBtn) {
+                checkoutBtn.disabled = selectedCartItems.size === 0;
+                console.log('Checkout button disabled:', checkoutBtn.disabled);
+            }
         }
 
         function updateCartTotal() {
@@ -2035,6 +2070,10 @@
         // ============================================
 
         async function proceedToCheckout() {
+            console.log('Checkout button clicked');
+            console.log('Selected items:', selectedCartItems);
+            console.log('Cart:', cart);
+            
             if (selectedCartItems.size === 0) {
                 alert('Please select items to checkout by checking the boxes next to each item');
                 return;
@@ -2042,9 +2081,13 @@
 
             checkoutItems = [];
             const selectedIndexes = Array.from(selectedCartItems);
+            
+            console.log('Selected indexes:', selectedIndexes);
+            
             selectedIndexes.forEach(index => {
                 if (cart[index]) {
                     checkoutItems.push(cart[index]);
+                    console.log('Added to checkout:', cart[index]);
                 }
             });
 
@@ -2053,10 +2096,20 @@
                 return;
             }
 
-            console.log('Proceeding to checkout with items:', checkoutItems);
+            console.log('Final checkout items:', checkoutItems);
+            console.log('Closing cart and going to checkout...');
+            
             closeCart();
-            await loadCheckoutPage();
-            showPage('checkout');
+            
+            try {
+                await loadCheckoutPage();
+                showPage('checkout');
+                window.scrollTo(0, 0);
+                console.log('Successfully navigated to checkout page');
+            } catch (error) {
+                console.error('Error loading checkout:', error);
+                alert('Error loading checkout page: ' + error.message);
+            }
         }
 
         async function loadCheckoutPage() {
