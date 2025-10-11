@@ -1622,6 +1622,11 @@
             }
         }
 
+        // Close user menu when opening cart
+        function closeAllMenus() {
+            closeUserMenu();
+        }
+
         async function handleAuth(event) {
             event.preventDefault();
             
@@ -1965,6 +1970,7 @@
 
         function openCart() {
             console.log('Opening cart...');
+            closeUserMenu(); // Close user menu if open
             const modal = document.getElementById('cartModal');
             const cartItemsDiv = document.getElementById('cartItems');
             const totalSection = document.getElementById('cartTotalSection');
