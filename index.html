@@ -2223,48 +2223,17 @@
         }
 
         // ============================================
-        // DIRECT ORDER FUNCTIONS
+        // DIRECT ORDER FUNCTIONS - DISABLED
         // ============================================
 
         async function openOrderForm(productName, price, productId = null) {
-            document.getElementById('product').value = productName;
-            document.getElementById('price').value = price;
-            document.getElementById('orderModal').style.display = 'block';
-            document.getElementById('orderSuccess').style.display = 'none';
-            
-            // Load product details to show available sizes and colors
-            if (productId) {
-                const product = allProducts.find(p => p.id === productId);
-                if (product && product.sizes) {
-                    const sizeSelect = document.getElementById('orderSize');
-                    sizeSelect.innerHTML = '<option value="">Select Size</option>' + 
-                        product.sizes.map(size => `<option value="${size}">${size}</option>`).join('');
-                }
-            }
-            
-            if (currentUser) {
-                document.getElementById('orderEmail').value = currentUser.email;
-                
-                const { data } = await supabase
-                    .from('user_profiles')
-                    .select('*')
-                    .eq('id', currentUser.id)
-                    .single();
-
-                if (data) {
-                    document.getElementById('orderName').value = data.full_name || '';
-                    document.getElementById('orderPhone').value = data.phone || '';
-                    document.getElementById('orderAddress').value = data.address || '';
-                    document.getElementById('orderCity').value = data.city || '';
-                    document.getElementById('orderPostalCode').value = data.postal_code || '';
-                    document.getElementById('orderState').value = data.state || '';
-                }
-            }
+            // This function is deprecated - redirect to cart checkout
+            console.log('openOrderForm called - redirecting to cart checkout');
+            await addToCartAndCheckout(productName, price, productId);
         }
 
         function closeOrderForm() {
             document.getElementById('orderModal').style.display = 'none';
-            document.getElementById('orderForm').reset();
         }
 
         async function submitOrder(event) {
