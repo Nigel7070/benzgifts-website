@@ -829,7 +829,6 @@
         const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
 
-        // Admin emails - only these can access admin panel
         const ADMIN_EMAILS = ['stella.benzgifts@gmail.com', 'himynameisblink123@gmail.com'];
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -839,7 +838,7 @@
         let selectedImages = [];
         let selectedColors = [];
         let editingProductId = null;
-        let adminEmails = [...ADMIN_EMAILS]; // Copy to allow runtime modifications
+        let adminEmails = [...ADMIN_EMAILS];
 
         // ============================================
         // AUTHENTICATION
@@ -852,10 +851,8 @@
                 if (session) {
                     currentUser = session.user;
                     
-                    // Load admin list from Supabase
                     await loadAdminList();
                     
-                    // Check if user is admin
                     if (adminEmails.includes(currentUser.email)) {
                         showDashboard();
                         await loadProducts();
@@ -908,32 +905,28 @@
                     .from('admin_users')
                     .select('email');
 
-                if (error && error.code !== 'PGRST116') { // PGRST116 = table doesn't exist
+                if (error && error.code !== 'PGRST116') {
                     throw error;
                 }
 
                 if (data && data.length > 0) {
                     adminEmails = data.map(admin => admin.email);
                 } else {
-                    // If no admins in database, save the default ones
                     await saveAdminList();
                 }
             } catch (error) {
                 console.error('Error loading admin list:', error);
-                // Use default ADMIN_EMAILS if there's an error
                 adminEmails = [...ADMIN_EMAILS];
             }
         }
 
         async function saveAdminList() {
             try {
-                // Delete all existing admins
                 await supabase
                     .from('admin_users')
                     .delete()
                     .neq('email', '');
 
-                // Insert current admin list
                 const admins = adminEmails.map(email => ({ email }));
                 const { error } = await supabase
                     .from('admin_users')
@@ -964,7 +957,6 @@
                 return;
             }
 
-            // Validate email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 alert('Please enter a valid email address');
@@ -1134,7 +1126,6 @@
             document.getElementById('productStock').value = product.stock_quantity;
             document.getElementById('productDescription').value = product.description;
 
-            // Load sizes
             if (product.sizes) {
                 product.sizes.forEach(size => {
                     const checkbox = document.getElementById(`size-${size.toLowerCase()}`);
@@ -1142,11 +1133,9 @@
                 });
             }
 
-            // Load colors
             selectedColors = product.colors || [];
             displayColors();
 
-            // Load specs
             const specsList = document.getElementById('specsList');
             if (product.specifications && product.specifications.length > 0) {
                 specsList.innerHTML = product.specifications.map(spec => `
@@ -1157,7 +1146,6 @@
                 `).join('');
             }
 
-            // Load images
             selectedImages = product.images || [];
             displayImages();
         }
@@ -1170,7 +1158,6 @@
             submitBtn.textContent = 'Saving...';
 
             try {
-                // Collect sizes
                 const sizes = [];
                 ['xs', 's', 'm', 'l', 'xl', 'xxl', '3xl'].forEach(size => {
                     const checkbox = document.getElementById(`size-${size}`);
@@ -1183,7 +1170,6 @@
                     throw new Error('Please select at least one size');
                 }
 
-                // Collect specs
                 const specs = [];
                 document.querySelectorAll('#specsList input').forEach(input => {
                     if (input.value.trim()) {
@@ -1191,7 +1177,6 @@
                     }
                 });
 
-                // Upload images if new ones were selected
                 let imageUrls = selectedImages;
                 if (selectedImages.some(img => img instanceof File)) {
                     imageUrls = await uploadImages(selectedImages);
@@ -1211,7 +1196,6 @@
                 };
 
                 if (editingProductId) {
-                    // Update existing product
                     const { error } = await supabase
                         .from('products')
                         .update(productData)
@@ -1221,7 +1205,6 @@
                     
                     showSuccess('productSuccess', 'Product updated successfully!');
                 } else {
-                    // Create new product
                     productData.created_at = new Date().toISOString();
                     
                     const { error } = await supabase
