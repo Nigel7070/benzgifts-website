@@ -599,6 +599,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            pointer-events: auto;
         }
 
         .cart-float-btn:hover {
@@ -1331,7 +1332,7 @@
         let cart = [];
         let selectedCartItems = new Set();
         let checkoutItems = [];
-        let allProducts = []; // Store products from database
+        let allProducts = [];
 
         // ============================================
         // GOOGLE SHEETS FUNCTIONS
@@ -1361,7 +1362,7 @@
         }
 
         // ============================================
-        // PRODUCTS LOADING - DIRECT FETCH VERSION
+        // PRODUCTS LOADING
         // ============================================
 
         async function loadProducts() {
@@ -1372,7 +1373,6 @@
             try {
                 if (subtitle) subtitle.textContent = 'Loading products...';
                 
-                // Try direct REST API call instead of Supabase client
                 const url = `${SUPABASE_URL}/rest/v1/products?select=*`;
                 console.log('Fetching from:', url);
                 
@@ -1438,7 +1438,6 @@
 
                 productsGrid.innerHTML = allProducts.map(product => {
                     try {
-                        // Safely get image URL
                         let imageDisplay = '👕';
                         if (product.images && Array.isArray(product.images) && product.images.length > 0) {
                             const imageUrl = product.images[0];
@@ -1450,7 +1449,6 @@
                         const stockStatus = product.stock_quantity > 0 ? 'In Stock' : 'Out of Stock';
                         const stockColor = product.stock_quantity > 0 ? '#28a745' : '#dc3545';
                         
-                        // Safely display colors
                         let colorsHtml = '';
                         if (product.colors && Array.isArray(product.colors) && product.colors.length > 0) {
                             colorsHtml = `
@@ -1461,7 +1459,6 @@
                             `;
                         }
                         
-                        // Safely display sizes
                         let sizesHtml = '';
                         if (product.sizes && Array.isArray(product.sizes) && product.sizes.length > 0) {
                             sizesHtml = `
@@ -1472,7 +1469,6 @@
                             `;
                         }
                         
-                        // Safely display specifications
                         let specsHtml = '';
                         if (product.specifications && Array.isArray(product.specifications) && product.specifications.length > 0) {
                             specsHtml = product.specifications.map(spec => `<li>${spec || ''}</li>`).join('');
@@ -1495,7 +1491,7 @@
                                     <div class="product-actions">
                                         ${product.stock_quantity > 0 ? `
                                             <button class="add-cart-btn" onclick="addToCart('${(product.name || 'Product').replace(/'/g, "\\'")}', ${parseFloat(product.price || 0)}, '${product.id}')">Add to Cart</button>
-                                            <button class="order-btn" onclick="openOrderForm('${(product.name || 'Product').replace(/'/g, "\\'")}', 'RM${parseFloat(product.price || 0).toFixed(2)}', '${product.id}')">Order Now</button>
+                                            <button class="order-btn" onclick="openOrderForm('${(product.name || 'Product').replace(/'/g, "\\'")}', ${parseFloat(product.price || 0)}, '${product.id}')">Order Now</button>
                                         ` : `
                                             <button class="order-btn" disabled style="background: #ccc; cursor: not-allowed;">Out of Stock</button>
                                         `}
@@ -1505,7 +1501,7 @@
                         `;
                     } catch (productError) {
                         console.error('Error rendering product:', product, productError);
-                        return ''; // Skip this product if there's an error
+                        return '';
                     }
                 }).join('');
 
@@ -1548,16 +1544,13 @@
 
         async function checkAuth() {
             try {
-                // Check if there's a hash in the URL (magic link callback)
                 const hashParams = new URLSearchParams(window.location.hash.substring(1));
                 if (hashParams.get('access_token')) {
                     console.log('Magic link detected, processing authentication...');
-                    // Exchange the token
                     const { data, error } = await supabase.auth.getSession();
                     if (error) throw error;
                 }
 
-                // Get current session
                 const { data: { session } } = await supabase.auth.getSession();
                 
                 if (session) {
@@ -1567,7 +1560,6 @@
                     await loadUserProfile();
                     await loadCartFromDB();
                     
-                    // Clean up URL after successful auth
                     if (window.location.hash) {
                         window.history.replaceState(null, '', window.location.pathname);
                     }
@@ -1588,15 +1580,14 @@
             if (isLoggedIn && currentUser) {
                 authSection.innerHTML = `
                     <div class="user-menu">
-                        <span class="user-email" onclick="toggleUserMenu()">${currentUser.email}</span>
+                        <span class="user-email" onclick="toggleUserMenu(event)">${currentUser.email}</span>
                         <div class="dropdown-menu" id="userDropdown">
-                            <div class="dropdown-item" onclick="showProfilePage()">My Profile</div>
-                            <div class="dropdown-item" onclick="handleLogout()">Logout</div>
+                            <div class="dropdown-item" onclick="showProfilePage(); closeUserMenu();">My Profile</div>
+                            <div class="dropdown-item" onclick="event.stopPropagation(); handleLogout();">Logout</div>
                         </div>
                     </div>
                 `;
                 
-                // Show admin link if user is admin
                 if (ADMIN_EMAILS.includes(currentUser.email)) {
                     adminNavLink.style.display = 'block';
                 } else {
@@ -1614,9 +1605,21 @@
             window.location.href = 'admin.html';
         }
 
-        function toggleUserMenu() {
+        function toggleUserMenu(event) {
+            if (event) {
+                event.stopPropagation();
+            }
             const dropdown = document.getElementById('userDropdown');
-            dropdown.classList.toggle('active');
+            if (dropdown) {
+                dropdown.classList.toggle('active');
+            }
+        }
+
+        function closeUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) {
+                dropdown.classList.remove('active');
+            }
         }
 
         async function handleAuth(event) {
@@ -1658,20 +1661,18 @@
         async function handleLogout() {
             console.log('Logout button clicked');
             
-            if (!confirm('Are you sure you want to logout?')) {
-                return;
-            }
-            
             try {
                 console.log('Starting logout process...');
                 
-                // Save cart first
                 if (currentUser) {
-                    await saveCartToDB();
-                    console.log('Cart saved');
+                    try {
+                        await saveCartToDB();
+                        console.log('Cart saved');
+                    } catch (saveError) {
+                        console.error('Error saving cart:', saveError);
+                    }
                 }
                 
-                // Sign out from Supabase
                 console.log('Signing out from Supabase...');
                 const { error } = await supabase.auth.signOut();
                 
@@ -1682,27 +1683,29 @@
                 
                 console.log('Successfully signed out from Supabase');
                 
-                // Clear local data
                 currentUser = null;
                 cart = [];
                 selectedCartItems.clear();
                 checkoutItems = [];
                 
-                // Update UI
                 updateAuthUI(false);
                 updateCartBadge();
                 showPage('home');
                 
                 console.log('Logout complete, reloading page...');
                 
-                // Reload page after short delay
+                showNotification('Logged out successfully');
+                
                 setTimeout(() => {
-                    window.location.reload();
+                    window.location.href = window.location.pathname;
                 }, 500);
                 
             } catch (error) {
                 console.error('Logout error:', error);
-                alert('Error logging out: ' + error.message + '. Please refresh the page manually.');
+                alert('Error logging out: ' + error.message);
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             }
         }
 
@@ -1717,7 +1720,6 @@
             document.getElementById('authForm').reset();
         }
 
-        // Listen for auth state changes
         supabase.auth.onAuthStateChange(async (event, session) => {
             console.log('Auth state changed:', event);
             
@@ -1827,6 +1829,14 @@
         // ============================================
 
         async function addToCart(productName, price, productId = null) {
+            const numericPrice = typeof price === 'string' ? parseFloat(price.replace('RM', '')) : parseFloat(price);
+            
+            if (isNaN(numericPrice)) {
+                console.error('Invalid price:', price);
+                alert('Error: Invalid price');
+                return;
+            }
+            
             const existingItem = cart.find(item => item.name === productName);
             
             if (existingItem) {
@@ -1834,7 +1844,7 @@
             } else {
                 cart.push({ 
                     name: productName, 
-                    price: price, 
+                    price: numericPrice,
                     quantity: 1,
                     productId: productId 
                 });
@@ -1849,9 +1859,16 @@
         }
 
         async function addToCartAndCheckout(productName, price, productId = null) {
-            console.log('Order Now clicked:', productName);
+            console.log('Order Now clicked:', productName, 'Price:', price);
             
-            // Add to cart
+            const numericPrice = typeof price === 'string' ? parseFloat(price.replace('RM', '')) : parseFloat(price);
+            
+            if (isNaN(numericPrice)) {
+                console.error('Invalid price:', price);
+                alert('Error: Invalid price');
+                return;
+            }
+            
             const existingItem = cart.find(item => item.name === productName);
             
             if (existingItem) {
@@ -1859,7 +1876,7 @@
             } else {
                 cart.push({ 
                     name: productName, 
-                    price: price, 
+                    price: numericPrice,
                     quantity: 1,
                     productId: productId 
                 });
@@ -1872,17 +1889,15 @@
                 await saveCartToDB();
             }
             
-            // Find the item index in cart
             const itemIndex = cart.findIndex(item => item.name === productName);
             
-            // Auto-select this item
             selectedCartItems.clear();
             selectedCartItems.add(itemIndex);
             
-            // Open cart modal
-            openCart();
-            
-            console.log('Cart opened with item selected');
+            setTimeout(() => {
+                openCart();
+                console.log('Cart opened with item selected');
+            }, 100);
         }
 
         async function saveCartToDB() {
@@ -1985,7 +2000,6 @@
                 totalSection.style.display = 'block';
                 actionsSection.style.display = 'flex';
                 
-                // Enable/disable checkout button
                 if (checkoutBtn) {
                     checkoutBtn.disabled = selectedCartItems.size === 0;
                     console.log('Checkout button disabled:', checkoutBtn.disabled);
@@ -2113,7 +2127,6 @@
         }
 
         async function loadCheckoutPage() {
-            // Display checkout items
             const checkoutItemsDiv = document.getElementById('checkoutItems');
             let itemsHtml = '';
             let total = 0;
@@ -2136,7 +2149,6 @@
             document.getElementById('checkoutSubtotal').textContent = `RM${total.toFixed(2)}`;
             document.getElementById('checkoutTotalAmount').textContent = `RM${total.toFixed(2)}`;
 
-            // Auto-fill form with user data
             if (currentUser) {
                 document.getElementById('checkoutEmail').value = currentUser.email;
 
@@ -2189,14 +2201,12 @@
 
             console.log('Checkout order submitted:', orderData);
 
-            // Send to Google Sheets
             await sendToGoogleSheets(orderData);
 
             setTimeout(async () => {
                 successMsg.textContent = 'Order placed successfully! We will contact you soon.';
                 successMsg.style.display = 'block';
 
-                // Remove checked out items from cart
                 const remainingCart = [];
                 cart.forEach((item, index) => {
                     if (!selectedCartItems.has(index)) {
@@ -2223,13 +2233,13 @@
         }
 
         // ============================================
-        // DIRECT ORDER FUNCTIONS - DISABLED
+        // DIRECT ORDER FUNCTIONS
         // ============================================
 
         async function openOrderForm(productName, price, productId = null) {
-            // This function is deprecated - redirect to cart checkout
-            console.log('openOrderForm called - redirecting to cart checkout');
-            await addToCartAndCheckout(productName, price, productId);
+            console.log('openOrderForm called:', productName, price);
+            const numericPrice = typeof price === 'string' ? parseFloat(price.replace('RM', '')) : parseFloat(price);
+            await addToCartAndCheckout(productName, numericPrice, productId);
         }
 
         function closeOrderForm() {
@@ -2266,7 +2276,6 @@
 
             console.log('Direct order submitted:', orderData);
             
-            // Send to Google Sheets
             await sendToGoogleSheets(orderData);
             
             setTimeout(() => {
@@ -2308,7 +2317,6 @@
 
         console.log('Initializing Benzgifts website...');
 
-        // Load products immediately on page load
         window.addEventListener('DOMContentLoaded', async () => {
             console.log('DOM loaded, starting initialization...');
             try {
@@ -2330,7 +2338,6 @@
             console.log('Initialization complete!');
         });
 
-        // Also try to load after a delay as backup
         setTimeout(async () => {
             console.log('Backup timer: Attempting to load products...');
             try {
@@ -2342,14 +2349,12 @@
         
         updateCartBadge();
 
-        // Save cart before page unload
         window.addEventListener('beforeunload', async () => {
             if (currentUser) {
                 await saveCartToDB();
             }
         });
 
-        // Make loadProducts accessible globally for the refresh button
         window.refreshProducts = async function() {
             console.log('Manual refresh triggered...');
             try {
@@ -2360,7 +2365,6 @@
             }
         };
 
-        // Close dropdowns when clicking outside
         document.addEventListener('click', function(event) {
             const userMenu = document.querySelector('.user-menu');
             const dropdown = document.getElementById('userDropdown');
