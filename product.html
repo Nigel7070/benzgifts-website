@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Benzgifts - Premium Custom T-Shirts & Apparel</title>
+    <title>BenzGifts - Premium Custom T-Shirts & Apparel</title>
     
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -505,7 +505,7 @@
             color: #999;
         }
 
-        .checkout-container {
+        .checkout-container, .profile-container {
             max-width: 1200px;
             margin: 4rem auto;
             padding: 2rem;
@@ -517,14 +517,14 @@
             gap: 2rem;
         }
 
-        .checkout-section {
+        .checkout-section, .profile-section {
             background: white;
             padding: 2rem;
             border-radius: 10px;
             box-shadow: 0 3px 15px rgba(0,0,0,0.1);
         }
 
-        .checkout-section h2 {
+        .checkout-section h2, .profile-section h2 {
             color: #2c3e50;
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
@@ -573,6 +573,17 @@
             margin-top: 4rem;
         }
 
+        .info-banner {
+            background: #e8f0ff;
+            border-left: 4px solid #667eea;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
         @media (max-width: 968px) {
             .checkout-grid {
                 grid-template-columns: 1fr;
@@ -602,7 +613,7 @@
 <body>
     <header class="header">
         <nav class="nav">
-            <div class="logo" onclick="showPage('home')">Benzgifts</div>
+            <div class="logo" onclick="showPage('home')">BenzGifts</div>
             <ul class="nav-links">
                 <li><a onclick="showPage('home')">Home</a></li>
                 <li><a onclick="scrollToSection('shop')">Shop</a></li>
@@ -638,18 +649,16 @@
                 <h2 class="section-title">Our Products</h2>
                 <p class="section-subtitle" id="productSubtitle">Loading products...</p>
                 
-                <div class="products-grid" id="productsGrid">
-                    <!-- Products will be loaded here -->
-                </div>
+                <div class="products-grid" id="productsGrid"></div>
             </div>
         </section>
 
         <section style="padding: 4rem 2rem; background: #f8f9fa;" id="about">
             <div class="container">
-                <h2 class="section-title">About Benzgifts</h2>
+                <h2 class="section-title">About BenzGifts</h2>
                 <div style="max-width: 900px; margin: 0 auto; text-align: center;">
                     <p style="margin-bottom: 1.5rem; font-size: 1.1rem; color: #555; line-height: 1.8;">
-                        Benzgifts was founded with a clear mission: to offer premium quality T-shirts at accessible price points, specifically tailored for emerging clothing brands.
+                        BenzGifts was founded with a clear mission: to offer premium quality T-shirts at accessible price points, specifically tailored for emerging clothing brands.
                     </p>
                 </div>
             </div>
@@ -671,6 +680,46 @@
                 </div>
             </div>
         </section>
+    </div>
+
+    <!-- PROFILE PAGE -->
+    <div id="profilePage" class="page-container">
+        <div class="profile-container">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h1 style="color: #2c3e50;">👤 My Profile</h1>
+                <p style="color: #666;">Save your info for faster checkout</p>
+            </div>
+
+            <div class="success-message" id="profileSuccess"></div>
+            <div class="error-message" id="profileError"></div>
+
+            <div class="profile-section">
+                <h2>Shipping Information</h2>
+                
+                <div class="info-banner">
+                    <span style="font-size: 1.5rem;">💡</span>
+                    <div>
+                        <strong>Quick Tip:</strong> Save your info here and it will automatically fill in during checkout!
+                    </div>
+                </div>
+
+                <form id="profileForm" onsubmit="saveProfile(event)">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="profileName" required placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number *</label>
+                        <input type="tel" id="profilePhone" required placeholder="e.g., 016-800 0175">
+                    </div>
+                    <div class="form-group">
+                        <label>Shipping Address *</label>
+                        <textarea id="profileAddress" rows="3" required placeholder="Enter your complete shipping address"></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn" id="saveProfileBtn">💾 Save Profile</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- CHECKOUT PAGE -->
@@ -728,7 +777,7 @@
     <div id="authModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeAuthModal()">&times;</span>
-            <h2>Welcome to Benzgifts</h2>
+            <h2>Welcome to BenzGifts</h2>
             
             <div class="success-message" id="authSuccess"></div>
             <div class="error-message" id="authError"></div>
@@ -771,7 +820,7 @@
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2024 Benzgifts. All rights reserved.</p>
+            <p>&copy; 2024 BenzGifts. All rights reserved.</p>
         </div>
     </footer>
 
@@ -787,6 +836,7 @@
         let checkoutItems = [];
         let productsCache = null;
         let productsCacheTime = null;
+        let userProfile = null;
         const CACHE_DURATION = 5 * 60 * 1000;
 
         async function checkAuth() {
@@ -802,6 +852,7 @@
                 if (session) {
                     currentUser = session.user;
                     updateAuthUI(true);
+                    await loadUserProfile();
                     await loadCartFromDB();
                     if (window.location.hash) {
                         window.history.replaceState(null, '', window.location.pathname);
@@ -824,6 +875,7 @@
                     <div class="user-menu">
                         <span class="user-email" id="userEmailBtn">${currentUser.email}</span>
                         <div class="dropdown-menu" id="userDropdown">
+                            <div class="dropdown-item" id="profileMenuItem">👤 My Profile</div>
                             <div class="dropdown-item" id="logoutMenuItem">Logout</div>
                         </div>
                     </div>
@@ -831,6 +883,7 @@
                 
                 setTimeout(() => {
                     const emailBtn = document.getElementById('userEmailBtn');
+                    const profileItem = document.getElementById('profileMenuItem');
                     const logoutItem = document.getElementById('logoutMenuItem');
                     
                     if (emailBtn) {
@@ -838,6 +891,15 @@
                             e.preventDefault();
                             e.stopPropagation();
                             toggleUserMenu();
+                        });
+                    }
+                    
+                    if (profileItem) {
+                        profileItem.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            closeUserMenu();
+                            showPage('profile');
                         });
                     }
                     
@@ -911,6 +973,7 @@
                 if (error) throw error;
                 
                 currentUser = null;
+                userProfile = null;
                 cart = [];
                 updateAuthUI(false);
                 updateCartBadge();
@@ -939,9 +1002,11 @@
                 currentUser = session.user;
                 updateAuthUI(true);
                 closeAuthModal();
+                await loadUserProfile();
                 await loadCartFromDB();
             } else if (event === 'SIGNED_OUT') {
                 currentUser = null;
+                userProfile = null;
                 updateAuthUI(false);
             }
         });
@@ -950,6 +1015,107 @@
             window.location.href = 'admin.html';
         }
 
+        // PROFILE FUNCTIONS
+        async function loadUserProfile() {
+            if (!currentUser) return;
+            try {
+                const url = `${SUPABASE_URL}/rest/v1/user_profiles?user_id=eq.${currentUser.id}&select=*`;
+                const response = await fetch(url, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    userProfile = data[0];
+                    console.log('Profile loaded:', userProfile);
+                    
+                    // Fill profile form
+                    if (document.getElementById('profileName')) {
+                        document.getElementById('profileName').value = userProfile.full_name || '';
+                        document.getElementById('profilePhone').value = userProfile.phone || '';
+                        document.getElementById('profileAddress').value = userProfile.address || '';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        async function saveProfile(event) {
+            event.preventDefault();
+            const submitBtn = document.getElementById('saveProfileBtn');
+            const successMsg = document.getElementById('profileSuccess');
+            const errorMsg = document.getElementById('profileError');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+            successMsg.style.display = 'none';
+            errorMsg.style.display = 'none';
+            
+            try {
+                const profileData = {
+                    user_id: currentUser.id,
+                    full_name: document.getElementById('profileName').value,
+                    phone: document.getElementById('profilePhone').value,
+                    address: document.getElementById('profileAddress').value,
+                    updated_at: new Date().toISOString()
+                };
+
+                if (userProfile) {
+                    // Update existing profile
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/user_profiles?user_id=eq.${currentUser.id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
+                        },
+                        body: JSON.stringify(profileData)
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to update profile');
+                } else {
+                    // Create new profile
+                    profileData.created_at = new Date().toISOString();
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/user_profiles`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
+                        },
+                        body: JSON.stringify(profileData)
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to create profile');
+                }
+
+                await loadUserProfile();
+                
+                successMsg.textContent = '✅ Profile saved successfully!';
+                successMsg.style.display = 'block';
+                
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Profile save error:', error);
+                errorMsg.textContent = 'Error saving profile: ' + error.message;
+                errorMsg.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '💾 Save Profile';
+            }
+        }
+
+        // CART FUNCTIONS
         function updateCartBadge() {
             const badge = document.getElementById('cartBadge');
             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -1013,7 +1179,6 @@
                 const data = await response.json();
                 
                 if (data && data.length > 0) {
-                    // Convert DB cart to local format
                     const dbCart = data.map(item => ({
                         productId: item.product_id,
                         productName: item.product_name,
@@ -1027,8 +1192,6 @@
                         image: item.image
                     }));
                     
-                    // Merge with existing cart from localStorage
-                    // This prevents deletion of cart items added before login
                     if (cart.length > 0) {
                         console.log('Merging localStorage cart with DB cart');
                         dbCart.forEach(dbItem => {
@@ -1045,7 +1208,6 @@
                         cart = dbCart;
                     }
                 } else if (cart.length === 0) {
-                    // Only load from localStorage if both DB and current cart are empty
                     loadCartFromLocalStorage();
                 }
                 
@@ -1053,7 +1215,6 @@
                 saveCartToLocalStorage();
             } catch (error) {
                 console.error('Error loading cart:', error);
-                // Don't override cart on error
                 if (cart.length === 0) {
                     loadCartFromLocalStorage();
                 }
@@ -1124,12 +1285,19 @@
 
         function proceedToCheckout() {
             if (cart.length === 0) return;
+            if (!currentUser) {
+                alert('Please log in to proceed to checkout');
+                closeCart();
+                openAuthModal();
+                return;
+            }
             checkoutItems = [...cart];
             closeCart();
             loadCheckoutPage();
             showPage('checkout');
         }
 
+        // AUTO-FILL CHECKOUT FROM PROFILE
         function loadCheckoutPage() {
             const itemsDiv = document.getElementById('checkoutItems');
             let total = 0;
@@ -1154,8 +1322,16 @@
             itemsDiv.innerHTML = html;
             document.getElementById('checkoutTotal').textContent = `RM${total.toFixed(2)}`;
             
+            // AUTO-FILL FROM PROFILE
             if (currentUser) {
                 document.getElementById('checkoutEmail').value = currentUser.email;
+            }
+            
+            if (userProfile) {
+                document.getElementById('checkoutName').value = userProfile.full_name || '';
+                document.getElementById('checkoutPhone').value = userProfile.phone || '';
+                document.getElementById('checkoutAddress').value = userProfile.address || '';
+                console.log('Auto-filled checkout from profile');
             }
         }
 
@@ -1235,6 +1411,7 @@
             }
         }
 
+        // PAGE NAVIGATION
         function showPage(pageName) {
             document.querySelectorAll('.page-container').forEach(page => {
                 page.classList.remove('active');
@@ -1251,6 +1428,7 @@
             }, 100);
         }
 
+        // LOAD PRODUCTS
         async function loadProducts() {
             const subtitle = document.getElementById('productSubtitle');
             const grid = document.getElementById('productsGrid');
@@ -1358,16 +1536,13 @@
             }).join('');
         }
 
-        // CHECK FOR AUTO-CHECKOUT FROM BUY NOW - FIXED
         function checkAutoCheckout() {
             const params = new URLSearchParams(window.location.search);
             if (params.get('checkout') === 'true') {
                 console.log('Auto-checkout detected, cart items:', cart.length);
                 
-                // Remove the parameter from URL
                 window.history.replaceState({}, document.title, window.location.pathname);
                 
-                // IMPORTANT: Wait a moment to ensure cart is fully loaded
                 setTimeout(() => {
                     if (cart.length > 0) {
                         console.log('Proceeding to checkout with', cart.length, 'items');
@@ -1380,13 +1555,11 @@
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
-            // IMPORTANT: Load cart FIRST before anything else
             loadCartFromLocalStorage();
             
             await checkAuth();
             await loadProducts();
             
-            // Check auto-checkout AFTER cart is loaded
             checkAutoCheckout();
         });
 
@@ -1396,7 +1569,6 @@
                 if (savedCart) {
                     const localCart = JSON.parse(savedCart);
                     if (localCart && localCart.length > 0) {
-                        // Only load if current cart is empty to prevent overwriting
                         if (cart.length === 0) {
                             cart = localCart;
                             console.log('Loaded cart from localStorage:', cart.length, 'items');
@@ -1446,7 +1618,7 @@
             if (event.target === authModal) closeAuthModal();
         }
 
-        console.log('✅ Benzgifts complete system loaded!');
+        console.log('✅ BenzGifts complete system loaded!');
     </script>
 </body>
 </html>
