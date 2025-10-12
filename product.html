@@ -148,6 +148,15 @@
             background: #5568d3;
         }
 
+        .cart-float-btn.pulse {
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
         .cart-badge {
             position: absolute;
             top: -5px;
@@ -162,6 +171,35 @@
             justify-content: center;
             font-size: 12px;
             font-weight: bold;
+        }
+
+        .toast {
+            position: fixed;
+            top: 100px;
+            right: 30px;
+            background: #28a745;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         .breadcrumb {
@@ -576,61 +614,6 @@
             font-weight: bold;
         }
 
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.5);
-            animation: fadeIn 0.3s;
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 10% auto;
-            padding: 2rem;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-            animation: slideDown 0.3s;
-        }
-
-        @keyframes slideDown {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close:hover {
-            color: #000;
-        }
-
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 1rem;
-            border-radius: 5px;
-            margin-bottom: 1rem;
-            display: none;
-        }
-
         .error-message, .loading {
             text-align: center;
             padding: 4rem;
@@ -675,11 +658,13 @@
         </nav>
     </header>
 
-    <!-- FIXED: Cart button now opens the index page, cart is handled there -->
-    <button class="cart-float-btn" onclick="goToIndexWithCart()">
+    <button class="cart-float-btn" id="cartBtn" onclick="goToIndexWithCart()">
         🛒
         <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
     </button>
+
+    <!-- Simple Toast Notification -->
+    <div class="toast" id="toast">✅ Added to cart!</div>
 
     <div class="breadcrumb">
         <div class="breadcrumb-container">
@@ -776,20 +761,6 @@
         </div>
     </div>
 
-    <!-- Success Modal -->
-    <div id="successModal" class="modal">
-        <div class="modal-content" style="text-align: center;">
-            <span class="close" onclick="closeSuccessModal()">&times;</span>
-            <div style="font-size: 4rem; margin: 1rem 0;">✅</div>
-            <h2 style="color: #28a745; margin-bottom: 1rem;">Added to Cart!</h2>
-            <p style="color: #666; margin-bottom: 2rem;" id="successMessage"></p>
-            <div style="display: flex; gap: 1rem;">
-                <button class="btn btn-cart" style="flex: 1;" onclick="closeSuccessModal()">Continue Shopping</button>
-                <button class="btn btn-buy" style="flex: 1;" onclick="goToCheckout()">Go to Checkout</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
@@ -805,7 +776,6 @@
         let quantity = 1;
         let cart = [];
 
-        // Check Auth
         async function checkAuth() {
             try {
                 const { data: { session } } = await supabase.auth.getSession();
@@ -888,12 +858,10 @@
             window.location.href = 'admin.html';
         }
 
-        // FIXED: Go to index page (cart will be handled there)
         function goToIndexWithCart() {
             window.location.href = 'index.html';
         }
 
-        // Load cart from localStorage
         function loadCart() {
             try {
                 const savedCart = localStorage.getItem('benzgifts_cart');
@@ -910,7 +878,6 @@
             try {
                 localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
                 updateCartBadge();
-                console.log('Cart saved:', cart);
             } catch (error) {
                 console.error('Error saving cart:', error);
             }
@@ -921,6 +888,21 @@
             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
             badge.textContent = totalItems;
             badge.style.display = totalItems > 0 ? 'flex' : 'none';
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            // Pulse animation on cart button
+            const cartBtn = document.getElementById('cartBtn');
+            cartBtn.classList.add('pulse');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                cartBtn.classList.remove('pulse');
+            }, 2000);
         }
 
         function getProductId() {
@@ -1178,20 +1160,13 @@
             }
         }
 
-        // FIXED: ADD TO CART - Shows modal instead of redirecting
+        // NO POPUP - Just show toast
         function addToCart() {
             if (!selectedVariant) {
                 alert('Please select color and size');
                 return;
             }
 
-            console.log('Adding to cart:', {
-                product: currentProduct.name,
-                color: selectedColor,
-                size: selectedSize,
-                quantity: quantity
-            });
-
             const existingItemIndex = cart.findIndex(item => 
                 item.productId === currentProduct.id &&
                 item.variant.color === selectedColor &&
@@ -1218,25 +1193,15 @@
             }
             
             saveCart();
-            
-            // Show success modal
-            document.getElementById('successMessage').textContent = 
-                `${currentProduct.name} - ${selectedColor}, Size ${selectedSize} (Qty: ${quantity})`;
-            document.getElementById('successModal').style.display = 'block';
-            
-            console.log('Cart after adding:', cart);
+            showToast('✅ Added to cart!');
         }
 
-        // FIXED: BUY NOW - Adds to cart and redirects to checkout
         function buyNow() {
             if (!selectedVariant) {
                 alert('Please select color and size');
                 return;
             }
 
-            console.log('Buy Now clicked - Adding to cart first');
-
-            // Add to cart first (same logic as addToCart but without modal)
             const existingItemIndex = cart.findIndex(item => 
                 item.productId === currentProduct.id &&
                 item.variant.color === selectedColor &&
@@ -1263,18 +1228,6 @@
             }
             
             saveCart();
-            
-            console.log('Cart saved, redirecting to checkout');
-            
-            // Go straight to checkout with parameter
-            window.location.href = 'index.html?checkout=true';
-        }
-
-        function closeSuccessModal() {
-            document.getElementById('successModal').style.display = 'none';
-        }
-
-        function goToCheckout() {
             window.location.href = 'index.html?checkout=true';
         }
 
@@ -1293,7 +1246,6 @@
             document.getElementById('errorMessage').textContent = message;
         }
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             const userMenu = document.querySelector('.user-menu');
             const dropdown = document.getElementById('userDropdown');
@@ -1302,24 +1254,11 @@
             }
         });
 
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('successModal');
-            if (event.target === modal) {
-                closeSuccessModal();
-            }
-        }
-
-        // Initialize
         window.addEventListener('DOMContentLoaded', async () => {
-            console.log('Product page loading...');
             await checkAuth();
             loadCart();
             await loadProduct();
-            console.log('Product page ready!');
         });
-
-        console.log('✅ Product page with cart & checkout loaded!');
     </script>
 </body>
 </html>
