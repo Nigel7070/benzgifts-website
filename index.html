@@ -710,12 +710,12 @@
                             <input type="tel" id="checkoutPhone" required>
                         </div>
                         <div class="form-group">
-                            <label>Address *</label>
-                            <textarea id="checkoutAddress" required></textarea>
+                            <label>Shipping Address *</label>
+                            <textarea id="checkoutAddress" rows="3" required placeholder="Enter your full shipping address"></textarea>
                         </div>
                         <div class="form-group">
-                            <label>Notes (Optional)</label>
-                            <textarea id="checkoutNotes"></textarea>
+                            <label>Notes to Seller (Optional)</label>
+                            <textarea id="checkoutNotes" rows="3" placeholder="Any special requests or instructions?"></textarea>
                         </div>
                         <button type="submit" class="submit-btn" id="checkoutSubmitBtn">Place Order</button>
                     </form>
@@ -776,7 +776,6 @@
     </footer>
 
     <script>
-        // Configuration
         const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
         const ADMIN_EMAILS = ['stella.benzgifts@gmail.com', 'himynameisblink123@gmail.com'];
@@ -786,11 +785,10 @@
         let currentUser = null;
         let cart = [];
         let checkoutItems = [];
-        let productsCache = null; // Cache for products
+        let productsCache = null;
         let productsCacheTime = null;
-        const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+        const CACHE_DURATION = 5 * 60 * 1000;
 
-        // Authentication
         async function checkAuth() {
             try {
                 const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -831,7 +829,6 @@
                     </div>
                 `;
                 
-                // FIXED: Use setTimeout and proper event delegation
                 setTimeout(() => {
                     const emailBtn = document.getElementById('userEmailBtn');
                     const logoutItem = document.getElementById('logoutMenuItem');
@@ -919,7 +916,6 @@
                 updateCartBadge();
                 showPage('home');
                 
-                // Force reload after a short delay
                 setTimeout(() => {
                     window.location.reload();
                 }, 500);
@@ -954,7 +950,6 @@
             window.location.href = 'admin.html';
         }
 
-        // Cart Functions
         function updateCartBadge() {
             const badge = document.getElementById('cartBadge');
             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -1216,7 +1211,6 @@
             }
         }
 
-        // Page Navigation
         function showPage(pageName) {
             document.querySelectorAll('.page-container').forEach(page => {
                 page.classList.remove('active');
@@ -1233,12 +1227,10 @@
             }, 100);
         }
 
-        // Load Products - OPTIMIZED with Caching
         async function loadProducts() {
             const subtitle = document.getElementById('productSubtitle');
             const grid = document.getElementById('productsGrid');
 
-            // Check cache first
             const now = Date.now();
             if (productsCache && productsCacheTime && (now - productsCacheTime < CACHE_DURATION)) {
                 console.log('Using cached products');
@@ -1250,8 +1242,6 @@
                 subtitle.textContent = 'Loading products...';
                 
                 const url = `${SUPABASE_URL}/rest/v1/products?select=*&order=created_at.desc`;
-                console.log('Fetching products from:', url);
-                
                 const response = await fetch(url, {
                     method: 'GET',
                     headers: {
@@ -1266,9 +1256,7 @@
                 }
                 
                 const data = await response.json();
-                console.log('Products loaded:', data.length);
 
-                // Cache the results
                 productsCache = data;
                 productsCacheTime = now;
 
@@ -1346,11 +1334,27 @@
             }).join('');
         }
 
-        // Initialize
+        // CHECK FOR AUTO-CHECKOUT FROM BUY NOW
+        function checkAutoCheckout() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('checkout') === 'true') {
+                // Remove the parameter from URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                // If cart has items, proceed to checkout
+                if (cart.length > 0) {
+                    setTimeout(() => {
+                        proceedToCheckout();
+                    }, 500);
+                }
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', async () => {
             await checkAuth();
             await loadProducts();
             loadCartFromLocalStorage();
+            checkAutoCheckout(); // Check if coming from Buy Now
         });
 
         function loadCartFromLocalStorage() {
@@ -1403,7 +1407,7 @@
             if (event.target === authModal) closeAuthModal();
         }
 
-        console.log('✅ Benzgifts optimized system loaded!');
+        console.log('✅ Benzgifts complete system loaded!');
     </script>
 </body>
 </html>
