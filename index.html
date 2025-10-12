@@ -1013,7 +1013,8 @@
                 const data = await response.json();
                 
                 if (data && data.length > 0) {
-                    cart = data.map(item => ({
+                    // Convert DB cart to local format
+                    const dbCart = data.map(item => ({
                         productId: item.product_id,
                         productName: item.product_name,
                         variant: {
@@ -1025,14 +1026,37 @@
                         quantity: item.quantity,
                         image: item.image
                     }));
-                } else {
+                    
+                    // Merge with existing cart from localStorage
+                    // This prevents deletion of cart items added before login
+                    if (cart.length > 0) {
+                        console.log('Merging localStorage cart with DB cart');
+                        dbCart.forEach(dbItem => {
+                            const existingIndex = cart.findIndex(item => 
+                                item.productId === dbItem.productId &&
+                                item.variant.color === dbItem.variant.color &&
+                                item.variant.size === dbItem.variant.size
+                            );
+                            if (existingIndex === -1) {
+                                cart.push(dbItem);
+                            }
+                        });
+                    } else {
+                        cart = dbCart;
+                    }
+                } else if (cart.length === 0) {
+                    // Only load from localStorage if both DB and current cart are empty
                     loadCartFromLocalStorage();
                 }
+                
                 updateCartBadge();
                 saveCartToLocalStorage();
             } catch (error) {
                 console.error('Error loading cart:', error);
-                loadCartFromLocalStorage();
+                // Don't override cart on error
+                if (cart.length === 0) {
+                    loadCartFromLocalStorage();
+                }
             }
         }
 
@@ -1334,27 +1358,36 @@
             }).join('');
         }
 
-        // CHECK FOR AUTO-CHECKOUT FROM BUY NOW
+        // CHECK FOR AUTO-CHECKOUT FROM BUY NOW - FIXED
         function checkAutoCheckout() {
             const params = new URLSearchParams(window.location.search);
             if (params.get('checkout') === 'true') {
+                console.log('Auto-checkout detected, cart items:', cart.length);
+                
                 // Remove the parameter from URL
                 window.history.replaceState({}, document.title, window.location.pathname);
                 
-                // If cart has items, proceed to checkout
-                if (cart.length > 0) {
-                    setTimeout(() => {
+                // IMPORTANT: Wait a moment to ensure cart is fully loaded
+                setTimeout(() => {
+                    if (cart.length > 0) {
+                        console.log('Proceeding to checkout with', cart.length, 'items');
                         proceedToCheckout();
-                    }, 500);
-                }
+                    } else {
+                        console.log('Cart is empty, staying on home page');
+                    }
+                }, 300);
             }
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
+            // IMPORTANT: Load cart FIRST before anything else
+            loadCartFromLocalStorage();
+            
             await checkAuth();
             await loadProducts();
-            loadCartFromLocalStorage();
-            checkAutoCheckout(); // Check if coming from Buy Now
+            
+            // Check auto-checkout AFTER cart is loaded
+            checkAutoCheckout();
         });
 
         function loadCartFromLocalStorage() {
@@ -1362,8 +1395,14 @@
                 const savedCart = localStorage.getItem('benzgifts_cart');
                 if (savedCart) {
                     const localCart = JSON.parse(savedCart);
-                    if (!currentUser && localCart.length > 0) {
-                        cart = localCart;
+                    if (localCart && localCart.length > 0) {
+                        // Only load if current cart is empty to prevent overwriting
+                        if (cart.length === 0) {
+                            cart = localCart;
+                            console.log('Loaded cart from localStorage:', cart.length, 'items');
+                        } else {
+                            console.log('Cart already has items, not overwriting');
+                        }
                         updateCartBadge();
                     }
                 }
