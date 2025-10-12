@@ -659,7 +659,7 @@
             return params.get('id');
         }
 
-        // Load product data
+        // Load product data - Using Direct Fetch
         async function loadProduct() {
             const productId = getProductId();
             
@@ -669,17 +669,34 @@
             }
 
             try {
-                const { data, error } = await supabase
-                    .from('products')
-                    .select('*')
-                    .eq('id', productId)
-                    .single();
+                // Use direct REST API call
+                const url = `${SUPABASE_URL}/rest/v1/products?id=eq.${productId}&select=*`;
+                console.log('Fetching product from:', url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Product data received:', data);
 
-                if (error) throw error;
-                if (!data) throw new Error('Product not found');
+                if (!data || data.length === 0) {
+                    throw new Error('Product not found');
+                }
 
-                currentProduct = data;
-                displayProduct(data);
+                currentProduct = data[0];
+                displayProduct(currentProduct);
 
             } catch (error) {
                 console.error('Error loading product:', error);
