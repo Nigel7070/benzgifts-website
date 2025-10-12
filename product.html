@@ -925,18 +925,47 @@
                 return;
             }
 
-            // For now, just show alert. You'll integrate with cart system later
-            alert(`Added to cart:\n${currentProduct.name}\nColor: ${selectedColor}\nSize: ${selectedSize}\nQuantity: ${quantity}\nPrice: RM${(selectedVariant.price * quantity).toFixed(2)}`);
+            // Get cart from localStorage (temporary storage)
+            let cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
             
-            console.log('Add to cart:', {
-                product: currentProduct.name,
-                productId: currentProduct.id,
-                variant: selectedVariant,
-                color: selectedColor,
-                size: selectedSize,
-                quantity: quantity,
-                totalPrice: selectedVariant.price * quantity
-            });
+            // Check if this exact variant already exists in cart
+            const existingItemIndex = cart.findIndex(item => 
+                item.productId === currentProduct.id &&
+                item.variant.color === selectedColor &&
+                item.variant.size === selectedSize
+            );
+            
+            const imageUrl = currentProduct.colors.find(c => c.name === selectedColor)?.image || '';
+            
+            if (existingItemIndex > -1) {
+                // Update quantity
+                cart[existingItemIndex].quantity += quantity;
+            } else {
+                // Add new item
+                cart.push({
+                    productId: currentProduct.id,
+                    productName: currentProduct.name,
+                    variant: {
+                        color: selectedColor,
+                        size: selectedSize,
+                        sku: selectedVariant.sku
+                    },
+                    price: selectedVariant.price,
+                    quantity: quantity,
+                    image: imageUrl
+                });
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+            
+            // Show success message
+            alert(`✅ Added to cart!\n${currentProduct.name}\n${selectedColor}, Size ${selectedSize}\nQuantity: ${quantity}`);
+            
+            // Update cart badge if on index page
+            if (window.opener && !window.opener.closed) {
+                window.opener.postMessage({ type: 'UPDATE_CART' }, '*');
+            }
         }
 
         function buyNow() {
@@ -945,18 +974,13 @@
                 return;
             }
 
-            // For now, just show alert. You'll integrate with checkout later
-            alert(`Buy Now:\n${currentProduct.name}\nColor: ${selectedColor}\nSize: ${selectedSize}\nQuantity: ${quantity}\nTotal: RM${(selectedVariant.price * quantity).toFixed(2)}\n\nCheckout coming soon!`);
+            // Add to cart first
+            addToCart();
             
-            console.log('Buy now:', {
-                product: currentProduct.name,
-                productId: currentProduct.id,
-                variant: selectedVariant,
-                color: selectedColor,
-                size: selectedSize,
-                quantity: quantity,
-                totalPrice: selectedVariant.price * quantity
-            });
+            // Redirect to checkout
+            setTimeout(() => {
+                window.location.href = 'index.html#checkout';
+            }, 500);
         }
 
         function switchTab(index) {
