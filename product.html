@@ -66,6 +66,104 @@
             color: #667eea;
         }
 
+        .auth-btn {
+            padding: 0.5rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .auth-btn:hover {
+            background: #5568d3;
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-email {
+            cursor: pointer;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 5px;
+            margin-top: 0.5rem;
+            min-width: 200px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .dropdown-menu.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+        }
+
+        .cart-float-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 999;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cart-float-btn:hover {
+            transform: scale(1.1);
+            background: #5568d3;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
         .breadcrumb {
             background: white;
             padding: 1rem 0;
@@ -115,7 +213,6 @@
             padding: 2rem;
         }
 
-        /* Image Gallery */
         .image-gallery {
             position: sticky;
             top: 100px;
@@ -170,7 +267,6 @@
             object-fit: cover;
         }
 
-        /* Product Info */
         .product-info {
             padding: 1rem 0;
         }
@@ -207,7 +303,6 @@
             font-size: 0.9rem;
         }
 
-        /* Selection Section */
         .selection-group {
             margin-bottom: 1.5rem;
         }
@@ -219,7 +314,6 @@
             display: block;
         }
 
-        /* Color Selector */
         .color-options {
             display: flex;
             gap: 1rem;
@@ -268,7 +362,6 @@
             font-weight: 600;
         }
 
-        /* Size Selector */
         .size-options {
             display: flex;
             gap: 0.8rem;
@@ -314,7 +407,6 @@
             transform: translateY(-50%) rotate(-15deg);
         }
 
-        /* Quantity Selector */
         .quantity-selector {
             display: flex;
             align-items: center;
@@ -374,7 +466,6 @@
             color: #dc3545;
         }
 
-        /* Action Buttons */
         .action-buttons {
             display: grid;
             grid-template-columns: 1fr 2fr;
@@ -422,7 +513,6 @@
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
-        /* Product Details Tabs */
         .product-details {
             padding: 2rem;
             border-top: 1px solid #e9ecef;
@@ -486,15 +576,51 @@
             font-weight: bold;
         }
 
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 1rem;
-            border-radius: 5px;
-            margin: 2rem;
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
         }
 
-        .loading {
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .error-message, .loading {
             text-align: center;
             padding: 4rem;
             color: #999;
@@ -528,9 +654,20 @@
                 <li><a href="index.html#shop">Shop</a></li>
                 <li><a href="index.html#about">About</a></li>
                 <li><a href="index.html#contact">Contact</a></li>
+                <li id="adminNavLink" style="display: none;">
+                    <a onclick="goToAdminPanel()" style="color: #667eea; font-weight: 600;">⚙️ Admin</a>
+                </li>
+                <li id="authSection">
+                    <button class="auth-btn" onclick="window.location.href='index.html'">Login / Sign Up</button>
+                </li>
             </ul>
         </nav>
     </header>
+
+    <button class="cart-float-btn" onclick="window.location.href='index.html'">
+        🛒
+        <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+    </button>
 
     <div class="breadcrumb">
         <div class="breadcrumb-container">
@@ -556,17 +693,13 @@
 
         <div id="productContent" class="product-container" style="display: none;">
             <div class="product-grid">
-                <!-- Image Gallery -->
                 <div class="image-gallery">
                     <div class="main-image" id="mainImage">
                         <div style="font-size: 4rem;">👕</div>
                     </div>
-                    <div class="thumbnail-gallery" id="thumbnailGallery">
-                        <!-- Thumbnails will be loaded here -->
-                    </div>
+                    <div class="thumbnail-gallery" id="thumbnailGallery"></div>
                 </div>
 
-                <!-- Product Info -->
                 <div class="product-info">
                     <h1 class="product-title" id="productTitle">Product Name</h1>
                     
@@ -574,26 +707,19 @@
                     
                     <div class="product-rating">
                         <span class="stars">⭐⭐⭐⭐⭐</span>
-                        <span class="rating-count" id="ratingCount">4.5 (24 ratings)</span>
+                        <span class="rating-count">4.5 (24 ratings)</span>
                     </div>
 
-                    <!-- Color Selection -->
                     <div class="selection-group">
                         <label class="selection-label">Color</label>
-                        <div class="color-options" id="colorOptions">
-                            <!-- Colors will be loaded here -->
-                        </div>
+                        <div class="color-options" id="colorOptions"></div>
                     </div>
 
-                    <!-- Size Selection -->
                     <div class="selection-group">
                         <label class="selection-label">Size</label>
-                        <div class="size-options" id="sizeOptions">
-                            <!-- Sizes will be loaded here -->
-                        </div>
+                        <div class="size-options" id="sizeOptions"></div>
                     </div>
 
-                    <!-- Quantity Selection -->
                     <div class="selection-group">
                         <label class="selection-label">Quantity</label>
                         <div class="quantity-selector">
@@ -606,7 +732,6 @@
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
                     <div class="action-buttons">
                         <button class="btn btn-cart" id="addToCartBtn" onclick="addToCart()" disabled>
                             🛒 Add to Cart
@@ -618,7 +743,6 @@
                 </div>
             </div>
 
-            <!-- Product Details Tabs -->
             <div class="product-details">
                 <div class="tabs">
                     <div class="tab active" onclick="switchTab(0)">Description</div>
@@ -640,26 +764,152 @@
         </div>
     </div>
 
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <span class="close" onclick="closeSuccessModal()">&times;</span>
+            <div style="font-size: 4rem; margin: 1rem 0;">✅</div>
+            <h2 style="color: #28a745; margin-bottom: 1rem;">Added to Cart!</h2>
+            <p style="color: #666; margin-bottom: 2rem;" id="successMessage"></p>
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn btn-cart" style="flex: 1;" onclick="closeSuccessModal()">Continue Shopping</button>
+                <button class="btn btn-buy" style="flex: 1;" onclick="goToCheckout()">Go to Checkout</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Configuration
         const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
+        const ADMIN_EMAILS = ['stella.benzgifts@gmail.com', 'himynameisblink123@gmail.com'];
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        let currentUser = null;
         let currentProduct = null;
         let selectedColor = null;
         let selectedSize = null;
         let selectedVariant = null;
         let quantity = 1;
+        let cart = [];
 
-        // Get product ID from URL
+        // Check Auth
+        async function checkAuth() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    currentUser = session.user;
+                    updateAuthUI(true);
+                } else {
+                    updateAuthUI(false);
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                updateAuthUI(false);
+            }
+        }
+
+        function updateAuthUI(isLoggedIn) {
+            const authSection = document.getElementById('authSection');
+            const adminNavLink = document.getElementById('adminNavLink');
+            
+            if (isLoggedIn && currentUser) {
+                authSection.innerHTML = `
+                    <div class="user-menu">
+                        <span class="user-email" id="userEmailBtn">${currentUser.email}</span>
+                        <div class="dropdown-menu" id="userDropdown">
+                            <div class="dropdown-item" id="logoutMenuItem">Logout</div>
+                        </div>
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    const emailBtn = document.getElementById('userEmailBtn');
+                    const logoutItem = document.getElementById('logoutMenuItem');
+                    
+                    if (emailBtn) {
+                        emailBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleUserMenu();
+                        });
+                    }
+                    
+                    if (logoutItem) {
+                        logoutItem.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            closeUserMenu();
+                            handleLogout();
+                        });
+                    }
+                }, 100);
+                
+                if (ADMIN_EMAILS.includes(currentUser.email)) {
+                    adminNavLink.style.display = 'block';
+                }
+            } else {
+                authSection.innerHTML = `<button class="auth-btn" onclick="window.location.href='index.html'">Login / Sign Up</button>`;
+            }
+        }
+
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.classList.toggle('active');
+        }
+
+        function closeUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.classList.remove('active');
+        }
+
+        async function handleLogout() {
+            try {
+                await supabase.auth.signOut();
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        function goToAdminPanel() {
+            window.location.href = 'admin.html';
+        }
+
+        // Load cart from localStorage
+        function loadCart() {
+            try {
+                const savedCart = localStorage.getItem('benzgifts_cart');
+                if (savedCart) {
+                    cart = JSON.parse(savedCart);
+                    updateCartBadge();
+                }
+            } catch (error) {
+                console.error('Error loading cart:', error);
+            }
+        }
+
+        function saveCart() {
+            try {
+                localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+                updateCartBadge();
+            } catch (error) {
+                console.error('Error saving cart:', error);
+            }
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cartBadge');
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            badge.textContent = totalItems;
+            badge.style.display = totalItems > 0 ? 'flex' : 'none';
+        }
+
         function getProductId() {
             const params = new URLSearchParams(window.location.search);
             return params.get('id');
         }
 
-        // Load product data - Using Direct Fetch
         async function loadProduct() {
             const productId = getProductId();
             
@@ -669,10 +919,7 @@
             }
 
             try {
-                // Use direct REST API call
                 const url = `${SUPABASE_URL}/rest/v1/products?id=eq.${productId}&select=*`;
-                console.log('Fetching product from:', url);
-                
                 const response = await fetch(url, {
                     method: 'GET',
                     headers: {
@@ -682,14 +929,11 @@
                     }
                 });
                 
-                console.log('Response status:', response.status);
-                
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const data = await response.json();
-                console.log('Product data received:', data);
 
                 if (!data || data.length === 0) {
                     throw new Error('Product not found');
@@ -708,15 +952,12 @@
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('productContent').style.display = 'block';
 
-            // Update title and breadcrumb
             document.getElementById('productTitle').textContent = product.name;
             document.getElementById('breadcrumbProduct').textContent = product.name;
             document.title = `${product.name} - Benzgifts`;
 
-            // Update description
             document.getElementById('productDescription').textContent = product.description || 'No description available';
 
-            // Update specifications
             const specs = product.specifications || [];
             if (specs.length > 0) {
                 document.getElementById('productSpecs').innerHTML = specs.map(spec => 
@@ -726,7 +967,6 @@
                 document.getElementById('productSpecs').innerHTML = '<li>No specifications available</li>';
             }
 
-            // Display colors
             const colors = product.colors || [];
             if (colors.length > 0) {
                 document.getElementById('colorOptions').innerHTML = colors.map((color, index) => `
@@ -738,11 +978,9 @@
                     </div>
                 `).join('');
 
-                // Auto-select first color
                 selectColor(0);
             }
 
-            // Display sizes
             const sizes = product.sizes || [];
             if (sizes.length > 0) {
                 document.getElementById('sizeOptions').innerHTML = sizes.map(size => `
@@ -759,24 +997,17 @@
 
             selectedColor = colors[index].name;
 
-            // Update UI
             document.querySelectorAll('.color-option').forEach((el, i) => {
                 el.classList.toggle('selected', i === index);
             });
 
-            // Update main image
             const mainImage = document.getElementById('mainImage');
             if (colors[index].image) {
                 mainImage.innerHTML = `<img src="${colors[index].image}" alt="${colors[index].name}">`;
             }
 
-            // Update thumbnails
             updateThumbnails(colors[index]);
-
-            // Update available sizes
             updateAvailableSizes();
-
-            // Update variant
             updateSelectedVariant();
         }
 
@@ -795,19 +1026,16 @@
         }
 
         function selectSize(size) {
-            // Check if size is available for selected color
             const sizeOption = document.querySelector(`[data-size="${size}"]`);
             if (sizeOption.classList.contains('disabled')) return;
 
             selectedSize = size;
 
-            // Update UI
             document.querySelectorAll('.size-option').forEach(el => {
                 el.classList.remove('selected');
             });
             sizeOption.classList.add('selected');
 
-            // Update variant
             updateSelectedVariant();
         }
 
@@ -821,7 +1049,6 @@
                 const sizeOption = document.querySelector(`[data-size="${size}"]`);
                 if (!sizeOption) return;
 
-                // Check if this color-size combo has stock
                 const variant = variants.find(v => 
                     v.color === selectedColor && v.size === size
                 );
@@ -833,7 +1060,6 @@
                 }
             });
 
-            // If selected size is now disabled, deselect it
             if (selectedSize) {
                 const selectedOption = document.querySelector(`[data-size="${selectedSize}"]`);
                 if (selectedOption && selectedOption.classList.contains('disabled')) {
@@ -870,7 +1096,6 @@
             if (selectedVariant) {
                 priceEl.textContent = `RM${parseFloat(selectedVariant.price).toFixed(2)}`;
             } else {
-                // Show price range
                 const variants = currentProduct.variants || [];
                 const prices = variants.map(v => v.price || 0);
                 const minPrice = Math.min(...prices);
@@ -906,7 +1131,6 @@
                 stockInfo.className = 'stock-info in-stock';
             }
 
-            // Update quantity max
             document.getElementById('quantity').max = stock;
             if (quantity > stock) {
                 quantity = stock;
@@ -936,16 +1160,13 @@
             }
         }
 
+        // ADD TO CART - Updates floating cart button
         function addToCart() {
             if (!selectedVariant) {
                 alert('Please select color and size');
                 return;
             }
 
-            // Get cart from localStorage (temporary storage)
-            let cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
-            
-            // Check if this exact variant already exists in cart
             const existingItemIndex = cart.findIndex(item => 
                 item.productId === currentProduct.id &&
                 item.variant.color === selectedColor &&
@@ -955,10 +1176,8 @@
             const imageUrl = currentProduct.colors.find(c => c.name === selectedColor)?.image || '';
             
             if (existingItemIndex > -1) {
-                // Update quantity
                 cart[existingItemIndex].quantity += quantity;
             } else {
-                // Add new item
                 cart.push({
                     productId: currentProduct.id,
                     productName: currentProduct.name,
@@ -973,18 +1192,15 @@
                 });
             }
             
-            // Save to localStorage
-            localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+            saveCart();
             
-            // Show success message
-            alert(`✅ Added to cart!\n${currentProduct.name}\n${selectedColor}, Size ${selectedSize}\nQuantity: ${quantity}`);
-            
-            // Update cart badge if on index page
-            if (window.opener && !window.opener.closed) {
-                window.opener.postMessage({ type: 'UPDATE_CART' }, '*');
-            }
+            // Show success modal
+            document.getElementById('successMessage').textContent = 
+                `${currentProduct.name} - ${selectedColor}, Size ${selectedSize} (Qty: ${quantity})`;
+            document.getElementById('successModal').style.display = 'block';
         }
 
+        // BUY NOW - Adds to cart and goes to checkout
         function buyNow() {
             if (!selectedVariant) {
                 alert('Please select color and size');
@@ -994,10 +1210,18 @@
             // Add to cart first
             addToCart();
             
-            // Redirect to checkout
+            // Go straight to checkout
             setTimeout(() => {
-                window.location.href = 'index.html#checkout';
+                window.location.href = 'index.html?checkout=true';
             }, 500);
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').style.display = 'none';
+        }
+
+        function goToCheckout() {
+            window.location.href = 'index.html?checkout=true';
         }
 
         function switchTab(index) {
@@ -1015,12 +1239,31 @@
             document.getElementById('errorMessage').textContent = message;
         }
 
-        // Initialize
-        window.addEventListener('DOMContentLoaded', () => {
-            loadProduct();
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.querySelector('.user-menu');
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown && userMenu && !userMenu.contains(event.target)) {
+                dropdown.classList.remove('active');
+            }
         });
 
-        console.log('Product page loaded!');
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('successModal');
+            if (event.target === modal) {
+                closeSuccessModal();
+            }
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            loadCart();
+            await loadProduct();
+        });
+
+        console.log('✅ Product page with cart & checkout loaded!');
     </script>
 </body>
 </html>
