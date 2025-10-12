@@ -586,17 +586,28 @@
             height: 100%;
             overflow: auto;
             background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
         }
 
         .modal-content {
             background-color: #fefefe;
-            margin: 5% auto;
+            margin: 10% auto;
             padding: 2rem;
             border-radius: 10px;
             width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
+            max-width: 500px;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .close {
@@ -664,7 +675,8 @@
         </nav>
     </header>
 
-    <button class="cart-float-btn" onclick="window.location.href='index.html'">
+    <!-- FIXED: Cart button now opens the index page, cart is handled there -->
+    <button class="cart-float-btn" onclick="goToIndexWithCart()">
         🛒
         <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
     </button>
@@ -876,6 +888,11 @@
             window.location.href = 'admin.html';
         }
 
+        // FIXED: Go to index page (cart will be handled there)
+        function goToIndexWithCart() {
+            window.location.href = 'index.html';
+        }
+
         // Load cart from localStorage
         function loadCart() {
             try {
@@ -893,6 +910,7 @@
             try {
                 localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
                 updateCartBadge();
+                console.log('Cart saved:', cart);
             } catch (error) {
                 console.error('Error saving cart:', error);
             }
@@ -1160,12 +1178,19 @@
             }
         }
 
-        // ADD TO CART - Updates floating cart button
+        // FIXED: ADD TO CART - Shows modal instead of redirecting
         function addToCart() {
             if (!selectedVariant) {
                 alert('Please select color and size');
                 return;
             }
+
+            console.log('Adding to cart:', {
+                product: currentProduct.name,
+                color: selectedColor,
+                size: selectedSize,
+                quantity: quantity
+            });
 
             const existingItemIndex = cart.findIndex(item => 
                 item.productId === currentProduct.id &&
@@ -1198,22 +1223,51 @@
             document.getElementById('successMessage').textContent = 
                 `${currentProduct.name} - ${selectedColor}, Size ${selectedSize} (Qty: ${quantity})`;
             document.getElementById('successModal').style.display = 'block';
+            
+            console.log('Cart after adding:', cart);
         }
 
-        // BUY NOW - Adds to cart and goes to checkout
+        // FIXED: BUY NOW - Adds to cart and redirects to checkout
         function buyNow() {
             if (!selectedVariant) {
                 alert('Please select color and size');
                 return;
             }
 
-            // Add to cart first
-            addToCart();
+            console.log('Buy Now clicked - Adding to cart first');
+
+            // Add to cart first (same logic as addToCart but without modal)
+            const existingItemIndex = cart.findIndex(item => 
+                item.productId === currentProduct.id &&
+                item.variant.color === selectedColor &&
+                item.variant.size === selectedSize
+            );
             
-            // Go straight to checkout
-            setTimeout(() => {
-                window.location.href = 'index.html?checkout=true';
-            }, 500);
+            const imageUrl = currentProduct.colors.find(c => c.name === selectedColor)?.image || '';
+            
+            if (existingItemIndex > -1) {
+                cart[existingItemIndex].quantity += quantity;
+            } else {
+                cart.push({
+                    productId: currentProduct.id,
+                    productName: currentProduct.name,
+                    variant: {
+                        color: selectedColor,
+                        size: selectedSize,
+                        sku: selectedVariant.sku
+                    },
+                    price: selectedVariant.price,
+                    quantity: quantity,
+                    image: imageUrl
+                });
+            }
+            
+            saveCart();
+            
+            console.log('Cart saved, redirecting to checkout');
+            
+            // Go straight to checkout with parameter
+            window.location.href = 'index.html?checkout=true';
         }
 
         function closeSuccessModal() {
@@ -1258,9 +1312,11 @@
 
         // Initialize
         window.addEventListener('DOMContentLoaded', async () => {
+            console.log('Product page loading...');
             await checkAuth();
             loadCart();
             await loadProduct();
+            console.log('Product page ready!');
         });
 
         console.log('✅ Product page with cart & checkout loaded!');
