@@ -1020,7 +1020,7 @@
             if (!currentUser) return;
             try {
                 const { data, error } = await supabase.from('cart_items').select('*').eq('user_id', currentUser.id);
-                if (data) {
+                if (data && data.length > 0) {
                     cart = data.map(item => ({
                         productId: item.product_id,
                         productName: item.product_name,
@@ -1033,10 +1033,15 @@
                         quantity: item.quantity,
                         image: item.image
                     }));
-                    updateCartBadge();
+                } else {
+                    // If no cart in DB, check localStorage
+                    loadCartFromLocalStorage();
                 }
+                updateCartBadge();
+                saveCartToLocalStorage();
             } catch (error) {
                 console.error('Error loading cart:', error);
+                loadCartFromLocalStorage();
             }
         }
 
@@ -1087,6 +1092,7 @@
         async function removeFromCart(index) {
             cart.splice(index, 1);
             updateCartBadge();
+            saveCartToLocalStorage();
             openCart();
             if (currentUser) await saveCartToDB();
         }
@@ -1095,6 +1101,7 @@
             if (confirm('Clear all items from cart?')) {
                 cart = [];
                 updateCartBadge();
+                saveCartToLocalStorage();
                 openCart();
                 if (currentUser) await saveCartToDB();
             }
@@ -1141,25 +1148,72 @@
             event.preventDefault();
             const submitBtn = document.getElementById('checkoutSubmitBtn');
             const successMsg = document.getElementById('checkoutSuccess');
+            const errorMsg = document.getElementById('checkoutError');
             
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processing...';
+            successMsg.style.display = 'none';
+            errorMsg.style.display = 'none';
             
-            // Simulate order submission
-            setTimeout(async () => {
-                successMsg.textContent = 'Order placed successfully!';
+            try {
+                const total = checkoutItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                
+                // Prepare order data
+                const orderData = {
+                    user_id: currentUser ? currentUser.id : null,
+                    customer_name: document.getElementById('checkoutName').value,
+                    customer_email: document.getElementById('checkoutEmail').value,
+                    customer_phone: document.getElementById('checkoutPhone').value,
+                    customer_address: document.getElementById('checkoutAddress').value,
+                    notes: document.getElementById('checkoutNotes').value,
+                    items: checkoutItems.map(item => ({
+                        product_name: item.productName,
+                        color: item.variant.color,
+                        size: item.variant.size,
+                        sku: item.variant.sku,
+                        price: item.price,
+                        quantity: item.quantity
+                    })),
+                    total_amount: total,
+                    status: 'pending',
+                    created_at: new Date().toISOString()
+                };
+                
+                // Save to database
+                const { data, error } = await supabase
+                    .from('orders')
+                    .insert([orderData])
+                    .select();
+                
+                if (error) throw error;
+                
+                successMsg.textContent = '✅ Order placed successfully! We will contact you soon.';
                 successMsg.style.display = 'block';
                 
+                // Clear cart
                 cart = [];
                 checkoutItems = [];
                 updateCartBadge();
+                saveCartToLocalStorage();
                 if (currentUser) await saveCartToDB();
+                
+                // Reset form
+                document.getElementById('checkoutForm').reset();
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Place Order';
                 
                 setTimeout(() => {
                     showPage('home');
-                    alert('Thank you for your order!');
+                    alert('🎉 Thank you for your order!\n\nOrder ID: ' + data[0].id + '\n\nWe will contact you shortly to confirm your order.');
                 }, 2000);
-            }, 1500);
+                
+            } catch (error) {
+                console.error('Checkout error:', error);
+                errorMsg.textContent = 'Error placing order: ' + error.message;
+                errorMsg.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Place Order';
+            }
         }
 
         // Page Navigation
@@ -1179,64 +1233,103 @@
             }, 100);
         }
 
-        // Load Products
+        // Load Products - Using Direct Fetch
         async function loadProducts() {
             const subtitle = document.getElementById('productSubtitle');
             const grid = document.getElementById('productsGrid');
 
             try {
-                const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
-                if (error) throw error;
+                subtitle.textContent = 'Loading products...';
+                
+                // Use direct REST API call (this worked before)
+                const url = `${SUPABASE_URL}/rest/v1/products?select=*&order=created_at.desc`;
+                console.log('Fetching from:', url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Data received:', data);
+                console.log('Number of products:', data.length);
 
                 if (!data || data.length === 0) {
                     subtitle.textContent = 'No products available';
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: #999;">No products available</div>';
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: #999;">📦<br><br>No products available</div>';
                     return;
                 }
 
                 subtitle.textContent = `Showing ${data.length} product${data.length > 1 ? 's' : ''}`;
 
                 grid.innerHTML = data.map(product => {
-                    const variants = product.variants || [];
-                    const colors = product.colors || [];
-                    const totalStock = variants.reduce((sum, v) => sum + (v.stock || 0), 0);
-                    const prices = variants.map(v => v.price || 0);
-                    const minPrice = Math.min(...prices);
-                    const maxPrice = Math.max(...prices);
-                    const priceDisplay = minPrice === maxPrice ? `RM${minPrice.toFixed(2)}` : `RM${minPrice.toFixed(2)} - RM${maxPrice.toFixed(2)}`;
-                    
-                    let stockStatus = '';
-                    let stockClass = '';
-                    if (totalStock === 0) {
-                        stockStatus = 'Out of Stock';
-                        stockClass = 'out-of-stock';
-                    } else if (totalStock < 20) {
-                        stockStatus = `Only ${totalStock} left!`;
-                        stockClass = 'low-stock';
-                    } else {
-                        stockStatus = 'In Stock';
-                        stockClass = 'in-stock';
+                    try {
+                        const variants = product.variants || [];
+                        const colors = product.colors || [];
+                        const totalStock = variants.reduce((sum, v) => sum + (v.stock || 0), 0);
+                        const prices = variants.map(v => v.price || 0);
+                        const minPrice = Math.min(...prices);
+                        const maxPrice = Math.max(...prices);
+                        const priceDisplay = minPrice === maxPrice ? `RM${minPrice.toFixed(2)}` : `RM${minPrice.toFixed(2)} - RM${maxPrice.toFixed(2)}`;
+                        
+                        let stockStatus = '';
+                        let stockClass = '';
+                        if (totalStock === 0) {
+                            stockStatus = 'Out of Stock';
+                            stockClass = 'out-of-stock';
+                        } else if (totalStock < 20) {
+                            stockStatus = `Only ${totalStock} left!`;
+                            stockClass = 'low-stock';
+                        } else {
+                            stockStatus = 'In Stock';
+                            stockClass = 'in-stock';
+                        }
+
+                        const imageUrl = colors.length > 0 && colors[0].image ? colors[0].image : '';
+
+                        return `
+                            <a href="product.html?id=${product.id}" class="product-card">
+                                <div class="product-image">
+                                    ${imageUrl ? `<img src="${imageUrl}" alt="${product.name}">` : '👕'}
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-price">${priceDisplay}</div>
+                                    <div class="product-name">${product.name}</div>
+                                    <span class="stock-status ${stockClass}">${stockStatus}</span>
+                                </div>
+                            </a>
+                        `;
+                    } catch (productError) {
+                        console.error('Error rendering product:', product, productError);
+                        return '';
                     }
-
-                    const imageUrl = colors.length > 0 && colors[0].image ? colors[0].image : '';
-
-                    return `
-                        <a href="product.html?id=${product.id}" class="product-card">
-                            <div class="product-image">
-                                ${imageUrl ? `<img src="${imageUrl}" alt="${product.name}">` : '👕'}
-                            </div>
-                            <div class="product-info">
-                                <div class="product-price">${priceDisplay}</div>
-                                <div class="product-name">${product.name}</div>
-                                <span class="stock-status ${stockClass}">${stockStatus}</span>
-                            </div>
-                        </a>
-                    `;
                 }).join('');
+
+                console.log('Products loaded successfully!');
 
             } catch (error) {
                 console.error('Error loading products:', error);
                 subtitle.textContent = 'Error loading products';
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: #dc3545;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
+                        <p><strong>Cannot load products</strong></p>
+                        <p style="font-size: 0.9rem; color: #666; margin: 1rem;">${error?.message || 'Unknown error'}</p>
+                        <button onclick="loadProducts()" style="margin-top: 1rem; padding: 0.8rem 2rem; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                            🔄 Try Again
+                        </button>
+                    </div>
+                `;
             }
         }
 
@@ -1244,6 +1337,40 @@
         window.addEventListener('DOMContentLoaded', async () => {
             await checkAuth();
             await loadProducts();
+            loadCartFromLocalStorage(); // Load cart from localStorage
+        });
+
+        // Load cart from localStorage (for guest users)
+        function loadCartFromLocalStorage() {
+            try {
+                const savedCart = localStorage.getItem('benzgifts_cart');
+                if (savedCart) {
+                    const localCart = JSON.parse(savedCart);
+                    // Merge with existing cart if user is logged in
+                    if (!currentUser && localCart.length > 0) {
+                        cart = localCart;
+                        updateCartBadge();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading cart from localStorage:', error);
+            }
+        }
+
+        // Save cart to localStorage
+        function saveCartToLocalStorage() {
+            try {
+                localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+            } catch (error) {
+                console.error('Error saving cart to localStorage:', error);
+            }
+        }
+
+        // Listen for cart updates from product page
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'UPDATE_CART') {
+                loadCartFromLocalStorage();
+            }
         });
 
         updateCartBadge();
