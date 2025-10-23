@@ -6,6 +6,7 @@
     <title>Checkout - BenzGifts</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* Basic styles - you can copy more from your other pages */
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9fa; color: #333; margin: 0; }
         .header { background: #fff; padding: 1rem 2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .logo { font-size: 1.8rem; font-weight: bold; color: #2c3e50; text-decoration: none; }
@@ -41,7 +42,8 @@
                 
                 <div class="order-summary">
                     <h2>Order Summary</h2>
-                    <div id="checkoutItems"></div>
+                    <div id="checkoutItems">
+                        </div>
                     <div class="total-section">
                         Total: <span id="checkoutTotal">RM0.00</span>
                     </div>
@@ -73,12 +75,17 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/a/macros/moe-dl.edu.my/s/AKfycbxKvjsXBisrqVe00NY64kyBOKM1JLkeE6VT2JdaGsRUWLtalTLWDJZyfwibjeLrpIhe/exec';
+        const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         let cart = [];
 
+        // This function runs when the page loads
         document.addEventListener('DOMContentLoaded', () => {
             cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
             
+            // If cart is empty, redirect to homepage
             if (cart.length === 0) {
                 alert("Your cart is empty!");
                 window.location.href = '/';
@@ -112,7 +119,7 @@
         }
 
         async function handleCheckout(event) {
-            event.preventDefault();
+            event.preventDefault(); // Prevent the form from reloading the page
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Placing Order...';
@@ -122,22 +129,24 @@
                 email: document.getElementById('email').value,
                 phone: document.getElementById('phone').value,
                 address: document.getElementById('address').value,
-                items: cart,
+                items: cart, // The entire cart array
                 total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
             };
 
             try {
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(orderData)
-                });
-                const result = await response.json();
-                if (result.result !== 'success') throw new Error(result.message);
+                // Save the order to a new 'orders' table in Supabase
+                const { error } = await supabase.from('orders').insert([orderData]);
+                
+                if (error) {
+                    throw error;
+                }
 
-                alert('Order placed successfully! Thank you!');
+                alert('Order placed successfully! Thank you for your purchase.');
+                
+                // Clear the cart and redirect
                 localStorage.removeItem('benzgifts_cart');
-                window.location.href = '/';
+                window.location.href = '/'; // Redirect to homepage after success
+
             } catch (error) {
                 console.error('Checkout Error:', error);
                 alert(`Error placing order: ${error.message}`);
