@@ -816,7 +816,7 @@
                 } else {
                     updateAuthUI(false);
                     cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
-                    if (!Array.isArray(cart)) cart = []; // Ensure cart is an array
+                    if (!Array.isArray(cart)) cart = [];
                     updateCartBadge(); 
                 }
             } catch (error) {
@@ -920,18 +920,16 @@
 
         function goToAdminPanel() { window.location.href = 'admin.html'; }
 
-        // --- PROFILE FUNCTIONS ---
         async function loadUserProfile() {
             if (!currentUser) return;
             try {
-                // Requires the 'SELECT' RLS policy on 'profiles'
                 const { data, error } = await supabase
                     .from('profiles')
                     .select('*')
                     .eq('id', currentUser.id)
                     .single();
                 
-                if (error && error.code !== 'PGRST116') throw error; // Ignore "no rows" error
+                if (error && error.code !== 'PGRST116') throw error;
                 
                 if (data) {
                     userProfile = data;
@@ -939,7 +937,6 @@
                     document.getElementById('profilePhone').value = data.phone || '';
                     document.getElementById('profileAddress').value = data.address || '';
                 } else {
-                    // Pre-fill email if profile is empty
                     document.getElementById('profileName').value = '';
                     document.getElementById('profilePhone').value = '';
                     document.getElementById('profileAddress').value = '';
@@ -961,7 +958,7 @@
             saveBtn.textContent = 'Saving...';
 
             const profileData = {
-                id: currentUser.id, // Ensure ID is included for upsert
+                id: currentUser.id,
                 full_name: document.getElementById('profileName').value,
                 phone: document.getElementById('profilePhone').value,
                 address: document.getElementById('profileAddress').value,
@@ -969,10 +966,9 @@
             };
 
             try {
-                // Requires the 'UPDATE' RLS policy on 'profiles'
                 const { error } = await supabase
                     .from('profiles')
-                    .upsert(profileData, { onConflict: 'id' }); // Use upsert with conflict resolution
+                    .upsert(profileData, { onConflict: 'id' });
                 
                 if (error) throw error;
                 
@@ -987,15 +983,13 @@
             }
         }
 
-        // --- PRODUCT LOADING ---
-        } {
+        async function loadProducts() {
             const subtitle = document.getElementById('productSubtitle');
             const productsGrid = document.getElementById('productsGrid');
             try {
-                // Requires the 'SELECT' RLS policy on 'products'
                 const { data, error } = await supabase
                     .from('products')
-                    .select('*'); // Select all columns
+                    .select('*');
 
                 if (error) throw error;
 
@@ -1005,27 +999,34 @@
                 }
                 
                 productsGrid.innerHTML = data.map(product => {
-                    // Safely access nested properties
                     const firstImage = (product.colors && Array.isArray(product.colors) && product.colors.length > 0) 
                                        ? product.colors[0].image 
                                        : 'https://via.placeholder.com/280?text=No+Image';
                     
-                    // Handle price display logic
                     let priceDisplay = 'N/A';
-                    if (product.price_range) {
-                        priceDisplay = product.price_range;
-                    } else if (typeof product.price === 'number') {
-                        priceDisplay = `RM${product.price.toFixed(2)}`;
-                    } else if (product.variants && Array.isArray(product.variants) && product.variants.length > 0) {
-                        // Attempt to get price from first variant if main price is missing
-                        const firstVariantPrice = product.variants[0].price;
-                        if (typeof firstVariantPrice === 'number') {
-                             priceDisplay = `RM${firstVariantPrice.toFixed(2)}`;
+                    if (product.variants && Array.isArray(product.variants) && product.variants.length > 0) {
+                        const prices = product.variants.map(v => v.price || 0).filter(p => p > 0);
+                        if (prices.length > 0) {
+                            const minPrice = Math.min(...prices);
+                            const maxPrice = Math.max(...prices);
+                            
+                            if (minPrice === maxPrice) {
+                                priceDisplay = `RM${minPrice.toFixed(2)}`;
+                            } else {
+                                priceDisplay = `RM${minPrice.toFixed(2)} - RM${maxPrice.toFixed(2)}`;
+                            }
                         }
                     }
 
-                    const stockStatus = (product.total_stock > 0) ? 'in-stock' : 'out-of-stock';
-                    const stockText = (product.total_stock > 0) ? 'In Stock' : 'Out of Stock';
+                    let totalStock = 0;
+                    if (product.variants && Array.isArray(product.variants)) {
+                        totalStock = product.variants.reduce((sum, variant) => {
+                            return sum + (variant.stock || 0);
+                        }, 0);
+                    }
+
+                    const stockStatus = (totalStock > 0) ? 'in-stock' : 'out-of-stock';
+                    const stockText = (totalStock > 0) ? 'In Stock' : 'Out of Stock';
 
                     return `
                         <a href="product.html?id=${product.id}" class="product-card">
@@ -1048,12 +1049,14 @@
             }
         }
 
-        // --- PAGE NAVIGATION ---
         function showPage(pageId) {
             document.querySelectorAll('.page-container').forEach(page => page.classList.remove('active'));
-            const targetPage = document.getElementById(pageId);
+            const targetPage = document.getElementById(pageId + 'Page');
             if (targetPage) {
                 targetPage.classList.add('active');
+                if (pageId === 'profile' && currentUser) {
+                    loadUserProfile();
+                }
             }
             window.scrollTo(0, 0);
         }
@@ -1065,7 +1068,7 @@
                 if (section) {
                     section.scrollIntoView({ behavior: 'smooth' });
                 }
-            }, 0); // Timeout ensures page switch happens first
+            }, 0);
         }
 
         function showToast(id, message) {
@@ -1077,7 +1080,6 @@
             }
         }
         
-        // --- CART DATABASE SYNC ---
         async function loadCartFromDB() {
             if (!currentUser) return;
             try {
@@ -1090,14 +1092,12 @@
                 if (error && error.code !== 'PGRST116') throw error;
                 
                 const localCart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
-                // Prefer DB cart if it exists and is valid, otherwise use local
                 if (data && data.cart && Array.isArray(data.cart)) {
                     cart = data.cart;
                 } else {
                     cart = localCart;
                 }
-                // Ensure cart is always an array
-                if (!Array.isArray(cart)) cart = []; 
+                if (!Array.isArray(cart)) cart = [];
                 localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
             } catch (error) {
                 console.error('Error loading cart from DB:', error);
@@ -1108,8 +1108,7 @@
 
         async function saveCartToDB() {
             if (!currentUser) return;
-            // Ensure cart is an array before saving
-            if (!Array.isArray(cart)) cart = []; 
+            if (!Array.isArray(cart)) cart = [];
             try {
                 const { error } = await supabase
                     .from('profiles')
@@ -1121,14 +1120,12 @@
             }
         }
 
-        // --- CART FUNCTIONS ---
-        
         function openCart() {
             const modal = document.getElementById('cartModal');
             const cartItemsContainer = document.getElementById('cartItems');
             
             cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
-            if (!Array.isArray(cart)) cart = []; // Ensure cart is array
+            if (!Array.isArray(cart)) cart = [];
 
             if (cart.length === 0) {
                 cartItemsContainer.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
@@ -1137,7 +1134,6 @@
             } else {
                 let total = 0;
                 cartItemsContainer.innerHTML = cart.map((item, index) => {
-                    // Ensure item properties exist and have defaults
                     const price = item.price || 0;
                     const quantity = item.quantity || 1;
                     const name = item.name || 'Unknown Item';
@@ -1172,11 +1168,11 @@
         }
 
         function removeFromCart(index) {
-            cart.splice(index, 1); 
-            localStorage.setItem('benzgifts_cart', JSON.stringify(cart)); 
-            if (currentUser) saveCartToDB(); 
-            openCart(); 
-            updateCartBadge(); 
+            cart.splice(index, 1);
+            localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+            if (currentUser) saveCartToDB();
+            openCart();
+            updateCartBadge();
         }
 
         function clearCart() {
