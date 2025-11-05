@@ -672,6 +672,204 @@
             }
         }
 
+        /* CART MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .cart-items {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 1rem 0;
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+            align-items: center;
+        }
+
+        .cart-item-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.3rem;
+            font-size: 1.1rem;
+        }
+
+        .cart-item-variant {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+
+        .cart-item-price {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .cart-item-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .cart-item-remove:hover {
+            background: #c82333;
+        }
+
+        .cart-total {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: right;
+        }
+
+        .cart-total-label {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .cart-total-amount {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-left: 1rem;
+        }
+
+        .cart-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .clear-cart-btn, .checkout-btn {
+            flex: 1;
+            padding: 1rem;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .clear-cart-btn {
+            background: #dc3545;
+        }
+
+        .clear-cart-btn:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .checkout-btn {
+            background: #28a745;
+        }
+
+        .checkout-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+
+        .empty-cart-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
         @media (max-width: 768px) {
             .nav {
                 padding: 0 1rem;
@@ -711,6 +909,15 @@
                 border-left-color: #667eea;
                 border-bottom-color: #e9ecef;
             }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+
+            .cart-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -729,7 +936,7 @@
     </header>
 
     <!-- FLOATING CART BUTTON -->
-    <button class="cart-float-btn" onclick="window.location.href='index.html'">
+    <button class="cart-float-btn" onclick="openCart()">
         🛒
         <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
     </button>
@@ -853,6 +1060,34 @@
                     <p style="text-align: center; color: #999; padding: 2rem;">
                         Customer reviews coming soon! 🌟
                     </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CART MODAL -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🛒 Shopping Cart</h2>
+                <span class="close" onclick="closeCart()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="cartItems" class="cart-items">
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">🛒</div>
+                        <p>Your cart is empty</p>
+                    </div>
+                </div>
+
+                <div class="cart-total" id="cartTotalSection" style="display: none;">
+                    <span class="cart-total-label">Total:</span>
+                    <span class="cart-total-amount" id="cartTotal">RM0.00</span>
+                </div>
+
+                <div class="cart-actions" id="cartActions" style="display: none;">
+                    <button class="clear-cart-btn" onclick="clearCart()">Clear Cart</button>
+                    <button class="checkout-btn" onclick="proceedToCheckout()">Proceed to Checkout</button>
                 </div>
             </div>
         </div>
@@ -1173,7 +1408,7 @@
             }
         }
 
-        function addToCart() {
+        function addToCart(openCartModal = false) {
             if (!selectedVariant) {
                 showToast('Please select color and size', 'error');
                 return;
@@ -1214,13 +1449,165 @@
             localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
             updateCartBadge();
             showToast('✓ Added to cart successfully!');
+
+            // Optionally open cart modal
+            if (openCartModal) {
+                setTimeout(() => openCart(), 300);
+            }
         }
 
         function buyNow() {
-            addToCart();
-            setTimeout(() => {
-                window.location.href = 'checkout.html';
-            }, 500);
+            if (!selectedVariant) {
+                showToast('Please select color and size', 'error');
+                return;
+            }
+
+            if (currentQuantity > maxStock) {
+                showToast('Not enough stock available', 'error');
+                return;
+            }
+
+            const colorImage = currentProduct.colors.find(c => c.name === selectedColor)?.image || '';
+
+            const cartItem = {
+                productId: currentProduct.id,
+                name: currentProduct.name,
+                color: selectedColor,
+                size: selectedSize,
+                sku: selectedVariant.sku,
+                price: selectedVariant.price,
+                quantity: currentQuantity,
+                image: colorImage,
+                stock: maxStock
+            };
+
+            // For Buy Now, we only show THIS item in the cart modal
+            // But we still add it to the full cart for checkout
+            const existingIndex = cart.findIndex(item => 
+                item.productId === cartItem.productId && 
+                item.color === cartItem.color && 
+                item.size === cartItem.size
+            );
+
+            if (existingIndex > -1) {
+                cart[existingIndex].quantity += currentQuantity;
+            } else {
+                cart.push(cartItem);
+            }
+
+            localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+            updateCartBadge();
+
+            // Open cart modal with ONLY this item highlighted
+            openCart(true, cartItem);
+        }
+
+        // CART MODAL FUNCTIONS
+        function openCart(buyNowMode = false, buyNowItem = null) {
+            const modal = document.getElementById('cartModal');
+            const cartItemsContainer = document.getElementById('cartItems');
+            
+            // Load cart from localStorage
+            cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
+            if (!Array.isArray(cart)) cart = [];
+
+            // If Buy Now mode, show only the item that was just added
+            let itemsToDisplay = buyNowMode && buyNowItem ? [buyNowItem] : cart;
+
+            if (itemsToDisplay.length === 0) {
+                cartItemsContainer.innerHTML = `
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">🛒</div>
+                        <p>Your cart is empty</p>
+                    </div>
+                `;
+                document.getElementById('cartTotalSection').style.display = 'none';
+                document.getElementById('cartActions').style.display = 'none';
+            } else {
+                let total = 0;
+                cartItemsContainer.innerHTML = itemsToDisplay.map((item, index) => {
+                    const price = item.price || 0;
+                    const quantity = item.quantity || 1;
+                    const name = item.name || 'Unknown Item';
+                    const color = item.color || '';
+                    const size = item.size || '';
+                    const image = item.image || 'https://via.placeholder.com/80';
+                    const subtotal = price * quantity;
+                    total += subtotal;
+
+                    // In Buy Now mode, we don't show the remove button for the highlighted item
+                    const removeButton = buyNowMode ? '' : `
+                        <button class="cart-item-remove" onclick="removeFromCart(${index})">Remove</button>
+                    `;
+
+                    return `
+                        <div class="cart-item" ${buyNowMode ? 'style="background: #e8f0ff; border: 2px solid #667eea;"' : ''}>
+                            <img src="${image}" class="cart-item-image" alt="${name}">
+                            <div class="cart-item-info">
+                                <div class="cart-item-name">${name}</div>
+                                <div class="cart-item-variant">${color} / ${size}</div>
+                                <div class="cart-item-price">${quantity} x RM${price.toFixed(2)} = RM${subtotal.toFixed(2)}</div>
+                            </div>
+                            ${removeButton}
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('cartTotal').textContent = `RM${total.toFixed(2)}`;
+                document.getElementById('cartTotalSection').style.display = 'block';
+                document.getElementById('cartActions').style.display = 'flex';
+
+                // If Buy Now mode, change the checkout button text
+                if (buyNowMode) {
+                    const checkoutBtn = document.querySelector('.checkout-btn');
+                    checkoutBtn.textContent = '⚡ Buy Now - Proceed to Checkout';
+                    checkoutBtn.style.background = '#667eea';
+                } else {
+                    const checkoutBtn = document.querySelector('.checkout-btn');
+                    checkoutBtn.textContent = 'Proceed to Checkout';
+                    checkoutBtn.style.background = '#28a745';
+                }
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        function closeCart() {
+            document.getElementById('cartModal').style.display = 'none';
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+            openCart(); // Refresh cart display
+            updateCartBadge();
+            showToast('Item removed from cart');
+        }
+
+        function clearCart() {
+            if (confirm('Are you sure you want to clear your cart?')) {
+                cart = [];
+                localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+                openCart();
+                updateCartBadge();
+                showToast('Cart cleared');
+            }
+        }
+
+        function proceedToCheckout() {
+            if (cart.length === 0) {
+                showToast("Your cart is empty!", 'error');
+                return;
+            }
+            window.location.href = 'checkout.html';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('cartModal');
+            if (event.target === modal) {
+                closeCart();
+            }
         }
 
         // TAB SWITCHING
