@@ -3,1561 +3,939 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Benzgifts Admin Panel - Variant System</title>
-    
-    <!-- Supabase Client -->
+    <title>Admin Panel - BenzGifts</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #333; }
+        
+        /* Header */
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.8rem; font-weight: bold; }
+        .user-info { display: flex; align-items: center; gap: 1rem; }
+        .logout-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 5px; cursor: pointer; }
+        .logout-btn:hover { background: rgba(255,255,255,0.3); }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-        }
-
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .login-box {
-            background: white;
-            padding: 3rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            width: 90%;
-            max-width: 400px;
-        }
-
-        .login-box h1 {
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-            text-align: center;
-        }
-
-        .login-box p {
-            color: #666;
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .admin-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1.5rem 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header-left h1 {
-            font-size: 1.8rem;
-            margin-bottom: 0.3rem;
-        }
-
-        .header-left p {
-            opacity: 0.9;
-            font-size: 0.9rem;
-        }
-
-        .logout-btn {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 0.5rem 1.5rem;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .stat-card h3 {
-            color: #666;
-            font-size: 0.9rem;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .action-bar {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .search-box {
-            flex: 1;
-            min-width: 250px;
-            position: relative;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 0.8rem 1rem 0.8rem 2.5rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .search-box::before {
-            content: "🔍";
-            position: absolute;
-            left: 0.8rem;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .add-product-btn {
-            padding: 0.8rem 2rem;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .add-product-btn:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-        }
-
-        .products-table {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: #f8f9fa;
-        }
-
-        th {
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            color: #2c3e50;
-            border-bottom: 2px solid #e9ecef;
-        }
-
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        tbody tr:hover {
-            background: #f8f9fa;
-        }
-
-        .product-image-thumb {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 5px;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .badge-success {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .badge-warning {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .badge-danger {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .btn-edit, .btn-delete {
-            padding: 0.4rem 0.8rem;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .btn-edit {
-            background: #17a2b8;
-            color: white;
-        }
-
-        .btn-edit:hover {
-            background: #138496;
-        }
-
-        .btn-delete {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-delete:hover {
-            background: #c82333;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.5);
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 2% auto;
-            padding: 0;
-            border-radius: 10px;
-            width: 95%;
-            max-width: 1200px;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideDown 0.3s;
-        }
-
-        @keyframes slideDown {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1.5rem 2rem;
-            border-radius: 10px 10px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h2 {
-            margin: 0;
-        }
-
-        .close {
-            color: white;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-
-        .close:hover {
-            color: #f0f0f0;
-        }
-
-        .modal-body {
-            padding: 2rem;
-        }
+        /* Container */
+        .container { max-width: 1400px; margin: 2rem auto; padding: 0 2rem; }
 
         /* Tabs */
-        .tabs {
-            display: flex;
-            border-bottom: 2px solid #e9ecef;
-            margin-bottom: 2rem;
-            gap: 0.5rem;
-        }
+        .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); flex-wrap: wrap; }
+        .tab { padding: 0.8rem 1.5rem; background: transparent; border: none; cursor: pointer; border-radius: 5px; font-size: 1rem; font-weight: 600; color: #666; transition: all 0.3s; }
+        .tab.active { background: #667eea; color: white; }
+        .tab:hover:not(.active) { background: #f0f0f0; }
 
-        .tab {
-            padding: 1rem 2rem;
-            background: none;
-            border: none;
-            border-bottom: 3px solid transparent;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            color: #666;
-            transition: all 0.3s;
-        }
+        /* Tab Content */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
-        .tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-        }
+        /* Section */
+        .section { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 2rem; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #f0f0f0; }
+        .section-title { font-size: 1.5rem; font-weight: bold; color: #2c3e50; }
 
-        .tab:hover {
-            background: #f8f9fa;
-        }
+        /* Stats Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 4px solid; }
+        .stat-card.pending { border-color: #ffc107; }
+        .stat-card.approved { border-color: #28a745; }
+        .stat-card.rejected { border-color: #dc3545; }
+        .stat-card.total { border-color: #667eea; }
+        .stat-label { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
+        .stat-value { font-size: 2rem; font-weight: bold; color: #2c3e50; }
 
-        .tab-content {
-            display: none;
-        }
+        /* Filter Bar */
+        .filter-bar { display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: center; flex-wrap: wrap; }
+        .filter-bar select { padding: 0.6rem; border: 1px solid #ddd; border-radius: 5px; }
 
-        .tab-content.active {
-            display: block;
-        }
+        /* Table */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: 600; color: #2c3e50; white-space: nowrap; }
+        tr:hover { background: #f8f9fa; }
+        
+        /* Status Badges */
+        .status-badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-approved { background: #d4edda; color: #155724; }
+        .status-rejected { background: #f8d7da; color: #721c24; }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
+        /* Payment Method Badge */
+        .payment-badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; background: #e3f2fd; color: #1976d2; white-space: nowrap; }
 
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
+        /* Buttons */
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; transition: all 0.3s; white-space: nowrap; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-group { display: flex; gap: 0.5rem; }
 
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
+        /* Form */
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #2c3e50; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #2c3e50;
-        }
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 2rem; border-radius: 15px; max-width: 900px; width: 90%; margin: 2rem auto; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #f0f0f0; }
+        .modal-title { font-size: 1.5rem; font-weight: bold; color: #2c3e50; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; }
+        .close-btn:hover { color: #333; }
 
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-            font-family: inherit;
-            transition: border-color 0.3s;
-        }
+        /* Order Details */
+        .order-details { display: grid; gap: 1.5rem; }
+        .detail-section { padding: 1rem; background: #f8f9fa; border-radius: 8px; }
+        .detail-section h3 { color: #667eea; margin-bottom: 1rem; font-size: 1.1rem; }
+        .detail-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #ddd; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { font-weight: 600; color: #666; }
+        .detail-value { color: #2c3e50; text-align: right; }
 
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
+        /* Items List */
+        .items-list { margin-top: 1rem; }
+        .item-row { display: flex; gap: 1rem; padding: 1rem; background: white; border-radius: 5px; margin-bottom: 0.5rem; align-items: center; }
+        .item-row img { width: 60px; height: 60px; border-radius: 5px; object-fit: cover; }
+        .item-details { flex: 1; }
+        .item-name { font-weight: 600; }
+        .item-variant { color: #666; font-size: 0.9rem; }
+        .item-price { font-weight: bold; color: #667eea; }
 
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
+        /* Receipt Preview */
+        .receipt-preview { margin-top: 1rem; text-align: center; }
+        .receipt-preview img { max-width: 100%; border-radius: 8px; border: 2px solid #ddd; cursor: pointer; }
+        .receipt-preview img:hover { border-color: #667eea; }
 
-        /* Color Management */
-        .color-items {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
+        /* Alert */
+        .alert { padding: 1rem; border-radius: 5px; margin-bottom: 1rem; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
 
-        .color-item {
-            display: grid;
-            grid-template-columns: 200px 1fr auto auto;
-            gap: 1rem;
-            align-items: center;
-            padding: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background: #f8f9fa;
-        }
+        /* Loading */
+        .loading { text-align: center; padding: 3rem; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .color-item input {
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
+        /* Empty State */
+        .empty-state { text-align: center; padding: 3rem; color: #999; }
+        .empty-state-icon { font-size: 4rem; margin-bottom: 1rem; }
 
-        .color-image-preview {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 5px;
-            border: 2px solid #ddd;
-        }
-
-        .btn-remove {
-            padding: 0.5rem 1rem;
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .btn-add {
-            padding: 0.8rem 1.5rem;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        /* Size Checkboxes */
-        .size-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-            gap: 1rem;
-        }
-
-        .size-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.8rem;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .size-checkbox:hover {
-            border-color: #667eea;
-            background: #f8f9fa;
-        }
-
-        .size-checkbox input[type="checkbox"] {
-            width: auto;
-            cursor: pointer;
-        }
-
-        .size-checkbox.checked {
-            border-color: #667eea;
-            background: #e8f0ff;
-        }
-
-        /* Variant Table */
-        .variant-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        .variant-table th,
-        .variant-table td {
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-
-        .variant-table th {
-            background: #667eea;
-            color: white;
-            font-weight: 600;
-        }
-
-        .variant-table input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-        }
-
-        .variant-row {
-            background: white;
-        }
-
-        .variant-row:nth-child(even) {
-            background: #f8f9fa;
-        }
-
-        .variant-row.low-stock {
-            background: #fff3cd;
-        }
-
-        .variant-row.out-of-stock {
-            background: #f8d7da;
-        }
-
-        .bulk-actions {
-            display: flex;
-            gap: 1rem;
-            margin: 1rem 0;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 5px;
-            align-items: center;
-        }
-
-        .bulk-actions input {
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            width: 150px;
-        }
-
-        .bulk-actions button {
-            padding: 0.5rem 1rem;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .stock-alert {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 3px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .stock-alert.warning {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .stock-alert.danger {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 1rem;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 1rem;
-        }
-
-        .submit-btn:hover {
-            background: #5568d3;
-            transform: scale(1.02);
-        }
-
-        .submit-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .success-message, .error-message {
-            padding: 1rem;
-            border-radius: 5px;
-            margin-bottom: 1rem;
-            display: none;
-        }
-
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #999;
-        }
-
-        .empty-state-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        #loginPage, #adminDashboard {
-            display: none;
-        }
-
-        #loginPage.active, #adminDashboard.active {
-            display: block;
-        }
-
-        .info-box {
-            background: #e8f0ff;
-            border-left: 4px solid #667eea;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 5px;
-        }
-
-        .total-stock {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #667eea;
-            margin-top: 1rem;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 5px;
-            text-align: center;
-        }
-
+        /* Responsive */
         @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .admin-header {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .action-bar {
-                flex-direction: column;
-            }
-
-            .search-box {
-                width: 100%;
-            }
-
-            table {
-                font-size: 0.85rem;
-            }
-
-            th, td {
-                padding: 0.5rem;
-            }
-
-            .color-item {
-                grid-template-columns: 1fr;
-            }
+            .container { padding: 0 1rem; }
+            .form-row { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            .btn-group { flex-direction: column; }
         }
     </style>
 </head>
 <body>
-    <!-- LOGIN PAGE -->
-    <div id="loginPage" class="active">
-        <div class="login-container">
-            <div class="login-box">
-                <h1>🔐 Admin Access Required</h1>
-                <p>Please log in from the main website first</p>
-                
-                <button class="submit-btn" onclick="goToMainSite()">Go to Main Website</button>
-                
-                <p style="text-align: center; margin-top: 1rem; color: #666; font-size: 0.9rem;">
-                    You need to be logged in with an admin account to access this panel
-                </p>
-            </div>
-        </div>
-    </div>
 
-    <!-- ADMIN DASHBOARD -->
-    <div id="adminDashboard">
-        <header class="admin-header">
-            <div class="header-left">
-                <h1>📦 Benzgifts Admin Panel</h1>
-                <p>Manage your products and inventory with variant system</p>
-            </div>
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                <button class="logout-btn" onclick="goToMainSite()">← Back to Website</button>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">🎁 BenzGifts Admin</div>
+            <div class="user-info">
+                <span id="userEmail"></span>
                 <button class="logout-btn" onclick="handleLogout()">Logout</button>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <div class="container">
-            <!-- Stats Cards -->
+    <!-- Container -->
+    <div class="container">
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('orders')">📦 Orders</button>
+            <button class="tab" onclick="switchTab('products')">🛍️ Products</button>
+            <button class="tab" onclick="switchTab('payment')">💳 Payment Settings</button>
+            <button class="tab" onclick="switchTab('sizes')">📏 Size Management</button>
+        </div>
+
+        <!-- TAB: ORDERS -->
+        <div id="ordersTab" class="tab-content active">
+            
+            <!-- Stats -->
             <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Total Products</h3>
-                    <div class="stat-value" id="totalProducts">0</div>
+                <div class="stat-card total">
+                    <div class="stat-label">Total Orders</div>
+                    <div class="stat-value" id="totalOrders">0</div>
                 </div>
-                <div class="stat-card">
-                    <h3>Total Variants</h3>
-                    <div class="stat-value" id="totalVariants">0</div>
+                <div class="stat-card pending">
+                    <div class="stat-label">⏳ Pending Approval</div>
+                    <div class="stat-value" id="pendingOrders">0</div>
                 </div>
-                <div class="stat-card">
-                    <h3>Low Stock Alerts</h3>
-                    <div class="stat-value" id="lowStockAlerts" style="color: #ffc107;">0</div>
+                <div class="stat-card approved">
+                    <div class="stat-label">✅ Approved</div>
+                    <div class="stat-value" id="approvedOrders">0</div>
                 </div>
-                <div class="stat-card">
-                    <h3>Out of Stock</h3>
-                    <div class="stat-value" id="outOfStockCount" style="color: #dc3545;">0</div>
+                <div class="stat-card rejected">
+                    <div class="stat-label">❌ Rejected</div>
+                    <div class="stat-value" id="rejectedOrders">0</div>
                 </div>
             </div>
 
-            <!-- Admin Management Section -->
-            <div class="products-table" style="margin-bottom: 2rem;">
-                <div style="padding: 1.5rem; border-bottom: 2px solid #f0f0f0;">
-                    <h2 style="margin: 0; color: #2c3e50;">👥 Admin Management</h2>
-                    <p style="color: #666; margin-top: 0.5rem;">Add or remove admin users who can access this panel</p>
+            <!-- Orders Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">📋 Order Management</h2>
+                    <button class="btn btn-primary" onclick="loadOrders()">🔄 Refresh</button>
                 </div>
-                <div style="padding: 1.5rem;">
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                        <input type="email" id="newAdminEmail" placeholder="Enter admin email address" style="flex: 1; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem;">
-                        <button onclick="addAdmin()" style="padding: 0.8rem 2rem; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: 600; cursor: pointer;">Add Admin</button>
+
+                <!-- Filters -->
+                <div class="filter-bar">
+                    <label>Filter by Status:</label>
+                    <select id="statusFilter" onchange="loadOrders()">
+                        <option value="all">All Orders</option>
+                        <option value="pending_approval">Pending Approval</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+
+                    <label>Payment Method:</label>
+                    <select id="paymentFilter" onchange="loadOrders()">
+                        <option value="all">All Methods</option>
+                        <option value="store">Pay at Store</option>
+                        <option value="bank_transfer">Bank Transfer</option>
+                    </select>
+                </div>
+
+                <!-- Orders Table -->
+                <div class="table-container">
+                    <table id="ordersTable">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Total</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <tr>
+                                <td colspan="7">
+                                    <div class="loading">
+                                        <div class="spinner"></div>
+                                        <p>Loading orders...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: PRODUCTS -->
+        <div id="productsTab" class="tab-content">
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">🛍️ Product Management</h2>
+                    <button class="btn btn-success" onclick="openProductModal()">+ Add Product</button>
+                </div>
+                <div id="productsContent">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading products...</p>
                     </div>
-                    <div id="adminsList" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
                 </div>
             </div>
+        </div>
 
-            <!-- Action Bar -->
-            <div class="action-bar">
-                <div class="search-box">
-                    <input type="text" id="searchProducts" placeholder="Search products..." onkeyup="searchProducts()">
+        <!-- TAB: PAYMENT SETTINGS -->
+        <div id="paymentTab" class="tab-content">
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">💳 Payment Settings</h2>
                 </div>
-                <button class="add-product-btn" onclick="openProductModal()">+ Add New Product</button>
-            </div>
 
-            <!-- Products Table -->
-            <div class="products-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Image</th>
-                            <th>Product Name</th>
-                            <th>Price Range</th>
-                            <th>Variants</th>
-                            <th>Total Stock</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productsTableBody">
-                        <tr>
-                            <td colspan="7" class="empty-state">
-                                <div class="empty-state-icon">📦</div>
-                                <p>No products yet. Add your first product to get started!</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div id="paymentAlert"></div>
+
+                <form id="paymentSettingsForm" onsubmit="savePaymentSettings(event)">
+                    
+                    <!-- Bank Transfer Info -->
+                    <h3 style="color: #667eea; margin-bottom: 1rem;">🏦 Bank Transfer Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="bankName">Bank Name *</label>
+                            <input type="text" id="bankName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="accountNumber">Account Number *</label>
+                            <input type="text" id="accountNumber" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="accountHolder">Account Holder Name *</label>
+                        <input type="text" id="accountHolder" required>
+                    </div>
+
+                    <hr style="margin: 2rem 0; border: none; border-top: 2px solid #f0f0f0;">
+
+                    <!-- Store Info -->
+                    <h3 style="color: #667eea; margin-bottom: 1rem;">🏪 Store Information</h3>
+                    <div class="form-group">
+                        <label for="storeAddress">Store Address *</label>
+                        <textarea id="storeAddress" rows="3" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="storeHours">Store Hours *</label>
+                            <input type="text" id="storeHours" placeholder="Mon-Fri: 9AM-6PM" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="storePhone">Store Phone *</label>
+                            <input type="tel" id="storePhone" placeholder="016-800 0175" required>
+                        </div>
+                    </div>
+
+                    <hr style="margin: 2rem 0; border: none; border-top: 2px solid #f0f0f0;">
+
+                    <!-- Google Sheets Integration -->
+                    <h3 style="color: #667eea; margin-bottom: 1rem;">📊 Google Sheets Integration</h3>
+                    <div class="form-group">
+                        <label for="sheetsWebhook">Google Apps Script Webhook URL</label>
+                        <input type="url" id="sheetsWebhook" placeholder="https://script.google.com/macros/s/...">
+                        <small style="color: #666;">Get this URL from your Google Apps Script deployment</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-success" style="margin-top: 1rem;">💾 Save Settings</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- TAB: SIZE MANAGEMENT -->
+        <div id="sizesTab" class="tab-content">
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">📏 Size Management</h2>
+                </div>
+                <p>Size management interface will be added here...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ORDER DETAILS MODAL -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📦 Order Details</h2>
+                <button class="close-btn" onclick="closeOrderModal()">&times;</button>
+            </div>
+            
+            <div id="orderModalContent">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading order details...</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Product Modal -->
-    <div id="productModal" class="modal">
-        <div class="modal-content">
+    <!-- REJECTION MODAL -->
+    <div id="rejectionModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h2 id="modalTitle">Add New Product</h2>
-                <span class="close" onclick="closeProductModal()">&times;</span>
+                <h2 class="modal-title">❌ Reject Order</h2>
+                <button class="close-btn" onclick="closeRejectionModal()">&times;</button>
             </div>
-            <div class="modal-body">
-                <div class="success-message" id="productSuccess"></div>
-                <div class="error-message" id="productError"></div>
-
-                <!-- Tabs -->
-                <div class="tabs">
-                    <button class="tab active" onclick="switchTab(0)">Basic Info</button>
-                    <button class="tab" onclick="switchTab(1)">Colors & Images</button>
-                    <button class="tab" onclick="switchTab(2)">Sizes</button>
-                    <button class="tab" onclick="switchTab(3)">Variants & Stock</button>
-                    <button class="tab" onclick="switchTab(4)">Specifications</button>
+            
+            <form id="rejectionForm" onsubmit="submitRejection(event)">
+                <div class="form-group">
+                    <label for="rejectionReason">Rejection Reason *</label>
+                    <textarea id="rejectionReason" rows="4" placeholder="Please provide a reason for rejection..." required minlength="10"></textarea>
+                    <small style="color: #666;">Minimum 10 characters</small>
                 </div>
-
-                <form id="productForm" onsubmit="saveProduct(event)">
-                    <input type="hidden" id="productId">
-
-                    <!-- Tab 1: Basic Info -->
-                    <div class="tab-content active" id="tab-0">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Product Name *</label>
-                                <input type="text" id="productName" required placeholder="e.g., Among Us T-Shirt">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Category *</label>
-                                <select id="productCategory" required>
-                                    <option value="">Select Category</option>
-                                    <option value="T-Shirt">T-Shirt</option>
-                                    <option value="Hoodie">Hoodie</option>
-                                    <option value="Jacket">Jacket</option>
-                                    <option value="Polo">Polo</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group full-width">
-                                <label>Description *</label>
-                                <textarea id="productDescription" required placeholder="Detailed product description..."></textarea>
-                            </div>
-                        </div>
-
-                        <button type="button" class="btn-add" onclick="switchTab(1)">Next: Colors & Images →</button>
-                    </div>
-
-                    <!-- Tab 2: Colors & Images -->
-                    <div class="tab-content" id="tab-1">
-                        <div class="info-box">
-                            <strong>ℹ️ Important:</strong> Each color should have its own representative image. This image will be shown when customers select that color.
-                        </div>
-
-                        <div class="form-group">
-                            <label>Colors & Images</label>
-                            <div id="colorItems" class="color-items">
-                                <!-- Color items will be added here -->
-                            </div>
-                            <button type="button" class="btn-add" onclick="addColorItem()" style="margin-top: 1rem;">+ Add Color</button>
-                        </div>
-
-                        <button type="button" class="btn-add" onclick="switchTab(2)">Next: Sizes →</button>
-                    </div>
-
-                    <!-- Tab 3: Sizes -->
-                    <div class="tab-content" id="tab-2">
-                        <div class="form-group">
-                            <label>Available Sizes *</label>
-                            <div class="size-grid" id="sizeGrid">
-                                <label class="size-checkbox">
-                                    <input type="checkbox" value="XS" onchange="updateSizeCheckbox(this)">
-                                    <span>XS</span>
-                                </label>
-                                <label class="size-checkbox">
-                                    <input type="checkbox" value="S" onchange="updateSizeCheckbox(this)">
-                                    <span>S</span>
-                                </label>
-                                <label class="size-checkbox">
-                                    <input type="checkbox" value="M" onchange="updateSizeCheckbox(this)">
-                                    <span>M</span>
-                                </label>
-                                <label class="size-checkbox">
-                                    <input type="checkbox" value="L" onchange="updateSizeCheckbox(this)">
-                                    <span>L</span>
-                                </label>
-                                <label class="size-checkbox">
-                                    <input type="checkbox" value="XL" onchange="updateSizeCheckbox(this)">
-                                    <span>XL</span>
-                                </label>
-                                <label class="size-checkbox">
-                                    <input type="checkbox" value="XXL" onchange="updateSizeCheckbox(this)">
-                                    <span>XXL</span>
-                                </label>
-                                <label class="size-checkbox">
-                                    <input type="checkbox" value="3XL" onchange="updateSizeCheckbox(this)">
-                                    <span>3XL</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <button type="button" class="btn-add" onclick="generateVariants()">Generate Variants →</button>
-                    </div>
-
-                    <!-- Tab 4: Variants & Stock -->
-                    <div class="tab-content" id="tab-3">
-                        <div class="info-box">
-                            <strong>ℹ️ Variant Management:</strong> Set individual prices and stock for each color-size combination. Variants are automatically generated from your colors and sizes.
-                        </div>
-
-                        <div class="bulk-actions">
-                            <label>Bulk Actions:</label>
-                            <input type="number" id="bulkPrice" step="0.01" placeholder="Price (RM)">
-                            <button type="button" onclick="applyBulkPrice()">Apply Price to All</button>
-                            <input type="number" id="bulkStock" placeholder="Stock">
-                            <button type="button" onclick="applyBulkStock()">Apply Stock to All</button>
-                            <button type="button" onclick="autoGenerateSKUs()">Auto-Generate SKUs</button>
-                        </div>
-
-                        <div id="variantsContainer">
-                            <p style="text-align: center; color: #999; padding: 2rem;">Add colors and sizes first, then generate variants.</p>
-                        </div>
-
-                        <div class="total-stock" id="totalStockDisplay">
-                            Total Stock Across All Variants: 0 units
-                        </div>
-
-                        <button type="button" class="btn-add" onclick="switchTab(4)">Next: Specifications →</button>
-                    </div>
-
-                    <!-- Tab 5: Specifications -->
-                    <div class="tab-content" id="tab-4">
-                        <div class="form-group">
-                            <label>Product Specifications</label>
-                            <div id="specsList" class="specs-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                                <div class="spec-item" style="display: flex; gap: 0.5rem;">
-                                    <input type="text" placeholder="e.g., 230GSM ( 6.78 oz/yd )" style="flex: 1;">
-                                    <button type="button" onclick="removeSpec(this)" style="padding: 0.5rem 1rem; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Remove</button>
-                                </div>
-                            </div>
-                            <button type="button" class="btn-add" onclick="addSpec()" style="margin-top: 0.5rem;">+ Add Specification</button>
-                        </div>
-
-                        <button type="submit" class="submit-btn" id="submitProductBtn">Save Product</button>
-                    </div>
-                </form>
-            </div>
+                
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-danger">❌ Reject Order</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeRejectionModal()">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script>
-        // Configuration
         const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
-        const ADMIN_EMAILS = ['stella.benzgifts@gmail.com', 'himynameisblink123@gmail.com'];
-
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentUser = null;
-        let allProducts = [];
-        let adminEmails = [...ADMIN_EMAILS];
-        let editingProductId = null;
+        let currentOrder = null;
+        let paymentSettings = null;
 
-        // Colors data structure: [{name: 'Black', image: 'url'}, ...]
-        let productColors = [];
-        let productSizes = [];
-        let productVariants = [];
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            await loadOrders();
+            await loadPaymentSettings();
+        });
 
-        // Authentication
+        // Auth Check
         async function checkAuth() {
             try {
                 const { data: { session } } = await supabase.auth.getSession();
                 
-                if (session) {
-                    currentUser = session.user;
-                    await loadAdminList();
-                    
-                    if (adminEmails.includes(currentUser.email)) {
-                        showDashboard();
-                        await loadProducts();
-                    } else {
-                        alert('Access denied. You are not authorized as an admin.');
-                        goToMainSite();
-                    }
-                } else {
-                    showLoginPage();
+                if (!session) {
+                    window.location.href = 'login.html';
+                    return;
                 }
+
+                currentUser = session.user;
+                
+                // Check if admin
+                const adminEmails = ['stella.benzgifts@gmail.com', 'himynameisblink123@gmail.com'];
+                if (!adminEmails.includes(currentUser.email)) {
+                    alert('Access denied. Admin only.');
+                    await supabase.auth.signOut();
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                document.getElementById('userEmail').textContent = currentUser.email;
             } catch (error) {
                 console.error('Auth error:', error);
-                showLoginPage();
+                window.location.href = 'login.html';
             }
         }
 
+        // Logout
         async function handleLogout() {
-            try {
-                await supabase.auth.signOut();
-                currentUser = null;
-                window.location.href = 'index.html';
-            } catch (error) {
-                console.error('Logout error:', error);
-                alert('Error logging out. Please try again.');
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+
+            // Load data if needed
+            if (tabName === 'products') {
+                loadProducts();
             }
         }
 
-        function goToMainSite() {
-            window.location.href = 'index.html';
-        }
+        // ═══════════════════════════════════════════════════════════
+        // ORDERS MANAGEMENT
+        // ═══════════════════════════════════════════════════════════
 
-        function showLoginPage() {
-            document.getElementById('loginPage').classList.add('active');
-            document.getElementById('adminDashboard').classList.remove('active');
-        }
-
-        function showDashboard() {
-            document.getElementById('loginPage').classList.remove('active');
-            document.getElementById('adminDashboard').classList.add('active');
-            displayAdminList();
-        }
-
-        // Admin Management
-        async function loadAdminList() {
+        async function loadOrders() {
             try {
-                const { data, error } = await supabase.from('admin_users').select('email');
-                if (error && error.code !== 'PGRST116') throw error;
-                if (data && data.length > 0) {
-                    adminEmails = data.map(admin => admin.email);
-                } else {
-                    await saveAdminList();
+                const statusFilter = document.getElementById('statusFilter').value;
+                const paymentFilter = document.getElementById('paymentFilter').value;
+
+                let query = supabase
+                    .from('orders')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (statusFilter !== 'all') {
+                    query = query.eq('status', statusFilter);
                 }
-            } catch (error) {
-                console.error('Error loading admin list:', error);
-                adminEmails = [...ADMIN_EMAILS];
-            }
-        }
 
-        async function saveAdminList() {
-            try {
-                await supabase.from('admin_users').delete().neq('email', '');
-                const admins = adminEmails.map(email => ({ email }));
-                const { error } = await supabase.from('admin_users').insert(admins);
-                if (error) throw error;
-            } catch (error) {
-                console.error('Error saving admin list:', error);
-            }
-        }
+                if (paymentFilter !== 'all') {
+                    query = query.eq('payment_method', paymentFilter);
+                }
 
-        function displayAdminList() {
-            const adminsList = document.getElementById('adminsList');
-            adminsList.innerHTML = adminEmails.map((email, index) => `
-                <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: #f0f0f0; border-radius: 20px; font-size: 0.9rem;">
-                    ${email}
-                    ${adminEmails.length > 1 ? `<button type="button" onclick="removeAdmin(${index})" style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 1rem; padding: 0;">×</button>` : ''}
-                </span>
-            `).join('');
-        }
-
-        async function addAdmin() {
-            const emailInput = document.getElementById('newAdminEmail');
-            const email = emailInput.value.trim().toLowerCase();
-            if (!email) { alert('Please enter an email address'); return; }
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) { alert('Please enter a valid email address'); return; }
-            if (adminEmails.includes(email)) { alert('This email is already an admin'); return; }
-            adminEmails.push(email);
-            await saveAdminList();
-            displayAdminList();
-            emailInput.value = '';
-            alert(`${email} has been added as an admin`);
-        }
-
-        async function removeAdmin(index) {
-            if (adminEmails.length === 1) { alert('Cannot remove the last admin. Add another admin first.'); return; }
-            const email = adminEmails[index];
-            if (confirm(`Remove ${email} from admin list?`)) {
-                adminEmails.splice(index, 1);
-                await saveAdminList();
-                displayAdminList();
-                alert(`${email} has been removed from admin list`);
-            }
-        }
-
-        // Tab Management
-        function switchTab(index) {
-            document.querySelectorAll('.tab').forEach((tab, i) => {
-                tab.classList.toggle('active', i === index);
-            });
-            document.querySelectorAll('.tab-content').forEach((content, i) => {
-                content.classList.toggle('active', i === index);
-            });
-        }
-
-        // Color Management
-        function addColorItem() {
-            const container = document.getElementById('colorItems');
-            const index = productColors.length;
-            const div = document.createElement('div');
-            div.className = 'color-item';
-            div.innerHTML = `
-                <input type="text" placeholder="Color name (e.g., Black)" onchange="updateColorName(${index}, this.value)" required>
-                <div>
-                    <input type="file" accept="image/*" onchange="handleColorImage(${index}, event)" style="display: none;" id="colorImageInput${index}">
-                    <button type="button" onclick="document.getElementById('colorImageInput${index}').click()" style="padding: 0.5rem 1rem; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">Choose Image</button>
-                    <img id="colorImagePreview${index}" class="color-image-preview" style="display: none; margin-top: 0.5rem;">
-                </div>
-                <button type="button" class="btn-remove" onclick="removeColorItem(${index})">Remove</button>
-            `;
-            container.appendChild(div);
-            productColors.push({ name: '', image: '' });
-        }
-
-        function updateColorName(index, value) {
-            if (productColors[index]) {
-                productColors[index].name = value;
-            }
-        }
-
-        async function handleColorImage(index, event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const preview = document.getElementById(`colorImagePreview${index}`);
-            preview.src = URL.createObjectURL(file);
-            preview.style.display = 'block';
-            
-            // Upload to Supabase storage
-            try {
-                const fileName = `${Date.now()}_${file.name}`;
-                const { data, error } = await supabase.storage.from('product-images').upload(fileName, file);
-                if (error) throw error;
+                const { data: orders, error } = await query;
                 
-                const { data: publicData } = supabase.storage.from('product-images').getPublicUrl(fileName);
-                productColors[index].image = publicData.publicUrl;
-                console.log('Color image uploaded:', productColors[index]);
+                if (error) throw error;
+
+                // Update stats
+                updateOrderStats(orders);
+
+                // Display orders
+                displayOrders(orders);
+
             } catch (error) {
-                console.error('Error uploading color image:', error);
-                alert('Error uploading image: ' + error.message);
-            }
-        }
-
-        function removeColorItem(index) {
-            productColors.splice(index, 1);
-            loadColorItems(); // Refresh display
-        }
-
-        function loadColorItems() {
-            const container = document.getElementById('colorItems');
-            container.innerHTML = '';
-            productColors.forEach((_, index) => {
-                addColorItem();
-                if (productColors[index].name) {
-                    container.children[index].querySelector('input[type="text"]').value = productColors[index].name;
-                }
-                if (productColors[index].image) {
-                    const preview = document.getElementById(`colorImagePreview${index}`);
-                    preview.src = productColors[index].image;
-                    preview.style.display = 'block';
-                }
-            });
-        }
-
-        // Size Management
-        function updateSizeCheckbox(checkbox) {
-            checkbox.parentElement.classList.toggle('checked', checkbox.checked);
-        }
-
-        // Generate Variants
-        function generateVariants() {
-            // Collect selected colors
-            const colors = productColors.filter(c => c.name && c.image);
-            if (colors.length === 0) {
-                alert('Please add at least one color with an image');
-                switchTab(1);
-                return;
-            }
-
-            // Collect selected sizes
-            const sizes = Array.from(document.querySelectorAll('#sizeGrid input:checked')).map(cb => cb.value);
-            if (sizes.length === 0) {
-                alert('Please select at least one size');
-                switchTab(2);
-                return;
-            }
-
-            productSizes = sizes;
-
-            // Generate variants
-            productVariants = [];
-            colors.forEach(color => {
-                sizes.forEach(size => {
-                    productVariants.push({
-                        color: color.name,
-                        size: size,
-                        sku: `${color.name.substring(0, 3).toUpperCase()}-${size}`,
-                        price: 0,
-                        stock: 0
-                    });
-                });
-            });
-
-            displayVariants();
-            switchTab(3);
-        }
-
-        function displayVariants() {
-            const container = document.getElementById('variantsContainer');
-            if (productVariants.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #999; padding: 2rem;">No variants yet. Generate variants from colors and sizes.</p>';
-                return;
-            }
-
-            let html = '<table class="variant-table"><thead><tr><th>Color</th><th>Size</th><th>SKU</th><th>Price (RM)</th><th>Stock</th><th>Status</th></tr></thead><tbody>';
-            
-            productVariants.forEach((variant, index) => {
-                const rowClass = variant.stock === 0 ? 'out-of-stock' : variant.stock < 10 ? 'low-stock' : '';
-                const statusHtml = variant.stock === 0 ? '<span class="stock-alert danger">⚠️ Out of Stock</span>' : 
-                                  variant.stock < 10 ? '<span class="stock-alert warning">⚠️ Low Stock</span>' : 
-                                  '<span style="color: #28a745;">✓ In Stock</span>';
-                
-                html += `
-                    <tr class="variant-row ${rowClass}">
-                        <td>${variant.color}</td>
-                        <td>${variant.size}</td>
-                        <td><input type="text" value="${variant.sku}" onchange="updateVariant(${index}, 'sku', this.value)"></td>
-                        <td><input type="number" step="0.01" value="${variant.price}" onchange="updateVariant(${index}, 'price', parseFloat(this.value))"></td>
-                        <td><input type="number" value="${variant.stock}" onchange="updateVariant(${index}, 'stock', parseInt(this.value))"></td>
-                        <td>${statusHtml}</td>
-                    </tr>
+                console.error('Error loading orders:', error);
+                document.getElementById('ordersTableBody').innerHTML = `
+                    <tr><td colspan="7" style="text-align: center; color: #dc3545;">
+                        Error loading orders: ${error.message}
+                    </td></tr>
                 `;
-            });
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-            updateTotalStock();
-        }
-
-        function updateVariant(index, field, value) {
-            productVariants[index][field] = value;
-            displayVariants();
-        }
-
-        function applyBulkPrice() {
-            const price = parseFloat(document.getElementById('bulkPrice').value);
-            if (isNaN(price) || price < 0) {
-                alert('Please enter a valid price');
-                return;
-            }
-            productVariants.forEach(v => v.price = price);
-            displayVariants();
-        }
-
-        function applyBulkStock() {
-            const stock = parseInt(document.getElementById('bulkStock').value);
-            if (isNaN(stock) || stock < 0) {
-                alert('Please enter a valid stock quantity');
-                return;
-            }
-            productVariants.forEach(v => v.stock = stock);
-            displayVariants();
-        }
-
-        function autoGenerateSKUs() {
-            productVariants.forEach(v => {
-                v.sku = `${v.color.substring(0, 3).toUpperCase()}-${v.size}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
-            });
-            displayVariants();
-        }
-
-        function updateTotalStock() {
-            const total = productVariants.reduce((sum, v) => sum + (v.stock || 0), 0);
-            document.getElementById('totalStockDisplay').textContent = `Total Stock Across All Variants: ${total} units`;
-        }
-
-        // Specifications
-        function addSpec() {
-            const specsList = document.getElementById('specsList');
-            const div = document.createElement('div');
-            div.className = 'spec-item';
-            div.style.display = 'flex';
-            div.style.gap = '0.5rem';
-            div.innerHTML = `
-                <input type="text" placeholder="e.g., 100% Ring Spun Cotton" style="flex: 1;">
-                <button type="button" onclick="removeSpec(this)" style="padding: 0.5rem 1rem; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Remove</button>
-            `;
-            specsList.appendChild(div);
-        }
-
-        function removeSpec(button) {
-            button.parentElement.remove();
-        }
-
-        // Product Modal
-        function openProductModal(productId = null) {
-            editingProductId = productId;
-            const modal = document.getElementById('productModal');
-            const modalTitle = document.getElementById('modalTitle');
-            
-            if (productId) {
-                modalTitle.textContent = 'Edit Product';
-                loadProductData(productId);
-            } else {
-                modalTitle.textContent = 'Add New Product';
-                document.getElementById('productForm').reset();
-                productColors = [];
-                productSizes = [];
-                productVariants = [];
-                document.getElementById('colorItems').innerHTML = '';
-                document.getElementById('variantsContainer').innerHTML = '<p style="text-align: center; color: #999; padding: 2rem;">Add colors and sizes first, then generate variants.</p>';
-                switchTab(0);
-            }
-            
-            modal.style.display = 'block';
-        }
-
-        function closeProductModal() {
-            document.getElementById('productModal').style.display = 'none';
-            document.getElementById('productForm').reset();
-            editingProductId = null;
-            productColors = [];
-            productSizes = [];
-            productVariants = [];
-        }
-
-        async function loadProductData(productId) {
-            const product = allProducts.find(p => p.id === productId);
-            if (!product) return;
-
-            document.getElementById('productId').value = product.id;
-            document.getElementById('productName').value = product.name;
-            document.getElementById('productCategory').value = product.category;
-            document.getElementById('productDescription').value = product.description;
-
-            productColors = product.colors || [];
-            productSizes = product.sizes || [];
-            productVariants = product.variants || [];
-
-            loadColorItems();
-
-            if (product.sizes) {
-                product.sizes.forEach(size => {
-                    const checkbox = document.querySelector(`#sizeGrid input[value="${size}"]`);
-                    if (checkbox) {
-                        checkbox.checked = true;
-                        updateSizeCheckbox(checkbox);
-                    }
-                });
-            }
-
-            const specsList = document.getElementById('specsList');
-            if (product.specifications && product.specifications.length > 0) {
-                specsList.innerHTML = product.specifications.map(spec => `
-                    <div class="spec-item" style="display: flex; gap: 0.5rem;">
-                        <input type="text" value="${spec}" style="flex: 1;">
-                        <button type="button" onclick="removeSpec(this)" style="padding: 0.5rem 1rem; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Remove</button>
-                    </div>
-                `).join('');
-            }
-
-            displayVariants();
-        }
-
-        async function saveProduct(event) {
-            event.preventDefault();
-
-            const submitBtn = document.getElementById('submitProductBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Saving...';
-
-            try {
-                // Validate variants
-                if (productVariants.length === 0) {
-                    throw new Error('Please generate variants');
-                }
-
-                // Collect specifications
-                const specs = [];
-                document.querySelectorAll('#specsList input').forEach(input => {
-                    if (input.value.trim()) {
-                        specs.push(input.value.trim());
-                    }
-                });
-
-                const productData = {
-                    name: document.getElementById('productName').value,
-                    category: document.getElementById('productCategory').value,
-                    description: document.getElementById('productDescription').value,
-                    colors: productColors,
-                    sizes: productSizes,
-                    variants: productVariants,
-                    specifications: specs,
-                    updated_at: new Date().toISOString()
-                };
-
-                if (editingProductId) {
-                    const { error } = await supabase.from('products').update(productData).eq('id', editingProductId);
-                    if (error) throw error;
-                    showSuccess('productSuccess', 'Product updated successfully!');
-                } else {
-                    productData.created_at = new Date().toISOString();
-                    const { error } = await supabase.from('products').insert([productData]);
-                    if (error) throw error;
-                    showSuccess('productSuccess', 'Product added successfully!');
-                }
-
-                setTimeout(() => {
-                    closeProductModal();
-                    loadProducts();
-                }, 1500);
-
-            } catch (error) {
-                console.error('Error saving product:', error);
-                showError('productError', error.message);
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Save Product';
             }
         }
 
-        // Load Products
-        async function loadProducts() {
-            try {
-                const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
-                if (error) throw error;
+        function updateOrderStats(orders) {
+            const total = orders.length;
+            const pending = orders.filter(o => o.status === 'pending_approval').length;
+            const approved = orders.filter(o => o.status === 'approved').length;
+            const rejected = orders.filter(o => o.status === 'rejected').length;
 
-                allProducts = data || [];
-                displayProducts(allProducts);
-                updateStats();
-            } catch (error) {
-                console.error('Error loading products:', error);
-            }
+            document.getElementById('totalOrders').textContent = total;
+            document.getElementById('pendingOrders').textContent = pending;
+            document.getElementById('approvedOrders').textContent = approved;
+            document.getElementById('rejectedOrders').textContent = rejected;
         }
 
-        function displayProducts(products) {
-            const tbody = document.getElementById('productsTableBody');
-            
-            if (products.length === 0) {
+        function displayOrders(orders) {
+            const tbody = document.getElementById('ordersTableBody');
+
+            if (orders.length === 0) {
                 tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="empty-state">
+                    <tr><td colspan="7">
+                        <div class="empty-state">
                             <div class="empty-state-icon">📦</div>
-                            <p>No products found. Add your first product to get started!</p>
-                        </td>
-                    </tr>
+                            <p>No orders found</p>
+                        </div>
+                    </td></tr>
                 `;
                 return;
             }
 
-            tbody.innerHTML = products.map(product => {
-                const variants = product.variants || [];
-                const totalStock = variants.reduce((sum, v) => sum + (v.stock || 0), 0);
-                const prices = variants.map(v => v.price || 0);
-                const minPrice = Math.min(...prices);
-                const maxPrice = Math.max(...prices);
-                const priceRange = minPrice === maxPrice ? `RM${minPrice.toFixed(2)}` : `RM${minPrice.toFixed(2)} - RM${maxPrice.toFixed(2)}`;
-                
-                const imageUrl = product.colors && product.colors.length > 0 && product.colors[0].image ? product.colors[0].image : '';
-                
-                const stockStatus = totalStock === 0 ? '<span class="badge badge-danger">Out of Stock</span>' : 
-                                   totalStock < 20 ? '<span class="badge badge-warning">Low Stock</span>' : 
-                                   '<span class="badge badge-success">In Stock</span>';
-                
+            tbody.innerHTML = orders.map(order => {
+                const statusClass = order.status === 'pending_approval' ? 'pending' : 
+                                   order.status === 'approved' ? 'approved' : 'rejected';
+                const statusText = order.status === 'pending_approval' ? '⏳ Pending' :
+                                  order.status === 'approved' ? '✅ Approved' : '❌ Rejected';
+                const paymentIcon = order.payment_method === 'store' ? '🏪' : '🏦';
+                const paymentText = order.payment_method === 'store' ? 'Pay at Store' : 'Bank Transfer';
+
                 return `
                     <tr>
+                        <td><strong>${order.order_number}</strong></td>
+                        <td>${new Date(order.created_at).toLocaleDateString()}</td>
                         <td>
-                            ${imageUrl ? `<img src="${imageUrl}" class="product-image-thumb" alt="${product.name}">` : '📷'}
+                            ${order.customer_name}<br>
+                            <small style="color: #666;">${order.customer_email}</small>
                         </td>
-                        <td><strong>${product.name}</strong></td>
-                        <td>${priceRange}</td>
-                        <td>${variants.length}</td>
-                        <td>${totalStock}</td>
-                        <td>${stockStatus}</td>
+                        <td><strong>RM${order.total.toFixed(2)}</strong></td>
+                        <td><span class="payment-badge">${paymentIcon} ${paymentText}</span></td>
+                        <td><span class="status-badge status-${statusClass}">${statusText}</span></td>
                         <td>
-                            <div class="action-buttons">
-                                <button class="btn-edit" onclick="openProductModal('${product.id}')">Edit</button>
-                                <button class="btn-delete" onclick="deleteProduct('${product.id}', '${product.name}')">Delete</button>
-                            </div>
+                            <button class="btn btn-info btn-sm" onclick="viewOrder('${order.id}')">View</button>
+                            ${order.status === 'pending_approval' ? `
+                                <button class="btn btn-success btn-sm" onclick="approveOrder('${order.id}')">✅</button>
+                                <button class="btn btn-danger btn-sm" onclick="openRejectionModal('${order.id}')">❌</button>
+                            ` : ''}
                         </td>
                     </tr>
                 `;
             }).join('');
         }
 
-        function updateStats() {
-            const total = allProducts.length;
-            let totalVariants = 0;
-            let lowStockCount = 0;
-            let outOfStockCount = 0;
-
-            allProducts.forEach(product => {
-                const variants = product.variants || [];
-                totalVariants += variants.length;
-                variants.forEach(v => {
-                    if (v.stock === 0) outOfStockCount++;
-                    else if (v.stock < 10) lowStockCount++;
-                });
-            });
-
-            document.getElementById('totalProducts').textContent = total;
-            document.getElementById('totalVariants').textContent = totalVariants;
-            document.getElementById('lowStockAlerts').textContent = lowStockCount;
-            document.getElementById('outOfStockCount').textContent = outOfStockCount;
-        }
-
-        async function deleteProduct(productId, productName) {
-            if (!confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) return;
+        async function viewOrder(orderId) {
             try {
-                const { error } = await supabase.from('products').delete().eq('id', productId);
+                document.getElementById('orderModal').classList.add('active');
+                document.getElementById('orderModalContent').innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading order details...</p>
+                    </div>
+                `;
+
+                const { data: order, error } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('id', orderId)
+                    .single();
+
                 if (error) throw error;
-                alert('Product deleted successfully!');
-                await loadProducts();
+
+                currentOrder = order;
+
+                // Display order details
+                const itemsList = JSON.parse(order.items || '[]').map(item => `
+                    <div class="item-row">
+                        <img src="${item.image || 'placeholder.png'}" alt="${item.name}">
+                        <div class="item-details">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-variant">${item.color} / ${item.size} × ${item.quantity}</div>
+                        </div>
+                        <div class="item-price">RM${(item.price * item.quantity).toFixed(2)}</div>
+                    </div>
+                `).join('');
+
+                const statusClass = order.status === 'pending_approval' ? 'warning' : 
+                                   order.status === 'approved' ? 'success' : 'danger';
+
+                document.getElementById('orderModalContent').innerHTML = `
+                    <div class="order-details">
+                        
+                        <!-- Order Info -->
+                        <div class="detail-section">
+                            <h3>📋 Order Information</h3>
+                            <div class="detail-row">
+                                <span class="detail-label">Order Number:</span>
+                                <span class="detail-value"><strong>${order.order_number}</strong></span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Date:</span>
+                                <span class="detail-value">${new Date(order.created_at).toLocaleString()}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Status:</span>
+                                <span class="detail-value">
+                                    <span class="status-badge status-${order.status === 'pending_approval' ? 'pending' : order.status === 'approved' ? 'approved' : 'rejected'}">
+                                        ${order.status === 'pending_approval' ? '⏳ Pending Approval' : order.status === 'approved' ? '✅ Approved' : '❌ Rejected'}
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Customer Info -->
+                        <div class="detail-section">
+                            <h3>👤 Customer Information</h3>
+                            <div class="detail-row">
+                                <span class="detail-label">Name:</span>
+                                <span class="detail-value">${order.customer_name}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Email:</span>
+                                <span class="detail-value">${order.customer_email}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Phone:</span>
+                                <span class="detail-value">${order.customer_phone}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Address:</span>
+                                <span class="detail-value">${order.customer_address}</span>
+                            </div>
+                        </div>
+
+                        <!-- Payment Info -->
+                        <div class="detail-section">
+                            <h3>💳 Payment Information</h3>
+                            <div class="detail-row">
+                                <span class="detail-label">Method:</span>
+                                <span class="detail-value">
+                                    <span class="payment-badge">
+                                        ${order.payment_method === 'store' ? '🏪 Pay at Store' : '🏦 Bank Transfer'}
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Total Amount:</span>
+                                <span class="detail-value"><strong style="font-size: 1.2rem; color: #667eea;">RM${order.total.toFixed(2)}</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Items -->
+                        <div class="detail-section">
+                            <h3>🛍️ Order Items</h3>
+                            <div class="items-list">${itemsList}</div>
+                        </div>
+
+                        <!-- Receipt -->
+                        <div class="detail-section">
+                            <h3>📸 Payment Receipt</h3>
+                            <div class="receipt-preview">
+                                <img src="${order.payment_proof_url}" alt="Payment Receipt" onclick="window.open('${order.payment_proof_url}', '_blank')">
+                                <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">Click to view full size</p>
+                            </div>
+                        </div>
+
+                        ${order.status === 'rejected' && order.rejection_reason ? `
+                            <div class="alert alert-danger">
+                                <strong>Rejection Reason:</strong><br>
+                                ${order.rejection_reason}
+                            </div>
+                        ` : ''}
+
+                        ${order.status === 'pending_approval' ? `
+                            <div class="btn-group" style="margin-top: 1.5rem;">
+                                <button class="btn btn-success" onclick="approveOrder('${order.id}')">✅ Approve Order</button>
+                                <button class="btn btn-danger" onclick="openRejectionModal('${order.id}')">❌ Reject Order</button>
+                                <button class="btn btn-secondary" onclick="closeOrderModal()">Close</button>
+                            </div>
+                        ` : `
+                            <div style="margin-top: 1.5rem;">
+                                <button class="btn btn-secondary" onclick="closeOrderModal()">Close</button>
+                            </div>
+                        `}
+
+                    </div>
+                `;
+
             } catch (error) {
-                console.error('Error deleting product:', error);
-                alert('Failed to delete product: ' + error.message);
+                console.error('Error viewing order:', error);
+                document.getElementById('orderModalContent').innerHTML = `
+                    <div class="alert alert-danger">
+                        Error loading order details: ${error.message}
+                    </div>
+                `;
             }
         }
 
-        function searchProducts() {
-            const searchTerm = document.getElementById('searchProducts').value.toLowerCase();
-            const filtered = allProducts.filter(product => 
-                product.name.toLowerCase().includes(searchTerm) ||
-                product.category.toLowerCase().includes(searchTerm)
-            );
-            displayProducts(filtered);
+        function closeOrderModal() {
+            document.getElementById('orderModal').classList.remove('active');
+            currentOrder = null;
         }
 
-        function showError(elementId, message) {
-            const element = document.getElementById(elementId);
-            element.textContent = message;
-            element.style.display = 'block';
-            setTimeout(() => element.style.display = 'none', 5000);
-        }
+        async function approveOrder(orderId) {
+            if (!confirm('Are you sure you want to approve this order?')) return;
 
-        function showSuccess(elementId, message) {
-            const element = document.getElementById(elementId);
-            element.textContent = message;
-            element.style.display = 'block';
-            setTimeout(() => element.style.display = 'none', 3000);
-        }
+            try {
+                // Update order status
+                const { error: updateError } = await supabase
+                    .from('orders')
+                    .update({
+                        status: 'approved',
+                        approved_by: currentUser.email,
+                        approved_at: new Date().toISOString()
+                    })
+                    .eq('id', orderId);
 
-        window.onclick = function(event) {
-            const modal = document.getElementById('productModal');
-            if (event.target === modal) {
-                closeProductModal();
+                if (updateError) throw updateError;
+
+                // Get full order details
+                const { data: order, error: fetchError } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('id', orderId)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                // Send to Google Sheets
+                await sendToGoogleSheets(order, 'approved');
+
+                alert('Order approved successfully! ✅');
+                closeOrderModal();
+                await loadOrders();
+
+            } catch (error) {
+                console.error('Error approving order:', error);
+                alert('Error approving order: ' + error.message);
             }
         }
 
-        // Initialize
-        setTimeout(() => {
-            checkAuth();
-        }, 100);
+        function openRejectionModal(orderId) {
+            currentOrder = { id: orderId };
+            document.getElementById('rejectionModal').classList.add('active');
+            document.getElementById('rejectionReason').value = '';
+        }
 
-        console.log('Benzgifts Admin Panel with Variant System loaded!');
+        function closeRejectionModal() {
+            document.getElementById('rejectionModal').classList.remove('active');
+            currentOrder = null;
+        }
+
+        async function submitRejection(event) {
+            event.preventDefault();
+
+            const reason = document.getElementById('rejectionReason').value.trim();
+            
+            if (reason.length < 10) {
+                alert('Rejection reason must be at least 10 characters');
+                return;
+            }
+
+            try {
+                // Update order status
+                const { error: updateError } = await supabase
+                    .from('orders')
+                    .update({
+                        status: 'rejected',
+                        rejection_reason: reason,
+                        rejected_by: currentUser.email,
+                        rejected_at: new Date().toISOString()
+                    })
+                    .eq('id', currentOrder.id);
+
+                if (updateError) throw updateError;
+
+                // Get full order details
+                const { data: order, error: fetchError } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('id', currentOrder.id)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                // Send to Google Sheets
+                await sendToGoogleSheets(order, 'rejected');
+
+                alert('Order rejected successfully! ❌');
+                closeRejectionModal();
+                closeOrderModal();
+                await loadOrders();
+
+            } catch (error) {
+                console.error('Error rejecting order:', error);
+                alert('Error rejecting order: ' + error.message);
+            }
+        }
+
+        async function sendToGoogleSheets(order, status) {
+            try {
+                if (!paymentSettings || !paymentSettings.google_sheets_webhook_url) {
+                    console.log('No Google Sheets webhook URL configured');
+                    return;
+                }
+
+                const items = JSON.parse(order.items || '[]');
+                const itemsSummary = items.map(item => 
+                    `${item.name} (${item.color}/${item.size}) x${item.quantity}`
+                ).join(', ');
+
+                const payload = {
+                    orderId: order.order_number,
+                    date: new Date(order.created_at).toLocaleDateString(),
+                    customerName: order.customer_name,
+                    email: order.customer_email,
+                    phone: order.customer_phone,
+                    address: order.customer_address,
+                    items: items,
+                    itemsSummary: itemsSummary,
+                    total: order.total,
+                    paymentMethod: order.payment_method,
+                    receiptUrl: order.payment_proof_url,
+                    status: status,
+                    approvedBy: order.approved_by,
+                    approvedAt: order.approved_at,
+                    rejectionReason: order.rejection_reason,
+                    rejectedBy: order.rejected_by,
+                    rejectedAt: order.rejected_at
+                };
+
+                const response = await fetch(paymentSettings.google_sheets_webhook_url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                console.log('Sent to Google Sheets:', payload);
+
+                // Update order to mark as sent to sheets
+                await supabase
+                    .from('orders')
+                    .update({
+                        sent_to_sheets: true,
+                        sheets_tab: status === 'approved' ? 'Approved Orders' : 'Rejected Orders'
+                    })
+                    .eq('id', order.id);
+
+            } catch (error) {
+                console.error('Error sending to Google Sheets:', error);
+                // Don't throw error - allow order approval/rejection to complete
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // PAYMENT SETTINGS
+        // ═══════════════════════════════════════════════════════════
+
+        async function loadPaymentSettings() {
+            try {
+                const { data, error } = await supabase
+                    .from('payment_settings')
+                    .select('*')
+                    .single();
+
+                if (error) throw error;
+
+                paymentSettings = data;
+
+                // Populate form
+                document.getElementById('bankName').value = data.bank_name || '';
+                document.getElementById('accountNumber').value = data.account_number || '';
+                document.getElementById('accountHolder').value = data.account_holder || '';
+                document.getElementById('storeAddress').value = data.store_address || '';
+                document.getElementById('storeHours').value = data.store_hours || '';
+                document.getElementById('storePhone').value = data.store_phone || '';
+                document.getElementById('sheetsWebhook').value = data.google_sheets_webhook_url || '';
+
+            } catch (error) {
+                console.error('Error loading payment settings:', error);
+            }
+        }
+
+        async function savePaymentSettings(event) {
+            event.preventDefault();
+
+            try {
+                const formData = {
+                    bank_name: document.getElementById('bankName').value,
+                    account_number: document.getElementById('accountNumber').value,
+                    account_holder: document.getElementById('accountHolder').value,
+                    store_address: document.getElementById('storeAddress').value,
+                    store_hours: document.getElementById('storeHours').value,
+                    store_phone: document.getElementById('storePhone').value,
+                    google_sheets_webhook_url: document.getElementById('sheetsWebhook').value || null,
+                    updated_at: new Date().toISOString()
+                };
+
+                const { error } = await supabase
+                    .from('payment_settings')
+                    .update(formData)
+                    .eq('id', '00000000-0000-0000-0000-000000000001');
+
+                if (error) throw error;
+
+                paymentSettings = { ...paymentSettings, ...formData };
+
+                document.getElementById('paymentAlert').innerHTML = `
+                    <div class="alert alert-success">
+                        ✅ Payment settings saved successfully!
+                    </div>
+                `;
+
+                setTimeout(() => {
+                    document.getElementById('paymentAlert').innerHTML = '';
+                }, 3000);
+
+            } catch (error) {
+                console.error('Error saving payment settings:', error);
+                document.getElementById('paymentAlert').innerHTML = `
+                    <div class="alert alert-danger">
+                        ❌ Error saving settings: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // PRODUCTS (Placeholder)
+        // ═══════════════════════════════════════════════════════════
+
+        async function loadProducts() {
+            document.getElementById('productsContent').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🛍️</div>
+                    <p>Products management will be added here...</p>
+                </div>
+            `;
+        }
+
+        function openProductModal() {
+            alert('Product management coming soon!');
+        }
+
     </script>
+
 </body>
 </html>
