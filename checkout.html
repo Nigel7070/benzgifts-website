@@ -6,235 +6,220 @@
     <title>Checkout - BenzGifts</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9fa; color: #333; margin: 0; }
-        .header { background: #fff; padding: 1rem 2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .logo { font-size: 1.8rem; font-weight: bold; color: #2c3e50; text-decoration: none; }
-        .container { max-width: 1000px; margin: 2rem auto; padding: 0 2rem; }
-        .checkout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-        .section { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        h2 { color: #2c3e50; margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 1rem; margin-bottom: 1.5rem; }
-        .summary-item { display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid #eee; align-items: center; }
-        .summary-item img { width: 60px; height: 60px; border-radius: 5px; object-fit: cover; }
-        .item-details { flex: 1; }
-        .item-details strong { font-size: 1rem; }
-        .item-details small { color: #666; }
-        .item-price { font-weight: bold; }
-        .total-section { text-align: right; margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #eee; }
-        .total-amount { font-size: 2rem; font-weight: bold; color: #667eea; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; }
+        
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; border-radius: 15px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        h1 { color: #2c3e50; margin-bottom: 0.5rem; }
+        .subtitle { color: #666; margin-bottom: 2rem; }
+        
+        .section-title { color: #667eea; font-size: 1.2rem; margin-bottom: 1rem; }
+        
         .form-group { margin-bottom: 1.5rem; }
-        .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
-        .form-group input, .form-group textarea { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; box-sizing: border-box; }
-        .submit-btn { width: 100%; padding: 1rem; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.3s; }
-        .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
-        .submit-btn:hover:not(:disabled) { background: #218838; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #2c3e50; }
+        .form-group input, .form-group textarea { width: 100%; padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; transition: border 0.3s; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #667eea; }
         
-        /* Payment Method Styles */
-        .payment-methods { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
-        .payment-option { border: 2px solid #ddd; border-radius: 10px; padding: 1.5rem; cursor: pointer; transition: all 0.3s; position: relative; }
-        .payment-option:hover { border-color: #667eea; background: #f8f9fa; }
-        .payment-option.selected { border-color: #667eea; background: #e8f0ff; }
-        .payment-option input[type="radio"] { position: absolute; opacity: 0; }
-        .payment-option-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
-        .payment-option-icon { font-size: 1.5rem; }
-        .payment-option-title { font-size: 1.1rem; font-weight: bold; color: #2c3e50; }
-        .payment-option-desc { color: #666; font-size: 0.9rem; margin-left: 2.5rem; }
+        .payment-methods { display: grid; gap: 1rem; margin-bottom: 1.5rem; }
+        .payment-option { border: 2px solid #e0e0e0; border-radius: 10px; padding: 1rem; cursor: pointer; transition: all 0.3s; }
+        .payment-option:hover { border-color: #667eea; transform: translateY(-2px); }
+        .payment-option.selected { border-color: #667eea; background: #f0f4ff; }
+        .payment-option input[type="radio"] { display: none; }
+        .payment-option-content { display: flex; align-items: center; gap: 1rem; }
+        .payment-option-icon { font-size: 2rem; }
+        .payment-option-title { font-weight: 600; font-size: 1.1rem; }
+        .payment-option-desc { color: #666; font-size: 0.9rem; margin-top: 0.3rem; }
         
-        /* Payment Details */
-        .payment-details { display: none; margin-top: 1.5rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea; }
+        .payment-details { display: none; margin-top: 1rem; padding: 1.5rem; background: #f8f9fa; border-radius: 10px; }
         .payment-details.active { display: block; }
-        .payment-details h3 { margin-top: 0; color: #667eea; font-size: 1.1rem; }
-        .info-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #ddd; }
+        .payment-details h3 { color: #667eea; margin-bottom: 1rem; }
+        
+        .info-row { display: flex; justify-content: space-between; padding: 0.8rem 0; border-bottom: 1px solid #ddd; }
         .info-row:last-child { border-bottom: none; }
         .info-label { font-weight: 600; color: #666; }
-        .info-value { font-weight: bold; color: #2c3e50; }
+        .info-value { color: #2c3e50; font-weight: 600; }
         
-        /* Alert Box */
-        .alert { padding: 1rem; border-radius: 5px; margin: 1rem 0; }
-        .alert-warning { background: #fff3cd; border: 1px solid #ffc107; color: #856404; }
-        .alert-info { background: #d1ecf1; border: 1px solid #17a2b8; color: #0c5460; }
+        .alert { padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+        .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .alert-info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
         
-        /* File Upload */
         .file-upload { margin-top: 1rem; }
-        .file-upload-label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
-        .file-upload-input { display: block; width: 100%; padding: 0.8rem; border: 2px dashed #ddd; border-radius: 5px; cursor: pointer; background: white; }
-        .file-upload-input:hover { border-color: #667eea; background: #f8f9fa; }
-        .file-preview { margin-top: 1rem; display: none; }
+        .file-upload-label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #2c3e50; }
+        .file-upload input[type="file"] { width: 100%; padding: 0.8rem; border: 2px dashed #667eea; border-radius: 8px; cursor: pointer; }
+        .file-info { color: #666; font-size: 0.85rem; margin-top: 0.3rem; }
+        .file-preview { margin-top: 1rem; padding: 1rem; background: #d4edda; border-radius: 8px; display: none; color: #155724; }
         .file-preview.active { display: block; }
-        .file-preview img { max-width: 100%; border-radius: 5px; border: 2px solid #ddd; }
-        .file-info { margin-top: 0.5rem; color: #666; font-size: 0.9rem; }
         
-        /* Loading */
-        .loading { text-align: center; padding: 2rem; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .submit-btn { width: 100%; padding: 1rem 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: transform 0.3s; }
+        .submit-btn:hover { transform: translateY(-2px); }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         
-        /* Success Message */
-        .success-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
-        .success-modal.active { display: flex; align-items: center; justify-content: center; }
-        .success-content { background: white; padding: 3rem; border-radius: 15px; text-align: center; max-width: 500px; }
+        .success-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .success-modal.active { display: flex; }
+        .success-content { background: white; padding: 3rem; border-radius: 20px; text-align: center; max-width: 500px; margin: 0 1rem; }
         .success-icon { font-size: 4rem; margin-bottom: 1rem; }
-        .success-content h2 { color: #28a745; }
-        .success-content p { color: #666; margin: 1rem 0; }
-        .btn-home { display: inline-block; margin-top: 1rem; padding: 0.8rem 2rem; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: 600; }
-        
-        @media (max-width: 768px) { 
-            .checkout-grid { grid-template-columns: 1fr; } 
-            .container { padding: 0 1rem; }
-        }
+        .btn-home { display: inline-block; margin-top: 1.5rem; padding: 0.8rem 2rem; background: #667eea; color: white; text-decoration: none; border-radius: 8px; }
     </style>
 </head>
 <body>
 
-    <header class="header">
-        <a href="index.html" class="logo">BenzGifts</a>
-    </header>
-
     <div class="container">
-        <h1 style="text-align: center; color: #2c3e50; margin-bottom: 2rem;">🛒 Checkout</h1>
-        
-        <form id="checkoutForm" onsubmit="handleCheckout(event)">
-            <div class="checkout-grid">
+        <div class="card">
+            <h1>🛒 Checkout</h1>
+            <p class="subtitle">Complete your order</p>
+
+            <!-- Cart Summary -->
+            <div id="cartSummary" style="margin-bottom: 2rem;"></div>
+
+            <form id="checkoutForm" onsubmit="handleCheckout(event)">
                 
-                <!-- LEFT: ORDER SUMMARY -->
-                <div class="section">
-                    <h2>📋 Order Summary</h2>
-                    <div id="checkoutItems"></div>
-                    <div class="total-section">
-                        <div style="font-size: 1.2rem; margin-bottom: 0.5rem;">Total:</div>
-                        <div class="total-amount" id="checkoutTotal">RM0.00</div>
+                <!-- Shipping Information -->
+                <div class="card">
+                    <h2 class="section-title">📦 Shipping Information</h2>
+                    
+                    <div class="form-group">
+                        <label for="fullName">Full Name *</label>
+                        <input type="text" id="fullName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number *</label>
+                        <input type="tel" id="phone" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address">Delivery Address *</label>
+                        <textarea id="address" rows="3" required></textarea>
                     </div>
                 </div>
 
-                <!-- RIGHT: SHIPPING & PAYMENT -->
-                <div>
-                    <!-- SHIPPING INFO -->
-                    <div class="section" style="margin-bottom: 2rem;">
-                        <h2>📦 Shipping Information</h2>
-                        <div class="form-group">
-                            <label for="fullName">Full Name *</label>
-                            <input type="text" id="fullName" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email Address *</label>
-                            <input type="email" id="email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="phone">Phone Number *</label>
-                            <input type="tel" id="phone" required placeholder="e.g., 0165251000">
-                        </div>
-                        <div class="form-group">
-                            <label for="address">Shipping Address *</label>
-                            <textarea id="address" rows="3" required></textarea>
-                        </div>
+                <!-- Payment Method -->
+                <div class="card">
+                    <h2 class="section-title">💳 Payment Method</h2>
+                    
+                    <div class="payment-methods">
+                        <!-- Pay at Store -->
+                        <label class="payment-option" id="storeOption">
+                            <input type="radio" name="payment" value="store" onchange="selectPayment('store')">
+                            <div class="payment-option-content">
+                                <span class="payment-option-icon">🏪</span>
+                                <div>
+                                    <div class="payment-option-title">Pay at Store</div>
+                                    <div class="payment-option-desc">Visit our store and pay at counter</div>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Bank Transfer -->
+                        <label class="payment-option" id="bankOption">
+                            <input type="radio" name="payment" value="bank_transfer" onchange="selectPayment('bank_transfer')">
+                            <div class="payment-option-content">
+                                <span class="payment-option-icon">🏦</span>
+                                <div>
+                                    <div class="payment-option-title">Bank Transfer</div>
+                                    <div class="payment-option-desc">Transfer to bank and upload receipt</div>
+                                </div>
+                            </div>
+                        </label>
                     </div>
 
-                    <!-- PAYMENT METHOD -->
-                    <div class="section">
-                        <h2>💳 Payment Method</h2>
+                    <!-- STORE DETAILS (NO UPLOAD) -->
+                    <div id="storeDetails" class="payment-details">
+                        <h3>🏪 Store Information</h3>
+                        <div class="info-row">
+                            <span class="info-label">Address:</span>
+                            <span class="info-value" id="storeAddress">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Hours:</span>
+                            <span class="info-value" id="storeHours">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Phone:</span>
+                            <span class="info-value" id="storePhone">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Amount to Pay:</span>
+                            <span class="info-value" style="color: #667eea; font-size: 1.2rem;" id="storeAmount">RM0.00</span>
+                        </div>
                         
-                        <div class="payment-methods">
-                            <!-- PAY AT STORE -->
-                            <label class="payment-option" id="storeOption">
-                                <input type="radio" name="paymentMethod" value="store" onchange="selectPaymentMethod('store')">
-                                <div class="payment-option-header">
-                                    <span class="payment-option-icon">🏪</span>
-                                    <span class="payment-option-title">Pay at Store</span>
-                                </div>
-                                <div class="payment-option-desc">Visit our store and complete payment BEFORE order processing</div>
-                            </label>
-
-                            <!-- BANK TRANSFER -->
-                            <label class="payment-option" id="bankOption">
-                                <input type="radio" name="paymentMethod" value="bank_transfer" onchange="selectPaymentMethod('bank_transfer')">
-                                <div class="payment-option-header">
-                                    <span class="payment-option-icon">🏦</span>
-                                    <span class="payment-option-title">Bank Transfer</span>
-                                </div>
-                                <div class="payment-option-desc">Transfer to our bank account and upload receipt</div>
-                            </label>
+                        <div class="alert alert-success">
+                            <strong>✅ HOW IT WORKS:</strong>
+                            <ol style="margin: 0.5rem 0 0 1.5rem; padding: 0;">
+                                <li>Click "Place Order" below to reserve your items</li>
+                                <li>You'll receive a confirmation email with your order number</li>
+                                <li>Visit our store at the address above</li>
+                                <li>Make payment at counter and collect your items</li>
+                                <li>Show your order number to our staff</li>
+                            </ol>
+                            <p style="margin-top: 0.8rem;"><strong>📧 Email Notifications:</strong></p>
+                            <ul style="margin: 0.3rem 0 0 1.5rem;">
+                                <li>Order placed ✅ (immediately)</li>
+                                <li>Order approved ✅ (after store visit)</li>
+                            </ul>
                         </div>
-
-                        <!-- STORE PAYMENT DETAILS -->
-                        <div id="storeDetails" class="payment-details">
-                            <h3>🏪 Store Information</h3>
-                            <div class="info-row">
-                                <span class="info-label">Address:</span>
-                                <span class="info-value" id="storeAddress">Loading...</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Hours:</span>
-                                <span class="info-value" id="storeHours">Loading...</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Phone:</span>
-                                <span class="info-value" id="storePhone">Loading...</span>
-                            </div>
-                            
-                            <div class="alert alert-warning">
-                                <strong>⚠️ IMPORTANT INSTRUCTIONS:</strong>
-                                <ol style="margin: 0.5rem 0 0 1.5rem; padding: 0;">
-                                    <li>Visit our store at the address above</li>
-                                    <li>Make your payment at the counter</li>
-                                    <li>Get your payment receipt from staff</li>
-                                    <li>Upload the receipt below to complete your order</li>
-                                </ol>
-                            </div>
-
-                            <div class="file-upload">
-                                <label class="file-upload-label">📸 Upload Store Receipt * (REQUIRED)</label>
-                                <input type="file" id="storeReceipt" accept="image/*,.pdf" onchange="handleFileUpload(this, 'storePreview')">
-                                <div class="file-info">Accepted: JPG, PNG, PDF • Max: 5MB</div>
-                                <div id="storePreview" class="file-preview"></div>
-                            </div>
-                        </div>
-
-                        <!-- BANK TRANSFER DETAILS -->
-                        <div id="bankDetails" class="payment-details">
-                            <h3>🏦 Bank Transfer Details</h3>
-                            <div class="info-row">
-                                <span class="info-label">Bank Name:</span>
-                                <span class="info-value" id="bankName">Loading...</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Account Number:</span>
-                                <span class="info-value" id="accountNumber">Loading...</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Account Holder:</span>
-                                <span class="info-value" id="accountHolder">Loading...</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Amount to Transfer:</span>
-                                <span class="info-value" style="color: #667eea; font-size: 1.2rem;" id="transferAmount">RM0.00</span>
-                            </div>
-                            
-                            <div class="alert alert-warning">
-                                <strong>⚠️ IMPORTANT INSTRUCTIONS:</strong>
-                                <ol style="margin: 0.5rem 0 0 1.5rem; padding: 0;">
-                                    <li>Transfer the EXACT amount shown above</li>
-                                    <li>Take a screenshot of your transfer confirmation</li>
-                                    <li>Upload the screenshot below</li>
-                                </ol>
-                            </div>
-
-                            <div class="file-upload">
-                                <label class="file-upload-label">📸 Upload Bank Transfer Receipt * (REQUIRED)</label>
-                                <input type="file" id="bankReceipt" accept="image/*,.pdf" onchange="handleFileUpload(this, 'bankPreview')">
-                                <div class="file-info">Accepted: JPG, PNG, PDF • Max: 5MB</div>
-                                <div id="bankPreview" class="file-preview"></div>
-                            </div>
-                        </div>
-
-                        <div class="alert alert-info" style="margin-top: 1.5rem;">
-                            ℹ️ Your order will only be processed after we verify your payment.
-                        </div>
-
-                        <button type="submit" class="submit-btn" id="submitBtn">Place Order</button>
                     </div>
+
+                    <!-- BANK TRANSFER DETAILS (WITH RECEIPT UPLOAD) -->
+                    <div id="bankDetails" class="payment-details">
+                        <h3>🏦 Bank Transfer Details</h3>
+                        <div class="info-row">
+                            <span class="info-label">Bank Name:</span>
+                            <span class="info-value" id="bankName">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Account Number:</span>
+                            <span class="info-value" id="accountNumber">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Account Holder:</span>
+                            <span class="info-value" id="accountHolder">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Amount to Transfer:</span>
+                            <span class="info-value" style="color: #667eea; font-size: 1.2rem;" id="transferAmount">RM0.00</span>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <strong>⚠️ IMPORTANT STEPS:</strong>
+                            <ol style="margin: 0.5rem 0 0 1.5rem; padding: 0;">
+                                <li>Transfer the EXACT amount shown above</li>
+                                <li>Take a screenshot of your transfer confirmation</li>
+                                <li>Upload the screenshot below</li>
+                                <li>Click "Place Order"</li>
+                                <li>Wait for admin approval (usually within 24 hours)</li>
+                            </ol>
+                        </div>
+
+                        <div class="file-upload">
+                            <label class="file-upload-label">📸 Upload Bank Transfer Receipt *</label>
+                            <input type="file" id="bankReceipt" accept="image/*,.pdf" onchange="handleFileUpload(this, 'bankPreview')">
+                            <div class="file-info">Accepted: JPG, PNG, PDF • Max 5MB</div>
+                            <div id="bankPreview" class="file-preview"></div>
+                        </div>
+
+                        <div class="alert alert-info" style="margin-top: 1rem;">
+                            <strong>📧 Email Notifications:</strong>
+                            <ul style="margin: 0.3rem 0 0 1.5rem;">
+                                <li>Order placed ✅ (immediately)</li>
+                                <li>Payment verified ✅ (after admin approval)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">Place Order</button>
                 </div>
 
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 
     <!-- Success Modal -->
@@ -242,8 +227,8 @@
         <div class="success-content">
             <div class="success-icon">✅</div>
             <h2>Order Placed Successfully!</h2>
-            <p>Your order number: <strong id="orderNumber"></strong></p>
-            <p>We will review your payment and notify you via email once approved.</p>
+            <p style="font-size: 1.1rem; margin: 1rem 0;">Order Number: <strong id="orderNumber" style="color: #667eea;"></strong></p>
+            <p id="successMessage" style="color: #666; margin: 1rem 0;">We've sent a confirmation email to your inbox.</p>
             <a href="index.html" class="btn-home">Back to Home</a>
         </div>
     </div>
@@ -253,147 +238,109 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        let currentUser = null;
         let cart = [];
         let selectedPaymentMethod = null;
         let paymentSettings = null;
-        let currentUser = null;
-        let uploadedFile = null;
 
+        // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
             await checkAuth();
-            await loadPaymentSettings();
             loadCart();
-            displayCheckoutItems();
-            prefillUserData();
+            await loadPaymentSettings();
         });
 
         async function checkAuth() {
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                    currentUser = session.user;
-                }
-            } catch (error) {
-                console.error('Auth check error:', error);
-            }
-        }
-
-        async function loadPaymentSettings() {
-            try {
-                const { data, error } = await supabase
-                    .from('payment_settings')
-                    .select('*')
-                    .single();
-                
-                if (error) throw error;
-                
-                paymentSettings = data;
-                
-                // Update store info
-                document.getElementById('storeAddress').textContent = data.store_address;
-                document.getElementById('storeHours').textContent = data.store_hours;
-                document.getElementById('storePhone').textContent = data.store_phone;
-                
-                // Update bank info
-                document.getElementById('bankName').textContent = data.bank_name;
-                document.getElementById('accountNumber').textContent = data.account_number;
-                document.getElementById('accountHolder').textContent = data.account_holder;
-                
-            } catch (error) {
-                console.error('Error loading payment settings:', error);
-                alert('Could not load payment information. Please refresh the page.');
-            }
+            const { data: { session } } = await supabase.auth.getSession();
+            currentUser = session?.user || null;
         }
 
         function loadCart() {
             cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
             if (cart.length === 0) {
-                alert("Your cart is empty!");
+                alert('Your cart is empty!');
                 window.location.href = 'index.html';
                 return;
             }
+            displayCartSummary();
         }
 
-        function displayCheckoutItems() {
-            const itemsContainer = document.getElementById('checkoutItems');
-            const totalContainer = document.getElementById('checkoutTotal');
-            const transferAmount = document.getElementById('transferAmount');
-            let total = 0;
-
-            itemsContainer.innerHTML = cart.map(item => {
-                const subtotal = item.price * item.quantity;
-                total += subtotal;
-                return `
-                    <div class="summary-item">
-                        <img src="${item.image}" alt="${item.name}">
-                        <div class="item-details">
-                            <strong>${item.name}</strong><br>
-                            <small>${item.quantity} x ${item.color} / ${item.size}</small>
-                        </div>
-                        <div class="item-price">RM${subtotal.toFixed(2)}</div>
+        function displayCartSummary() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            document.getElementById('cartSummary').innerHTML = `
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px;">
+                    <strong style="font-size: 1.1rem;">Order Summary:</strong>
+                    <div style="margin-top: 0.5rem;">
+                        ${cart.map(item => `
+                            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #ddd;">
+                                <span>${item.name} (${item.color}/${item.size}) x${item.quantity}</span>
+                                <strong>RM${(item.price * item.quantity).toFixed(2)}</strong>
+                            </div>
+                        `).join('')}
                     </div>
-                `;
-            }).join('');
-
-            totalContainer.textContent = `RM${total.toFixed(2)}`;
-            transferAmount.textContent = `RM${total.toFixed(2)}`;
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 2px solid #667eea; font-size: 1.3rem; display: flex; justify-content: space-between;">
+                        <strong>Total:</strong>
+                        <strong style="color: #667eea;">RM${total.toFixed(2)}</strong>
+                    </div>
+                </div>
+            `;
+            document.getElementById('transferAmount').textContent = `RM${total.toFixed(2)}`;
+            document.getElementById('storeAmount').textContent = `RM${total.toFixed(2)}`;
         }
 
-        function prefillUserData() {
-            if (currentUser) {
-                document.getElementById('email').value = currentUser.email;
+        async function loadPaymentSettings() {
+            try {
+                const { data, error } = await supabase.from('payment_settings').select('*').single();
+                if (error) throw error;
+                
+                paymentSettings = data;
+                
+                // Populate store info
+                document.getElementById('storeAddress').textContent = data.store_address || 'Not set';
+                document.getElementById('storeHours').textContent = data.store_hours || 'Not set';
+                document.getElementById('storePhone').textContent = data.store_phone || 'Not set';
+                
+                // Populate bank info
+                document.getElementById('bankName').textContent = data.bank_name || 'Not set';
+                document.getElementById('accountNumber').textContent = data.account_number || 'Not set';
+                document.getElementById('accountHolder').textContent = data.account_holder || 'Not set';
+            } catch (error) {
+                console.error('Error loading payment settings:', error);
             }
         }
 
-        function selectPaymentMethod(method) {
+        function selectPayment(method) {
             selectedPaymentMethod = method;
             
             // Update UI
-            document.getElementById('storeOption').classList.toggle('selected', method === 'store');
-            document.getElementById('bankOption').classList.toggle('selected', method === 'bank_transfer');
+            document.getElementById('storeOption').classList.remove('selected');
+            document.getElementById('bankOption').classList.remove('selected');
+            document.getElementById('storeDetails').classList.remove('active');
+            document.getElementById('bankDetails').classList.remove('active');
             
-            // Show/hide details
-            document.getElementById('storeDetails').classList.toggle('active', method === 'store');
-            document.getElementById('bankDetails').classList.toggle('active', method === 'bank_transfer');
+            if (method === 'store') {
+                document.getElementById('storeOption').classList.add('selected');
+                document.getElementById('storeDetails').classList.add('active');
+            } else {
+                document.getElementById('bankOption').classList.add('selected');
+                document.getElementById('bankDetails').classList.add('active');
+            }
         }
 
         function handleFileUpload(input, previewId) {
-            const file = input.files[0];
             const preview = document.getElementById(previewId);
-            
-            if (!file) {
-                preview.classList.remove('active');
-                uploadedFile = null;
-                return;
-            }
-
-            // Validate file
-            const maxSize = 5 * 1024 * 1024; // 5MB
-            if (file.size > maxSize) {
-                alert('File too large! Maximum size is 5MB.');
-                input.value = '';
-                return;
-            }
-
-            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-            if (!allowedTypes.includes(file.type)) {
-                alert('Invalid file type! Please upload JPG, PNG, or PDF.');
-                input.value = '';
-                return;
-            }
-
-            uploadedFile = file;
-
-            // Show preview
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    preview.innerHTML = `<img src="${e.target.result}" alt="Receipt Preview">`;
-                    preview.classList.add('active');
-                };
-                reader.readAsDataURL(file);
-            } else {
-                preview.innerHTML = `<p style="padding: 1rem; background: #f8f9fa; border-radius: 5px;">📄 ${file.name}</p>`;
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Check file size
+                if (file.size > 5000000) {
+                    alert('File too large! Maximum size is 5MB');
+                    input.value = '';
+                    preview.classList.remove('active');
+                    return;
+                }
+                
+                preview.innerHTML = `✅ Receipt uploaded: <strong>${file.name}</strong> (${(file.size / 1024).toFixed(0)} KB)`;
                 preview.classList.add('active');
             }
         }
@@ -403,21 +350,22 @@
             
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Processing...';
+            submitBtn.textContent = 'Processing Order...';
 
             try {
-                // Validate payment method
+                // Validate payment method selection
                 if (!selectedPaymentMethod) {
                     throw new Error('Please select a payment method');
                 }
 
-                // Validate receipt upload
-                const receiptInput = selectedPaymentMethod === 'store' ? 
-                    document.getElementById('storeReceipt') : 
-                    document.getElementById('bankReceipt');
-                
-                if (!receiptInput.files[0]) {
-                    throw new Error('Please upload your payment receipt');
+                // For bank transfer ONLY, require receipt upload
+                let receiptUrl = null;
+                if (selectedPaymentMethod === 'bank_transfer') {
+                    const receiptInput = document.getElementById('bankReceipt');
+                    if (!receiptInput.files[0]) {
+                        throw new Error('Please upload your bank transfer receipt');
+                    }
+                    receiptUrl = await uploadReceipt(receiptInput.files[0]);
                 }
 
                 // Check order limit
@@ -425,9 +373,6 @@
                 if (!canOrder) {
                     throw new Error('You have reached the maximum of 10 orders per day. Please try again tomorrow.');
                 }
-
-                // Upload receipt
-                const receiptUrl = await uploadReceipt(receiptInput.files[0]);
 
                 // Generate order number
                 const orderNumber = await generateOrderNumber();
@@ -440,10 +385,10 @@
                     customer_email: document.getElementById('email').value,
                     customer_phone: document.getElementById('phone').value,
                     customer_address: document.getElementById('address').value,
-                    items: cart,
+                    items: JSON.stringify(cart),
                     total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
                     payment_method: selectedPaymentMethod,
-                    payment_proof_url: receiptUrl,
+                    payment_proof_url: receiptUrl, // null for store, URL for bank_transfer
                     status: 'pending_approval'
                 };
 
@@ -451,14 +396,36 @@
                 const { error } = await supabase.from('orders').insert([orderData]);
                 if (error) throw error;
 
+                // Send pending email notification
+                await sendOrderEmail(orderData, 'pending');
+
                 // Increment order limit
                 await incrementOrderLimit();
 
                 // Clear cart
                 localStorage.removeItem('benzgifts_cart');
 
-                // Show success
+                // Show success modal with appropriate message
                 document.getElementById('orderNumber').textContent = orderNumber;
+                
+                if (selectedPaymentMethod === 'store') {
+                    document.getElementById('successMessage').innerHTML = `
+                        <strong>📧 Confirmation email sent!</strong><br><br>
+                        <strong>Next Steps:</strong><br>
+                        1. Visit our store<br>
+                        2. Pay at counter<br>
+                        3. Show this order number<br>
+                        4. Collect your items<br><br>
+                        You'll receive another email once your order is confirmed.
+                    `;
+                } else {
+                    document.getElementById('successMessage').innerHTML = `
+                        <strong>📧 Confirmation email sent!</strong><br><br>
+                        We're reviewing your payment receipt.<br>
+                        You'll receive an email within 24 hours once approved.
+                    `;
+                }
+                
                 document.getElementById('successModal').classList.add('active');
 
             } catch (error) {
@@ -466,6 +433,26 @@
                 alert(error.message || 'Error placing order. Please try again.');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Place Order';
+            }
+        }
+
+        async function uploadReceipt(file) {
+            try {
+                const fileName = `${Date.now()}_${file.name}`;
+                const { data, error } = await supabase.storage
+                    .from('payment-receipts')
+                    .upload(fileName, file);
+                
+                if (error) throw error;
+
+                const { data: { publicUrl } } = supabase.storage
+                    .from('payment-receipts')
+                    .getPublicUrl(fileName);
+
+                return publicUrl;
+            } catch (error) {
+                console.error('Error uploading receipt:', error);
+                throw new Error('Failed to upload receipt. Please try again.');
             }
         }
 
@@ -501,35 +488,29 @@
             }
         }
 
-        async function uploadReceipt(file) {
-            try {
-                const fileName = `${Date.now()}_${file.name}`;
-                const { data, error } = await supabase.storage
-                    .from('payment-receipts')
-                    .upload(fileName, file);
-                
-                if (error) throw error;
-                
-                const { data: publicData } = supabase.storage
-                    .from('payment-receipts')
-                    .getPublicUrl(fileName);
-                
-                return publicData.publicUrl;
-            } catch (error) {
-                console.error('Error uploading receipt:', error);
-                throw new Error('Failed to upload receipt. Please try again.');
-            }
+        async function generateOrderNumber() {
+            const { data, error } = await supabase.rpc('generate_order_number');
+            if (error) throw error;
+            return data;
         }
 
-        async function generateOrderNumber() {
+        async function sendOrderEmail(orderData, status) {
             try {
-                const { data, error } = await supabase.rpc('generate_order_number');
-                if (error) throw error;
-                return data;
+                // Call Supabase Edge Function to send email
+                const { error } = await supabase.functions.invoke('send-order-email', {
+                    body: {
+                        orderData: orderData,
+                        emailType: status
+                    }
+                });
+                
+                if (error) {
+                    console.error('Email notification error:', error);
+                    // Don't throw - allow order to complete even if email fails
+                }
             } catch (error) {
-                console.error('Error generating order number:', error);
-                // Fallback
-                return 'ORD-' + Date.now();
+                console.error('Error sending email:', error);
+                // Don't throw - allow order to complete even if email fails
             }
         }
     </script>
