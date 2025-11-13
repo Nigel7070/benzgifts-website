@@ -719,7 +719,10 @@
                 // Send to Google Sheets
                 await sendToGoogleSheets(order, 'approved');
 
-                alert('Order approved successfully! ✅');
+                // Send approval email to customer
+                await sendOrderEmail(order, 'approved');
+
+                alert('Order approved successfully! ✅\nConfirmation email sent to customer.');
                 closeOrderModal();
                 await loadOrders();
 
@@ -776,7 +779,10 @@
                 // Send to Google Sheets
                 await sendToGoogleSheets(order, 'rejected');
 
-                alert('Order rejected successfully! ❌');
+                // Send rejection email to customer
+                await sendOrderEmail(order, 'rejected');
+
+                alert('Order rejected successfully! ❌\nNotification email sent to customer.');
                 closeRejectionModal();
                 closeOrderModal();
                 await loadOrders();
@@ -842,6 +848,26 @@
             } catch (error) {
                 console.error('Error sending to Google Sheets:', error);
                 // Don't throw error - allow order approval/rejection to complete
+            }
+        }
+
+        async function sendOrderEmail(order, status) {
+            try {
+                // Call Supabase Edge Function to send email
+                const { error } = await supabase.functions.invoke('send-order-email', {
+                    body: {
+                        orderData: order,
+                        emailType: status
+                    }
+                });
+                
+                if (error) {
+                    console.error('Email notification error:', error);
+                    // Don't throw - allow operation to complete even if email fails
+                }
+            } catch (error) {
+                console.error('Error sending email:', error);
+                // Don't throw - allow operation to complete even if email fails
             }
         }
 
