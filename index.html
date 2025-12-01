@@ -705,7 +705,7 @@
                 <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 2rem;">
                     <div style="background: rgba(255, 255, 255, 0.1); padding: 1.5rem; border-radius: 10px; min-width: 200px;">
                         <h3 style="margin-bottom: 0.5rem;">📧 Email</h3>
-                        <p>stella.benzgifts@gmail.com</p>
+                        <p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c2f283930303d723e3932263b353a282f1c3b313d3530723f3331">[email&#160;protected]</a></p>
                     </div>
                     <div style="background: rgba(255, 255, 255, 0.1); padding: 1.5rem; border-radius: 10px; min-width: 200px;">
                         <h3 style="margin-bottom: 0.5rem;">📱 WhatsApp</h3>
@@ -802,7 +802,7 @@
         </div>
     </footer>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1107,6 +1107,7 @@
                     const subtotal = price * quantity;
                     total += subtotal;
 
+                    const weight = item.weight_grams || 180;
                     return `
                         <div class="cart-item" id="cartItem-${index}">
                             <input type="checkbox" 
@@ -1118,6 +1119,7 @@
                                 <div class="cart-item-name">${name}</div>
                                 <div class="cart-item-variant">${color} / ${size}</div>
                                 <div class="cart-item-price">${quantity} x RM${price.toFixed(2)} = RM${subtotal.toFixed(2)}</div>
+                                <div style="color: #999; font-size: 0.85rem; margin-top: 0.3rem;">📦 ${weight}g</div>
                             </div>
                             <button class="cart-item-remove" onclick="removeFromCart(${index})">Remove</button>
                         </div>
@@ -1291,14 +1293,3 @@
             } else {
                 badge.style.display = 'none';
             }
-        }
-
-        window.onclick = function(event) {
-            const modal = document.getElementById('cartModal');
-            if (event.target === modal) {
-                closeCart();
-            }
-        }
-    </script>
-</body>
-</html>
