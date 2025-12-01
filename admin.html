@@ -3,965 +3,1293 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - BenzGifts</title>
+    <title>BenzGifts - Premium Custom T-Shirts & Apparel</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #333; }
-        
-        /* Header */
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 1.8rem; font-weight: bold; }
-        .user-info { display: flex; align-items: center; gap: 1rem; }
-        .logout-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 5px; cursor: pointer; }
-        .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        /* Container */
-        .container { max-width: 1400px; margin: 2rem auto; padding: 0 2rem; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
 
-        /* Tabs */
-        .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); flex-wrap: wrap; }
-        .tab { padding: 0.8rem 1.5rem; background: transparent; border: none; cursor: pointer; border-radius: 5px; font-size: 1rem; font-weight: 600; color: #666; transition: all 0.3s; }
-        .tab.active { background: #667eea; color: white; }
-        .tab:hover:not(.active) { background: #f0f0f0; }
+        .header {
+            background: #fff;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-        /* Tab Content */
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
 
-        /* Section */
-        .section { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 2rem; }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #f0f0f0; }
-        .section-title { font-size: 1.5rem; font-weight: bold; color: #2c3e50; }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2c3e50;
+            cursor: pointer;
+        }
 
-        /* Stats Cards */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stat-card { background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 4px solid; }
-        .stat-card.pending { border-color: #ffc107; }
-        .stat-card.approved { border-color: #28a745; }
-        .stat-card.rejected { border-color: #dc3545; }
-        .stat-card.total { border-color: #667eea; }
-        .stat-label { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
-        .stat-value { font-size: 2rem; font-weight: bold; color: #2c3e50; }
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
 
-        /* Filter Bar */
-        .filter-bar { display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: center; flex-wrap: wrap; }
-        .filter-bar select { padding: 0.6rem; border: 1px solid #ddd; border-radius: 5px; }
+        .nav-links a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
 
-        /* Table */
-        .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; font-weight: 600; color: #2c3e50; white-space: nowrap; }
-        tr:hover { background: #f8f9fa; }
-        
-        /* Status Badges */
-        .status-badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
-        .status-pending { background: #fff3cd; color: #856404; }
-        .status-approved { background: #d4edda; color: #155724; }
-        .status-rejected { background: #f8d7da; color: #721c24; }
+        .nav-links a:hover {
+            color: #667eea;
+        }
 
-        /* Payment Method Badge */
-        .payment-badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; background: #e3f2fd; color: #1976d2; white-space: nowrap; }
+        .auth-btn {
+            padding: 0.5rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
 
-        /* Buttons */
-        .btn { padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; transition: all 0.3s; white-space: nowrap; }
-        .btn-primary { background: #667eea; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn-info { background: #17a2b8; color: white; }
-        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .btn-group { display: flex; gap: 0.5rem; }
+        .auth-btn:hover {
+            background: #5568d3;
+        }
 
-        /* Form */
-        .form-group { margin-bottom: 1.5rem; }
-        .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #2c3e50; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .user-menu {
+            position: relative;
+        }
 
-        /* Modal */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; }
-        .modal.active { display: flex; }
-        .modal-content { background: white; padding: 2rem; border-radius: 15px; max-width: 900px; width: 90%; margin: 2rem auto; max-height: 90vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #f0f0f0; }
-        .modal-title { font-size: 1.5rem; font-weight: bold; color: #2c3e50; }
-        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; }
-        .close-btn:hover { color: #333; }
+        .user-email {
+            cursor: pointer;
+            color: #667eea;
+            font-weight: 500;
+        }
 
-        /* Order Details */
-        .order-details { display: grid; gap: 1.5rem; }
-        .detail-section { padding: 1rem; background: #f8f9fa; border-radius: 8px; }
-        .detail-section h3 { color: #667eea; margin-bottom: 1rem; font-size: 1.1rem; }
-        .detail-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #ddd; }
-        .detail-row:last-child { border-bottom: none; }
-        .detail-label { font-weight: 600; color: #666; }
-        .detail-value { color: #2c3e50; text-align: right; }
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 5px;
+            margin-top: 0.5rem;
+            min-width: 200px;
+            display: none;
+            z-index: 1000;
+        }
 
-        /* Items List */
-        .items-list { margin-top: 1rem; }
-        .item-row { display: flex; gap: 1rem; padding: 1rem; background: white; border-radius: 5px; margin-bottom: 0.5rem; align-items: center; }
-        .item-row img { width: 60px; height: 60px; border-radius: 5px; object-fit: cover; }
-        .item-details { flex: 1; }
-        .item-name { font-weight: 600; }
-        .item-variant { color: #666; font-size: 0.9rem; }
-        .item-price { font-weight: bold; color: #667eea; }
+        .dropdown-menu.active {
+            display: block;
+        }
 
-        /* Receipt Preview */
-        .receipt-preview { margin-top: 1rem; text-align: center; }
-        .receipt-preview img { max-width: 100%; border-radius: 8px; border: 2px solid #ddd; cursor: pointer; }
-        .receipt-preview img:hover { border-color: #667eea; }
+        .dropdown-item {
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            border-bottom: 1px solid #f0f0f0;
+        }
 
-        /* Alert */
-        .alert { padding: 1rem; border-radius: 5px; margin-bottom: 1rem; }
-        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
-        .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
 
-        /* Loading */
-        .loading { text-align: center; padding: 3rem; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .dropdown-item:hover {
+            background: #f8f9fa;
+        }
 
-        /* Empty State */
-        .empty-state { text-align: center; padding: 3rem; color: #999; }
-        .empty-state-icon { font-size: 4rem; margin-bottom: 1rem; }
+        .page-container {
+            display: none;
+        }
 
-        /* Responsive */
+        .page-container.active {
+            display: block;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5rem 2rem;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: fadeInUp 1s ease;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease 0.2s backwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 3rem;
+        }
+
+        .products {
+            padding: 4rem 2rem;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-info {
+            padding: 1.5rem;
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .stock-status {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        .stock-status.in-stock {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .stock-status.low-stock {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .stock-status.out-of-stock {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .cart-float-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 999;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cart-float-btn:hover {
+            transform: scale(1.1);
+            background: #5568d3;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            background: #5568d3;
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .success-message, .error-message, .info-message {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .success-message {
+            background: #4caf50;
+            color: white;
+        }
+
+        .error-message {
+            background: #f44336;
+            color: white;
+        }
+
+        .info-message {
+            background: #2196F3;
+            color: white;
+        }
+
+        /* CART STYLES WITH SELECTION */
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .select-all-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .select-all-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .selection-info {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .cart-items {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 1rem 0;
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .cart-item.selected {
+            background: #f0f4ff;
+            border-left: 3px solid #667eea;
+        }
+
+        .cart-item-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .cart-item-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.3rem;
+            font-size: 1.1rem;
+        }
+
+        .cart-item-variant {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+
+        .cart-item-price {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .cart-item-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .cart-item-remove:hover {
+            background: #c82333;
+        }
+
+        .cart-total {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: right;
+        }
+
+        .cart-total-label {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .cart-total-amount {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-left: 1rem;
+        }
+
+        .cart-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .cart-actions button {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .remove-selected-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .remove-selected-btn:hover:not(:disabled) {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .checkout-selected-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .checkout-selected-btn:hover:not(:disabled) {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .cart-actions button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+
+        .empty-cart-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        .info-banner {
+            background: #e8f0ff;
+            border-left: 4px solid #667eea;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
         @media (max-width: 768px) {
-            .container { padding: 0 1rem; }
-            .form-row { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: 1fr; }
-            .filter-bar { flex-direction: column; align-items: stretch; }
-            .btn-group { flex-direction: column; }
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+                font-size: 0.9rem;
+            }
+
+            .cart-float-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+
+            .cart-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-
-    <!-- Header -->
     <header class="header">
-        <div class="header-content">
-            <div class="logo">🎁 BenzGifts Admin</div>
-            <div class="user-info">
-                <span id="userEmail"></span>
-                <button class="logout-btn" onclick="handleLogout()">Logout</button>
-            </div>
-        </div>
+        <nav class="nav">
+            <div class="logo" onclick="showPage('home')">BenzGifts</div>
+            <ul class="nav-links">
+                <li><a onclick="showPage('home')">Home</a></li>
+                <li><a onclick="scrollToSection('shop')">Shop</a></li>
+                <li><a onclick="scrollToSection('about')">About</a></li>
+                <li><a onclick="scrollToSection('contact')">Contact</a></li>
+                <li id="adminNavLink" style="display: none;">
+                    <a onclick="goToAdminPanel()" style="color: #667eea; font-weight: 600;">⚙️ Admin</a>
+                </li>
+                <li id="authSection">
+                    <button class="auth-btn" onclick="openAuthModal()">Login / Sign Up</button>
+                </li>
+            </ul>
+        </nav>
     </header>
 
-    <!-- Container -->
-    <div class="container">
+    <button class="cart-float-btn" onclick="openCart()">
+        🛒
+        <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+    </button>
 
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('orders')">📦 Orders</button>
-            <button class="tab" onclick="switchTab('products')">🛍️ Products</button>
-            <button class="tab" onclick="switchTab('payment')">💳 Payment Settings</button>
-            <button class="tab" onclick="switchTab('sizes')">📏 Size Management</button>
-        </div>
+    <div id="homePage" class="page-container active">
+        <section class="hero" id="home">
+            <div class="container">
+                <h1>Stand Out From The Crowd With Custom T-shirts</h1>
+                <p>Premium Quality Apparel for Your Brand</p>
+                <a onclick="scrollToSection('shop')" class="auth-btn" style="display: inline-block; text-decoration: none;">Explore Products</a>
+            </div>
+        </section>
 
-        <!-- TAB: ORDERS -->
-        <div id="ordersTab" class="tab-content active">
+        <section class="products" id="shop">
+            <div class="container">
+                <h2 class="section-title">Our Products</h2>
+                <p class="section-subtitle" id="productSubtitle">Loading products...</p>
+                
+                <div class="products-grid" id="productsGrid"></div>
+            </div>
+        </section>
+
+        <section style="padding: 4rem 2rem; background: #f8f9fa;" id="about">
+            <div class="container">
+                <h2 class="section-title">About BenzGifts</h2>
+                <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+                    <p style="margin-bottom: 1.5rem; font-size: 1.1rem; color: #555; line-height: 1.8;">
+                        BenzGifts was founded with a clear mission: to offer premium quality T-shirts at accessible price points, specifically tailored for emerging clothing brands.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 3rem 2rem; text-align: center;" id="contact">
+            <div class="container">
+                <h2 style="margin-bottom: 1rem;">Get In Touch</h2>
+                <p>Contact us for custom orders and inquiries</p>
+                <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 2rem;">
+                    <div style="background: rgba(255, 255, 255, 0.1); padding: 1.5rem; border-radius: 10px; min-width: 200px;">
+                        <h3 style="margin-bottom: 0.5rem;">📧 Email</h3>
+                        <p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c2f283930303d723e3932263b353a282f1c3b313d3530723f3331">[email&#160;protected]</a></p>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.1); padding: 1.5rem; border-radius: 10px; min-width: 200px;">
+                        <h3 style="margin-bottom: 0.5rem;">📱 WhatsApp</h3>
+                        <p>016-800 0175</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAuthModal()">&times;</span>
+            <h2 style="padding: 1.5rem;">Welcome to BenzGifts</h2>
             
-            <!-- Stats -->
-            <div class="stats-grid">
-                <div class="stat-card total">
-                    <div class="stat-label">Total Orders</div>
-                    <div class="stat-value" id="totalOrders">0</div>
-                </div>
-                <div class="stat-card pending">
-                    <div class="stat-label">⏳ Pending Approval</div>
-                    <div class="stat-value" id="pendingOrders">0</div>
-                </div>
-                <div class="stat-card approved">
-                    <div class="stat-label">✅ Approved</div>
-                    <div class="stat-value" id="approvedOrders">0</div>
-                </div>
-                <div class="stat-card rejected">
-                    <div class="stat-label">❌ Rejected</div>
-                    <div class="stat-value" id="rejectedOrders">0</div>
-                </div>
-            </div>
+            <div class="modal-body">
+                <div class="success-message" id="authSuccess"></div>
+                <div class="error-message" id="authError"></div>
+                <div class="info-message" id="authInfo"></div>
 
-            <!-- Orders Section -->
-            <div class="section">
-                <div class="section-header">
-                    <h2 class="section-title">📋 Order Management</h2>
-                    <button class="btn btn-primary" onclick="loadOrders()">🔄 Refresh</button>
-                </div>
-
-                <!-- Filters -->
-                <div class="filter-bar">
-                    <label>Filter by Status:</label>
-                    <select id="statusFilter" onchange="loadOrders()">
-                        <option value="all">All Orders</option>
-                        <option value="pending_approval">Pending Approval</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
-
-                    <label>Payment Method:</label>
-                    <select id="paymentFilter" onchange="loadOrders()">
-                        <option value="all">All Methods</option>
-                        <option value="store">Pay at Store</option>
-                        <option value="bank_transfer">Bank Transfer</option>
-                    </select>
-                </div>
-
-                <!-- Orders Table -->
-                <div class="table-container">
-                    <table id="ordersTable">
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Date</th>
-                                <th>Customer</th>
-                                <th>Total</th>
-                                <th>Payment</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ordersTableBody">
-                            <tr>
-                                <td colspan="7">
-                                    <div class="loading">
-                                        <div class="spinner"></div>
-                                        <p>Loading orders...</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB: PRODUCTS -->
-        <div id="productsTab" class="tab-content">
-            <div class="section">
-                <div class="section-header">
-                    <h2 class="section-title">🛍️ Product Management</h2>
-                    <button class="btn btn-success" onclick="openProductModal()">+ Add Product</button>
-                </div>
-                <div id="productsContent">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading products...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB: PAYMENT SETTINGS -->
-        <div id="paymentTab" class="tab-content">
-            <div class="section">
-                <div class="section-header">
-                    <h2 class="section-title">💳 Payment Settings</h2>
-                </div>
-
-                <div id="paymentAlert"></div>
-
-                <form id="paymentSettingsForm" onsubmit="savePaymentSettings(event)">
-                    
-                    <!-- Bank Transfer Info -->
-                    <h3 style="color: #667eea; margin-bottom: 1rem;">🏦 Bank Transfer Information</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="bankName">Bank Name *</label>
-                            <input type="text" id="bankName" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="accountNumber">Account Number *</label>
-                            <input type="text" id="accountNumber" required>
-                        </div>
-                    </div>
+                <form id="authForm" onsubmit="handleAuth(event)">
                     <div class="form-group">
-                        <label for="accountHolder">Account Holder Name *</label>
-                        <input type="text" id="accountHolder" required>
+                        <label>Email Address</label>
+                        <input type="email" id="authEmail" placeholder="Enter your email" required>
                     </div>
-
-                    <hr style="margin: 2rem 0; border: none; border-top: 2px solid #f0f0f0;">
-
-                    <!-- Store Info -->
-                    <h3 style="color: #667eea; margin-bottom: 1rem;">🏪 Store Information</h3>
-                    <div class="form-group">
-                        <label for="storeAddress">Store Address *</label>
-                        <textarea id="storeAddress" rows="3" required></textarea>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="storeHours">Store Hours *</label>
-                            <input type="text" id="storeHours" placeholder="Mon-Fri: 9AM-6PM" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="storePhone">Store Phone *</label>
-                            <input type="tel" id="storePhone" placeholder="016-800 0175" required>
-                        </div>
-                    </div>
-
-                    <hr style="margin: 2rem 0; border: none; border-top: 2px solid #f0f0f0;">
-
-                    <!-- Google Sheets Integration -->
-                    <h3 style="color: #667eea; margin-bottom: 1rem;">📊 Google Sheets Integration</h3>
-                    <div class="form-group">
-                        <label for="sheetsWebhook">Google Apps Script Webhook URL</label>
-                        <input type="url" id="sheetsWebhook" placeholder="https://script.google.com/macros/s/...">
-                        <small style="color: #666;">Get this URL from your Google Apps Script deployment</small>
-                    </div>
-
-                    <button type="submit" class="btn btn-success" style="margin-top: 1rem;">💾 Save Settings</button>
+                    <button type="submit" class="submit-btn" id="authSubmitBtn">Send Magic Link</button>
+                    <p style="text-align: center; margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                        We'll send you a magic link to sign in
+                    </p>
                 </form>
             </div>
         </div>
-
-        <!-- TAB: SIZE MANAGEMENT -->
-        <div id="sizesTab" class="tab-content">
-            <div class="section">
-                <div class="section-header">
-                    <h2 class="section-title">📏 Size Management</h2>
-                </div>
-                <p>Size management interface will be added here...</p>
-            </div>
-        </div>
-
     </div>
 
-    <!-- ORDER DETAILS MODAL -->
-    <div id="orderModal" class="modal">
+    <!-- CART MODAL WITH SELECTION -->
+    <div id="cartModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">📦 Order Details</h2>
-                <button class="close-btn" onclick="closeOrderModal()">&times;</button>
+                <h2>🛒 Shopping Cart</h2>
+                <span class="close" onclick="closeCart()">&times;</span>
             </div>
-            
-            <div id="orderModalContent">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading order details...</p>
+            <div class="modal-body">
+                <!-- Selection Header -->
+                <div id="cartHeader" class="cart-header" style="display: none;">
+                    <div class="select-all-container">
+                        <input type="checkbox" id="selectAllCheckbox" class="select-all-checkbox" 
+                               onchange="toggleSelectAll()">
+                        <label for="selectAllCheckbox" style="cursor: pointer; font-weight: 600;">
+                            Select All
+                        </label>
+                    </div>
+                    <div class="selection-info" id="selectionInfo">
+                        0 items selected
+                    </div>
+                </div>
+
+                <!-- Cart Items -->
+                <div id="cartItems" class="cart-items">
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">🛒</div>
+                        <p>Your cart is empty</p>
+                    </div>
+                </div>
+
+                <!-- Total Section -->
+                <div class="cart-total" id="cartTotalSection" style="display: none;">
+                    <span class="cart-total-label">Total (All Items):</span>
+                    <span class="cart-total-amount" id="cartTotal">RM0.00</span>
+                </div>
+
+                <div class="cart-total" id="selectedTotalSection" style="display: none; background: #e8f0ff;">
+                    <span class="cart-total-label">Selected Items Total:</span>
+                    <span class="cart-total-amount" id="selectedTotal" style="color: #667eea;">RM0.00</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="cart-actions" id="cartActions" style="display: none;">
+                    <button class="remove-selected-btn" id="removeSelectedBtn" 
+                            onclick="removeSelected()" disabled>
+                        🗑️ Remove Selected
+                    </button>
+                    <button class="checkout-selected-btn" id="checkoutSelectedBtn" 
+                            onclick="checkoutSelected()" disabled>
+                        ✓ Checkout Selected
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- REJECTION MODAL -->
-    <div id="rejectionModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h2 class="modal-title">❌ Reject Order</h2>
-                <button class="close-btn" onclick="closeRejectionModal()">&times;</button>
-            </div>
-            
-            <form id="rejectionForm" onsubmit="submitRejection(event)">
-                <div class="form-group">
-                    <label for="rejectionReason">Rejection Reason *</label>
-                    <textarea id="rejectionReason" rows="4" placeholder="Please provide a reason for rejection..." required minlength="10"></textarea>
-                    <small style="color: #666;">Minimum 10 characters</small>
-                </div>
-                
-                <div class="btn-group">
-                    <button type="submit" class="btn btn-danger">❌ Reject Order</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeRejectionModal()">Cancel</button>
-                </div>
-            </form>
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 BenzGifts. All rights reserved.</p>
         </div>
-    </div>
+    </footer>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = null;
-        let currentOrder = null;
-        let paymentSettings = null;
+        let cart = []; 
+        let userProfile = null;
+        let selectedItems = new Set(); // Track selected item indices
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', async () => {
-            await checkAuth();
-            await loadOrders();
-            await loadPaymentSettings();
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadProducts();
+            document.addEventListener('click', function(event) {
+                const userMenu = document.querySelector('.user-menu');
+                if (userMenu && !userMenu.contains(event.target)) {
+                    closeUserMenu();
+                }
+            });
         });
 
-        // Auth Check
         async function checkAuth() {
             try {
+                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                if (hashParams.get('access_token')) {
+                    await supabase.auth.getSession();
+                    if (window.location.hash) {
+                         window.history.replaceState(null, '', window.location.pathname);
+                    }
+                }
+                
                 const { data: { session } } = await supabase.auth.getSession();
                 
-                if (!session) {
-                    window.location.href = 'login.html';
-                    return;
+                if (session) {
+                    currentUser = session.user;
+                    updateAuthUI(true);
+                    await loadCartFromDB(); 
+                    updateCartBadge();
+                } else {
+                    updateAuthUI(false);
+                    cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
+                    if (!Array.isArray(cart)) cart = [];
+                    updateCartBadge(); 
                 }
-
-                currentUser = session.user;
-                
-                // Check if admin
-                const adminEmails = ['stella.benzgifts@gmail.com', 'himynameisblink123@gmail.com'];
-                if (!adminEmails.includes(currentUser.email)) {
-                    alert('Access denied. Admin only.');
-                    await supabase.auth.signOut();
-                    window.location.href = 'login.html';
-                    return;
-                }
-
-                document.getElementById('userEmail').textContent = currentUser.email;
             } catch (error) {
                 console.error('Auth error:', error);
-                window.location.href = 'login.html';
+                updateAuthUI(false);
             }
         }
 
-        // Logout
-        async function handleLogout() {
-            await supabase.auth.signOut();
-            window.location.href = 'login.html';
-        }
-
-        // Tab Switching
-        function switchTab(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-
-            // Show selected tab
-            document.getElementById(tabName + 'Tab').classList.add('active');
-            event.target.classList.add('active');
-
-            // Load data if needed
-            if (tabName === 'products') {
-                loadProducts();
-            }
-        }
-
-        // ═══════════════════════════════════════════════════════════
-        // ORDERS MANAGEMENT
-        // ═══════════════════════════════════════════════════════════
-
-        async function loadOrders() {
-            try {
-                const statusFilter = document.getElementById('statusFilter').value;
-                const paymentFilter = document.getElementById('paymentFilter').value;
-
-                let query = supabase
-                    .from('orders')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (statusFilter !== 'all') {
-                    query = query.eq('status', statusFilter);
-                }
-
-                if (paymentFilter !== 'all') {
-                    query = query.eq('payment_method', paymentFilter);
-                }
-
-                const { data: orders, error } = await query;
-                
-                if (error) throw error;
-
-                // Update stats
-                updateOrderStats(orders);
-
-                // Display orders
-                displayOrders(orders);
-
-            } catch (error) {
-                console.error('Error loading orders:', error);
-                document.getElementById('ordersTableBody').innerHTML = `
-                    <tr><td colspan="7" style="text-align: center; color: #dc3545;">
-                        Error loading orders: ${error.message}
-                    </td></tr>
-                `;
-            }
-        }
-
-        function updateOrderStats(orders) {
-            const total = orders.length;
-            const pending = orders.filter(o => o.status === 'pending_approval').length;
-            const approved = orders.filter(o => o.status === 'approved').length;
-            const rejected = orders.filter(o => o.status === 'rejected').length;
-
-            document.getElementById('totalOrders').textContent = total;
-            document.getElementById('pendingOrders').textContent = pending;
-            document.getElementById('approvedOrders').textContent = approved;
-            document.getElementById('rejectedOrders').textContent = rejected;
-        }
-
-        function displayOrders(orders) {
-            const tbody = document.getElementById('ordersTableBody');
-
-            if (orders.length === 0) {
-                tbody.innerHTML = `
-                    <tr><td colspan="7">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">📦</div>
-                            <p>No orders found</p>
-                        </div>
-                    </td></tr>
-                `;
-                return;
-            }
-
-            tbody.innerHTML = orders.map(order => {
-                const statusClass = order.status === 'pending_approval' ? 'pending' : 
-                                   order.status === 'approved' ? 'approved' : 'rejected';
-                const statusText = order.status === 'pending_approval' ? '⏳ Pending' :
-                                  order.status === 'approved' ? '✅ Approved' : '❌ Rejected';
-                const paymentIcon = order.payment_method === 'store' ? '🏪' : '🏦';
-                const paymentText = order.payment_method === 'store' ? 'Pay at Store' : 'Bank Transfer';
-
-                return `
-                    <tr>
-                        <td><strong>${order.order_number}</strong></td>
-                        <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                        <td>
-                            ${order.customer_name}<br>
-                            <small style="color: #666;">${order.customer_email}</small>
-                        </td>
-                        <td><strong>RM${order.total.toFixed(2)}</strong></td>
-                        <td><span class="payment-badge">${paymentIcon} ${paymentText}</span></td>
-                        <td><span class="status-badge status-${statusClass}">${statusText}</span></td>
-                        <td>
-                            <button class="btn btn-info btn-sm" onclick="viewOrder('${order.id}')">View</button>
-                            ${order.status === 'pending_approval' ? `
-                                <button class="btn btn-success btn-sm" onclick="approveOrder('${order.id}')">✅</button>
-                                <button class="btn btn-danger btn-sm" onclick="openRejectionModal('${order.id}')">❌</button>
-                            ` : ''}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        async function viewOrder(orderId) {
-            try {
-                document.getElementById('orderModal').classList.add('active');
-                document.getElementById('orderModalContent').innerHTML = `
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading order details...</p>
-                    </div>
-                `;
-
-                const { data: order, error } = await supabase
-                    .from('orders')
-                    .select('*')
-                    .eq('id', orderId)
-                    .single();
-
-                if (error) throw error;
-
-                currentOrder = order;
-
-                // Display order details
-                const itemsList = JSON.parse(order.items || '[]').map(item => `
-                    <div class="item-row">
-                        <img src="${item.image || 'placeholder.png'}" alt="${item.name}">
-                        <div class="item-details">
-                            <div class="item-name">${item.name}</div>
-                            <div class="item-variant">${item.color} / ${item.size} × ${item.quantity}</div>
-                        </div>
-                        <div class="item-price">RM${(item.price * item.quantity).toFixed(2)}</div>
-                    </div>
-                `).join('');
-
-                const statusClass = order.status === 'pending_approval' ? 'warning' : 
-                                   order.status === 'approved' ? 'success' : 'danger';
-
-                document.getElementById('orderModalContent').innerHTML = `
-                    <div class="order-details">
-                        
-                        <!-- Order Info -->
-                        <div class="detail-section">
-                            <h3>📋 Order Information</h3>
-                            <div class="detail-row">
-                                <span class="detail-label">Order Number:</span>
-                                <span class="detail-value"><strong>${order.order_number}</strong></span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Date:</span>
-                                <span class="detail-value">${new Date(order.created_at).toLocaleString()}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Status:</span>
-                                <span class="detail-value">
-                                    <span class="status-badge status-${order.status === 'pending_approval' ? 'pending' : order.status === 'approved' ? 'approved' : 'rejected'}">
-                                        ${order.status === 'pending_approval' ? '⏳ Pending Approval' : order.status === 'approved' ? '✅ Approved' : '❌ Rejected'}
-                                    </span>
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Customer Info -->
-                        <div class="detail-section">
-                            <h3>👤 Customer Information</h3>
-                            <div class="detail-row">
-                                <span class="detail-label">Name:</span>
-                                <span class="detail-value">${order.customer_name}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Email:</span>
-                                <span class="detail-value">${order.customer_email}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Phone:</span>
-                                <span class="detail-value">${order.customer_phone}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Address:</span>
-                                <span class="detail-value">${order.customer_address}</span>
-                            </div>
-                        </div>
-
-                        <!-- Payment Info -->
-                        <div class="detail-section">
-                            <h3>💳 Payment Information</h3>
-                            <div class="detail-row">
-                                <span class="detail-label">Method:</span>
-                                <span class="detail-value">
-                                    <span class="payment-badge">
-                                        ${order.payment_method === 'store' ? '🏪 Pay at Store' : '🏦 Bank Transfer'}
-                                    </span>
-                                </span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Total Amount:</span>
-                                <span class="detail-value"><strong style="font-size: 1.2rem; color: #667eea;">RM${order.total.toFixed(2)}</strong></span>
-                            </div>
-                        </div>
-
-                        <!-- Items -->
-                        <div class="detail-section">
-                            <h3>🛍️ Order Items</h3>
-                            <div class="items-list">${itemsList}</div>
-                        </div>
-
-                        <!-- Receipt -->
-                        <div class="detail-section">
-                            <h3>📸 Payment Receipt</h3>
-                            <div class="receipt-preview">
-                                <img src="${order.payment_proof_url}" alt="Payment Receipt" onclick="window.open('${order.payment_proof_url}', '_blank')">
-                                <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">Click to view full size</p>
-                            </div>
-                        </div>
-
-                        ${order.status === 'rejected' && order.rejection_reason ? `
-                            <div class="alert alert-danger">
-                                <strong>Rejection Reason:</strong><br>
-                                ${order.rejection_reason}
-                            </div>
-                        ` : ''}
-
-                        ${order.status === 'pending_approval' ? `
-                            <div class="btn-group" style="margin-top: 1.5rem;">
-                                <button class="btn btn-success" onclick="approveOrder('${order.id}')">✅ Approve Order</button>
-                                <button class="btn btn-danger" onclick="openRejectionModal('${order.id}')">❌ Reject Order</button>
-                                <button class="btn btn-secondary" onclick="closeOrderModal()">Close</button>
-                            </div>
-                        ` : `
-                            <div style="margin-top: 1.5rem;">
-                                <button class="btn btn-secondary" onclick="closeOrderModal()">Close</button>
-                            </div>
-                        `}
-
-                    </div>
-                `;
-
-            } catch (error) {
-                console.error('Error viewing order:', error);
-                document.getElementById('orderModalContent').innerHTML = `
-                    <div class="alert alert-danger">
-                        Error loading order details: ${error.message}
-                    </div>
-                `;
-            }
-        }
-
-        function closeOrderModal() {
-            document.getElementById('orderModal').classList.remove('active');
-            currentOrder = null;
-        }
-
-        async function approveOrder(orderId) {
-            if (!confirm('Are you sure you want to approve this order?')) return;
-
-            try {
-                // Update order status
-                const { error: updateError } = await supabase
-                    .from('orders')
-                    .update({
-                        status: 'approved',
-                        approved_by: currentUser.email,
-                        approved_at: new Date().toISOString()
-                    })
-                    .eq('id', orderId);
-
-                if (updateError) throw updateError;
-
-                // Get full order details
-                const { data: order, error: fetchError } = await supabase
-                    .from('orders')
-                    .select('*')
-                    .eq('id', orderId)
-                    .single();
-
-                if (fetchError) throw fetchError;
-
-                // Send to Google Sheets
-                await sendToGoogleSheets(order, 'approved');
-
-                // Send approval email to customer
-                await sendOrderEmail(order, 'approved');
-
-                alert('Order approved successfully! ✅\nConfirmation email sent to customer.');
-                closeOrderModal();
-                await loadOrders();
-
-            } catch (error) {
-                console.error('Error approving order:', error);
-                alert('Error approving order: ' + error.message);
-            }
-        }
-
-        function openRejectionModal(orderId) {
-            currentOrder = { id: orderId };
-            document.getElementById('rejectionModal').classList.add('active');
-            document.getElementById('rejectionReason').value = '';
-        }
-
-        function closeRejectionModal() {
-            document.getElementById('rejectionModal').classList.remove('active');
-            currentOrder = null;
-        }
-
-        async function submitRejection(event) {
-            event.preventDefault();
-
-            const reason = document.getElementById('rejectionReason').value.trim();
+        function updateAuthUI(isLoggedIn) {
+            const authSection = document.getElementById('authSection');
+            const adminNavLink = document.getElementById('adminNavLink');
             
-            if (reason.length < 10) {
-                alert('Rejection reason must be at least 10 characters');
-                return;
-            }
-
-            try {
-                // Update order status
-                const { error: updateError } = await supabase
-                    .from('orders')
-                    .update({
-                        status: 'rejected',
-                        rejection_reason: reason,
-                        rejected_by: currentUser.email,
-                        rejected_at: new Date().toISOString()
-                    })
-                    .eq('id', currentOrder.id);
-
-                if (updateError) throw updateError;
-
-                // Get full order details
-                const { data: order, error: fetchError } = await supabase
-                    .from('orders')
-                    .select('*')
-                    .eq('id', currentOrder.id)
-                    .single();
-
-                if (fetchError) throw fetchError;
-
-                // Send to Google Sheets
-                await sendToGoogleSheets(order, 'rejected');
-
-                // Send rejection email to customer
-                await sendOrderEmail(order, 'rejected');
-
-                alert('Order rejected successfully! ❌\nNotification email sent to customer.');
-                closeRejectionModal();
-                closeOrderModal();
-                await loadOrders();
-
-            } catch (error) {
-                console.error('Error rejecting order:', error);
-                alert('Error rejecting order: ' + error.message);
-            }
-        }
-
-        async function sendToGoogleSheets(order, status) {
-            try {
-                if (!paymentSettings || !paymentSettings.google_sheets_webhook_url) {
-                    console.log('No Google Sheets webhook URL configured');
-                    return;
-                }
-
-                const items = JSON.parse(order.items || '[]');
-                const itemsSummary = items.map(item => 
-                    `${item.name} (${item.color}/${item.size}) x${item.quantity}`
-                ).join(', ');
-
-                const payload = {
-                    orderId: order.order_number,
-                    date: new Date(order.created_at).toLocaleDateString(),
-                    customerName: order.customer_name,
-                    email: order.customer_email,
-                    phone: order.customer_phone,
-                    address: order.customer_address,
-                    items: items,
-                    itemsSummary: itemsSummary,
-                    total: order.total,
-                    paymentMethod: order.payment_method,
-                    receiptUrl: order.payment_proof_url,
-                    status: status,
-                    approvedBy: order.approved_by,
-                    approvedAt: order.approved_at,
-                    rejectionReason: order.rejection_reason,
-                    rejectedBy: order.rejected_by,
-                    rejectedAt: order.rejected_at
-                };
-
-                const response = await fetch(paymentSettings.google_sheets_webhook_url, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                console.log('Sent to Google Sheets:', payload);
-
-                // Update order to mark as sent to sheets
-                await supabase
-                    .from('orders')
-                    .update({
-                        sent_to_sheets: true,
-                        sheets_tab: status === 'approved' ? 'Approved Orders' : 'Rejected Orders'
-                    })
-                    .eq('id', order.id);
-
-            } catch (error) {
-                console.error('Error sending to Google Sheets:', error);
-                // Don't throw error - allow order approval/rejection to complete
-            }
-        }
-
-        async function sendOrderEmail(order, status) {
-            try {
-                // Call Supabase Edge Function to send email
-                const { error } = await supabase.functions.invoke('send-order-email', {
-                    body: {
-                        orderData: order,
-                        emailType: status
-                    }
+            if (isLoggedIn && currentUser) {
+                authSection.innerHTML = `
+                    <div class="user-menu">
+                        <span class="user-email" id="userEmailBtn">${currentUser.email}</span>
+                        <div class="dropdown-menu" id="userDropdown">
+                            <div class="dropdown-item" onclick="handleLogout()">Logout</div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('userEmailBtn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleUserMenu();
                 });
                 
-                if (error) {
-                    console.error('Email notification error:', error);
-                    // Don't throw - allow operation to complete even if email fails
+                const ADMIN_EMAILS = ['stella.benzgifts@gmail.com', 'himynameisblink123@gmail.com'];
+                if (ADMIN_EMAILS.includes(currentUser.email)) {
+                    adminNavLink.style.display = 'block';
                 }
-            } catch (error) {
-                console.error('Error sending email:', error);
-                // Don't throw - allow operation to complete even if email fails
+            } else {
+                authSection.innerHTML = `<button class="auth-btn" onclick="openAuthModal()">Login / Sign Up</button>`;
+                adminNavLink.style.display = 'none';
             }
         }
 
-        // ═══════════════════════════════════════════════════════════
-        // PAYMENT SETTINGS
-        // ═══════════════════════════════════════════════════════════
+        function toggleUserMenu() {
+            document.getElementById('userDropdown').classList.toggle('active');
+        }
 
-        async function loadPaymentSettings() {
-            try {
-                const { data, error } = await supabase
-                    .from('payment_settings')
-                    .select('*')
-                    .single();
-
-                if (error) throw error;
-
-                paymentSettings = data;
-
-                // Populate form
-                document.getElementById('bankName').value = data.bank_name || '';
-                document.getElementById('accountNumber').value = data.account_number || '';
-                document.getElementById('accountHolder').value = data.account_holder || '';
-                document.getElementById('storeAddress').value = data.store_address || '';
-                document.getElementById('storeHours').value = data.store_hours || '';
-                document.getElementById('storePhone').value = data.store_phone || '';
-                document.getElementById('sheetsWebhook').value = data.google_sheets_webhook_url || '';
-
-            } catch (error) {
-                console.error('Error loading payment settings:', error);
+        function closeUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) {
+                dropdown.classList.remove('active');
             }
         }
 
-        async function savePaymentSettings(event) {
+        async function handleAuth(event) {
             event.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const infoMsg = document.getElementById('authInfo');
+            const errorMsg = document.getElementById('authError');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+            errorMsg.style.display = 'none';
+            infoMsg.style.display = 'none';
 
             try {
-                const formData = {
-                    bank_name: document.getElementById('bankName').value,
-                    account_number: document.getElementById('accountNumber').value,
-                    account_holder: document.getElementById('accountHolder').value,
-                    store_address: document.getElementById('storeAddress').value,
-                    store_hours: document.getElementById('storeHours').value,
-                    store_phone: document.getElementById('storePhone').value,
-                    google_sheets_webhook_url: document.getElementById('sheetsWebhook').value || null,
-                    updated_at: new Date().toISOString()
-                };
-
-                const { error } = await supabase
-                    .from('payment_settings')
-                    .update(formData)
-                    .eq('id', '00000000-0000-0000-0000-000000000001');
-
+                const { error } = await supabase.auth.signInWithOtp({
+                    email: email,
+                    options: { emailRedirectTo: window.location.origin }
+                });
                 if (error) throw error;
-
-                paymentSettings = { ...paymentSettings, ...formData };
-
-                document.getElementById('paymentAlert').innerHTML = `
-                    <div class="alert alert-success">
-                        ✅ Payment settings saved successfully!
-                    </div>
-                `;
-
-                setTimeout(() => {
-                    document.getElementById('paymentAlert').innerHTML = '';
-                }, 3000);
-
+                infoMsg.textContent = `Magic link sent to ${email}! Check your inbox.`;
+                infoMsg.style.display = 'block';
+                document.getElementById('authForm').reset();
             } catch (error) {
-                console.error('Error saving payment settings:', error);
-                document.getElementById('paymentAlert').innerHTML = `
-                    <div class="alert alert-danger">
-                        ❌ Error saving settings: ${error.message}
-                    </div>
-                `;
+                errorMsg.textContent = error.message;
+                errorMsg.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Magic Link';
             }
         }
 
-        // ═══════════════════════════════════════════════════════════
-        // PRODUCTS (Placeholder)
-        // ═══════════════════════════════════════════════════════════
+        async function handleLogout() {
+            try {
+                if (currentUser) await saveCartToDB(); 
+                
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                
+                currentUser = null;
+                userProfile = null;
+                cart = [];
+                updateAuthUI(false);
+                updateCartBadge();
+                showPage('home');
+                window.location.reload(); 
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        function openAuthModal() { document.getElementById('authModal').style.display = 'block'; }
+        function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
+
+        function goToAdminPanel() { window.location.href = 'admin.html'; }
 
         async function loadProducts() {
-            document.getElementById('productsContent').innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">🛍️</div>
-                    <p>Products management will be added here...</p>
-                </div>
-            `;
+            const subtitle = document.getElementById('productSubtitle');
+            const productsGrid = document.getElementById('productsGrid');
+            try {
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*');
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    subtitle.textContent = 'No products found. Please check back later.';
+                    return;
+                }
+                
+                productsGrid.innerHTML = data.map(product => {
+                    const firstImage = (product.colors && Array.isArray(product.colors) && product.colors.length > 0) 
+                                       ? product.colors[0].image 
+                                       : 'https://via.placeholder.com/280?text=No+Image';
+                    
+                    let priceDisplay = 'N/A';
+                    if (product.variants && Array.isArray(product.variants) && product.variants.length > 0) {
+                        const prices = product.variants.map(v => v.price || 0).filter(p => p > 0);
+                        if (prices.length > 0) {
+                            const minPrice = Math.min(...prices);
+                            const maxPrice = Math.max(...prices);
+                            
+                            if (minPrice === maxPrice) {
+                                priceDisplay = `RM${minPrice.toFixed(2)}`;
+                            } else {
+                                priceDisplay = `RM${minPrice.toFixed(2)} - RM${maxPrice.toFixed(2)}`;
+                            }
+                        }
+                    }
+
+                    let totalStock = 0;
+                    if (product.variants && Array.isArray(product.variants)) {
+                        totalStock = product.variants.reduce((sum, variant) => {
+                            return sum + (variant.stock || 0);
+                        }, 0);
+                    }
+
+                    const stockStatus = (totalStock > 0) ? 'in-stock' : 'out-of-stock';
+                    const stockText = (totalStock > 0) ? 'In Stock' : 'Out of Stock';
+
+                    return `
+                        <a href="product.html?id=${product.id}" class="product-card">
+                            <div class="product-image">
+                                <img src="${firstImage}" alt="${product.name || 'Product'}">
+                            </div>
+                            <div class="product-info">
+                                <div class="product-price">${priceDisplay}</div>
+                                <div class="product-name">${product.name || 'Unnamed Product'}</div>
+                                <div class="stock-status ${stockStatus}">${stockText}</div>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
+                subtitle.textContent = `Showing ${data.length} products`;
+
+            } catch (error) {
+                console.error('Error loading products:', error);
+                subtitle.textContent = 'Could not load products. Check RLS policy.';
+            }
         }
 
-        function openProductModal() {
-            alert('Product management coming soon!');
+        function showPage(pageId) {
+            document.querySelectorAll('.page-container').forEach(page => page.classList.remove('active'));
+            const targetPage = document.getElementById(pageId + 'Page');
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+            window.scrollTo(0, 0);
         }
 
-    </script>
+        function scrollToSection(sectionId) {
+            showPage('home');
+            setTimeout(() => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 0);
+        }
+        
+        async function loadCartFromDB() {
+            if (!currentUser) return;
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('cart')
+                    .eq('id', currentUser.id)
+                    .single();
+                
+                if (error && error.code !== 'PGRST116') throw error;
+                
+                const localCart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
+                if (data && data.cart && Array.isArray(data.cart)) {
+                    cart = data.cart;
+                } else {
+                    cart = localCart;
+                }
+                if (!Array.isArray(cart)) cart = [];
+                localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+            } catch (error) {
+                console.error('Error loading cart from DB:', error);
+                cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
+                if (!Array.isArray(cart)) cart = [];
+            }
+        }
 
-</body>
-</html>
+        async function saveCartToDB() {
+            if (!currentUser) return;
+            if (!Array.isArray(cart)) cart = [];
+            try {
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({ cart: cart })
+                    .eq('id', currentUser.id);
+                if (error) throw error;
+            } catch (error) {
+                console.error('Error saving cart to DB:', error);
+            }
+        }
+
+        // CART WITH SELECTION FUNCTIONS
+        function openCart() {
+            const modal = document.getElementById('cartModal');
+            const cartItemsContainer = document.getElementById('cartItems');
+            
+            cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
+            if (!Array.isArray(cart)) cart = [];
+
+            selectedItems.clear();
+            
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = `
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">🛒</div>
+                        <p>Your cart is empty</p>
+                    </div>
+                `;
+                document.getElementById('cartHeader').style.display = 'none';
+                document.getElementById('cartTotalSection').style.display = 'none';
+                document.getElementById('selectedTotalSection').style.display = 'none';
+                document.getElementById('cartActions').style.display = 'none';
+            } else {
+                document.getElementById('cartHeader').style.display = 'flex';
+                document.getElementById('cartActions').style.display = 'flex';
+                
+                let total = 0;
+                cartItemsContainer.innerHTML = cart.map((item, index) => {
+                    const price = item.price || 0;
+                    const quantity = item.quantity || 1;
+                    const name = item.name || 'Unknown Item';
+                    const color = item.color || '';
+                    const size = item.size || '';
+                    const image = item.image || 'https://via.placeholder.com/80';
+                    const subtotal = price * quantity;
+                    total += subtotal;
+
+                    const weight = item.weight_grams || 180;
+                    return `
+                        <div class="cart-item" id="cartItem-${index}">
+                            <input type="checkbox" 
+                                   class="cart-item-checkbox" 
+                                   id="checkbox-${index}"
+                                   onchange="toggleItemSelection(${index})">
+                            <img src="${image}" class="cart-item-image" alt="${name}">
+                            <div class="cart-item-info">
+                                <div class="cart-item-name">${name}</div>
+                                <div class="cart-item-variant">${color} / ${size}</div>
+                                <div class="cart-item-price">${quantity} x RM${price.toFixed(2)} = RM${subtotal.toFixed(2)}</div>
+                                <div style="color: #999; font-size: 0.85rem; margin-top: 0.3rem;">📦 ${weight}g</div>
+                            </div>
+                            <button class="cart-item-remove" onclick="removeFromCart(${index})">Remove</button>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('cartTotal').textContent = `RM${total.toFixed(2)}`;
+                document.getElementById('cartTotalSection').style.display = 'block';
+                
+                updateSelectionInfo();
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        function toggleItemSelection(index) {
+            const checkbox = document.getElementById(`checkbox-${index}`);
+            const cartItem = document.getElementById(`cartItem-${index}`);
+            
+            if (checkbox.checked) {
+                selectedItems.add(index);
+                cartItem.classList.add('selected');
+            } else {
+                selectedItems.delete(index);
+                cartItem.classList.remove('selected');
+            }
+            
+            updateSelectionInfo();
+            updateSelectAllCheckbox();
+        }
+
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const allCheckboxes = document.querySelectorAll('.cart-item-checkbox');
+            
+            if (selectAllCheckbox.checked) {
+                allCheckboxes.forEach((checkbox, index) => {
+                    checkbox.checked = true;
+                    selectedItems.add(index);
+                    document.getElementById(`cartItem-${index}`).classList.add('selected');
+                });
+            } else {
+                allCheckboxes.forEach((checkbox, index) => {
+                    checkbox.checked = false;
+                    selectedItems.delete(index);
+                    document.getElementById(`cartItem-${index}`).classList.remove('selected');
+                });
+            }
+            
+            updateSelectionInfo();
+        }
+
+        function updateSelectAllCheckbox() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const totalItems = cart.length;
+            const selectedCount = selectedItems.size;
+            
+            if (selectedCount === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (selectedCount === totalItems) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            }
+        }
+
+        function updateSelectionInfo() {
+            const selectedCount = selectedItems.size;
+            const totalItems = cart.length;
+            
+            document.getElementById('selectionInfo').textContent = 
+                `${selectedCount} of ${totalItems} items selected`;
+            
+            let selectedTotal = 0;
+            selectedItems.forEach(index => {
+                if (cart[index]) {
+                    const item = cart[index];
+                    selectedTotal += (item.price || 0) * (item.quantity || 1);
+                }
+            });
+            
+            if (selectedCount > 0) {
+                document.getElementById('selectedTotal').textContent = `RM${selectedTotal.toFixed(2)}`;
+                document.getElementById('selectedTotalSection').style.display = 'block';
+                document.getElementById('removeSelectedBtn').disabled = false;
+                document.getElementById('checkoutSelectedBtn').disabled = false;
+            } else {
+                document.getElementById('selectedTotalSection').style.display = 'none';
+                document.getElementById('removeSelectedBtn').disabled = true;
+                document.getElementById('checkoutSelectedBtn').disabled = true;
+            }
+        }
+
+        function removeSelected() {
+            if (selectedItems.size === 0) {
+                alert('Please select items to remove');
+                return;
+            }
+            
+            if (!confirm(`Remove ${selectedItems.size} selected item(s) from cart?`)) {
+                return;
+            }
+            
+            const indicesToRemove = Array.from(selectedItems).sort((a, b) => b - a);
+            indicesToRemove.forEach(index => {
+                cart.splice(index, 1);
+            });
+            
+            localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+            if (currentUser) saveCartToDB();
+            
+            selectedItems.clear();
+            openCart();
+            updateCartBadge();
+        }
+
+        function checkoutSelected() {
+            if (selectedItems.size === 0) {
+                alert("Please select items to checkout!");
+                return;
+            }
+            
+            const selectedCartItems = Array.from(selectedItems)
+                .map(index => cart[index])
+                .filter(item => item !== undefined);
+            
+            if (selectedCartItems.length === 0) {
+                alert("No valid items selected!");
+                return;
+            }
+            
+            localStorage.setItem('benzgifts_checkout_items', JSON.stringify(selectedCartItems));
+            window.location.href = 'checkout.html?selected=true';
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+            if (currentUser) saveCartToDB();
+            
+            selectedItems.delete(index);
+            openCart();
+            updateCartBadge();
+        }
+
+        function clearCart() {
+            if (confirm('Are you sure you want to clear your entire cart?')) {
+                cart = [];
+                selectedItems.clear();
+                localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+                if (currentUser) saveCartToDB();
+                openCart();
+                updateCartBadge();
+            }
+        }
+
+        function closeCart() {
+            document.getElementById('cartModal').style.display = 'none';
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cartBadge');
+            const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+
+            if (totalItems > 0) {
+                badge.textContent = totalItems;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
