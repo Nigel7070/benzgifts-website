@@ -62,6 +62,9 @@
         .success-content { background: white; padding: 3rem; border-radius: 20px; text-align: center; max-width: 500px; margin: 0 1rem; }
         .success-icon { font-size: 4rem; margin-bottom: 1rem; }
         .btn-home { display: inline-block; margin-top: 1.5rem; padding: 0.8rem 2rem; background: #667eea; color: white; text-decoration: none; border-radius: 8px; }
+        
+        .checkout-badge { background: #667eea; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        .selected-badge { background: #28a745; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
     </style>
 </head>
 <body>
@@ -69,7 +72,7 @@
     <div class="container">
         <div class="card">
             <h1>🛒 Checkout</h1>
-            <p class="subtitle">Complete your order</p>
+            <p class="subtitle" id="checkoutSubtitle">Complete your order</p>
 
             <!-- Cart Summary -->
             <div id="cartSummary" style="margin-bottom: 2rem;"></div>
@@ -105,10 +108,14 @@
                 <div class="card">
                     <h2 class="section-title">💳 Payment Method</h2>
                     
+                    <div class="alert alert-warning" id="paymentWarning" style="display: none;">
+                        ⚠️ Please select a payment method below
+                    </div>
+                    
                     <div class="payment-methods">
                         <!-- Pay at Store -->
-                        <label class="payment-option" id="storeOption">
-                            <input type="radio" name="payment" value="store" onchange="selectPayment('store')">
+                        <label class="payment-option" id="storeOption" onclick="selectPayment('store')">
+                            <input type="radio" name="payment" value="store">
                             <div class="payment-option-content">
                                 <span class="payment-option-icon">🏪</span>
                                 <div>
@@ -119,8 +126,8 @@
                         </label>
 
                         <!-- Bank Transfer -->
-                        <label class="payment-option" id="bankOption">
-                            <input type="radio" name="payment" value="bank_transfer" onchange="selectPayment('bank_transfer')">
+                        <label class="payment-option" id="bankOption" onclick="selectPayment('bank_transfer')">
+                            <input type="radio" name="payment" value="bank_transfer">
                             <div class="payment-option-content">
                                 <span class="payment-option-icon">🏦</span>
                                 <div>
@@ -160,11 +167,6 @@
                                 <li>Make payment at counter and collect your items</li>
                                 <li>Show your order number to our staff</li>
                             </ol>
-                            <p style="margin-top: 0.8rem;"><strong>📧 Email Notifications:</strong></p>
-                            <ul style="margin: 0.3rem 0 0 1.5rem;">
-                                <li>Order placed ✅ (immediately)</li>
-                                <li>Order approved ✅ (after store visit)</li>
-                            </ul>
                         </div>
                     </div>
 
@@ -205,14 +207,6 @@
                             <div class="file-info">Accepted: JPG, PNG, PDF • Max 5MB</div>
                             <div id="bankPreview" class="file-preview"></div>
                         </div>
-
-                        <div class="alert alert-info" style="margin-top: 1rem;">
-                            <strong>📧 Email Notifications:</strong>
-                            <ul style="margin: 0.3rem 0 0 1.5rem;">
-                                <li>Order placed ✅ (immediately)</li>
-                                <li>Payment verified ✅ (after admin approval)</li>
-                            </ul>
-                        </div>
                     </div>
 
                     <button type="submit" class="submit-btn" id="submitBtn">Place Order</button>
@@ -242,6 +236,7 @@
         let cart = [];
         let selectedPaymentMethod = null;
         let paymentSettings = null;
+        let checkoutMode = 'regular'; // 'regular', 'buynow', or 'selected'
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
@@ -256,12 +251,35 @@
         }
 
         function loadCart() {
-            cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
+            // Check checkout mode from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            if (urlParams.get('buynow') === 'true') {
+                // Buy Now mode - single item express checkout
+                checkoutMode = 'buynow';
+                cart = JSON.parse(localStorage.getItem('benzgifts_buynow') || '[]');
+                document.getElementById('checkoutSubtitle').innerHTML = 
+                    '<span class="checkout-badge">⚡ Express Checkout</span><br>Complete your purchase';
+            } else if (urlParams.get('selected') === 'true') {
+                // Selected items mode - checkout only selected items
+                checkoutMode = 'selected';
+                cart = JSON.parse(localStorage.getItem('benzgifts_checkout_items') || '[]');
+                document.getElementById('checkoutSubtitle').innerHTML = 
+                    '<span class="selected-badge">✓ Selected Items</span><br>Checking out ' + cart.length + ' selected item(s)';
+            } else {
+                // Regular mode - checkout all cart items
+                checkoutMode = 'regular';
+                cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
+            }
+            
+            if (!Array.isArray(cart)) cart = [];
+            
             if (cart.length === 0) {
                 alert('Your cart is empty!');
                 window.location.href = 'index.html';
                 return;
             }
+            
             displayCartSummary();
         }
 
@@ -312,11 +330,17 @@
         function selectPayment(method) {
             selectedPaymentMethod = method;
             
+            // Hide warning
+            document.getElementById('paymentWarning').style.display = 'none';
+            
             // Update UI
             document.getElementById('storeOption').classList.remove('selected');
             document.getElementById('bankOption').classList.remove('selected');
             document.getElementById('storeDetails').classList.remove('active');
             document.getElementById('bankDetails').classList.remove('active');
+            
+            // Select the radio button
+            document.querySelector(`input[value="${method}"]`).checked = true;
             
             if (method === 'store') {
                 document.getElementById('storeOption').classList.add('selected');
@@ -355,6 +379,7 @@
             try {
                 // Validate payment method selection
                 if (!selectedPaymentMethod) {
+                    document.getElementById('paymentWarning').style.display = 'block';
                     throw new Error('Please select a payment method');
                 }
 
@@ -388,7 +413,7 @@
                     items: JSON.stringify(cart),
                     total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
                     payment_method: selectedPaymentMethod,
-                    payment_proof_url: receiptUrl, // null for store, URL for bank_transfer
+                    payment_proof_url: receiptUrl,
                     status: 'pending_approval'
                 };
 
@@ -402,10 +427,27 @@
                 // Increment order limit
                 await incrementOrderLimit();
 
-                // Clear cart
-                localStorage.removeItem('benzgifts_cart');
+                // Clear the appropriate storage based on checkout mode
+                if (checkoutMode === 'buynow') {
+                    localStorage.removeItem('benzgifts_buynow');
+                } else if (checkoutMode === 'selected') {
+                    // Remove selected items from main cart
+                    const fullCart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
+                    const checkoutItemsStr = cart.map(item => 
+                        `${item.productId}-${item.color}-${item.size}`
+                    );
+                    
+                    const updatedCart = fullCart.filter(item => 
+                        !checkoutItemsStr.includes(`${item.productId}-${item.color}-${item.size}`)
+                    );
+                    
+                    localStorage.setItem('benzgifts_cart', JSON.stringify(updatedCart));
+                    localStorage.removeItem('benzgifts_checkout_items');
+                } else {
+                    localStorage.removeItem('benzgifts_cart');
+                }
 
-                // Show success modal with appropriate message
+                // Show success modal
                 document.getElementById('orderNumber').textContent = orderNumber;
                 
                 if (selectedPaymentMethod === 'store') {
@@ -415,8 +457,7 @@
                         1. Visit our store<br>
                         2. Pay at counter<br>
                         3. Show this order number<br>
-                        4. Collect your items<br><br>
-                        You'll receive another email once your order is confirmed.
+                        4. Collect your items
                     `;
                 } else {
                     document.getElementById('successMessage').innerHTML = `
@@ -470,7 +511,7 @@
                 return data;
             } catch (error) {
                 console.error('Error checking order limit:', error);
-                return true; // Allow order on error
+                return true;
             }
         }
 
@@ -496,7 +537,6 @@
 
         async function sendOrderEmail(orderData, status) {
             try {
-                // Call Supabase Edge Function to send email
                 const { error } = await supabase.functions.invoke('send-order-email', {
                     body: {
                         orderData: orderData,
@@ -506,11 +546,9 @@
                 
                 if (error) {
                     console.error('Email notification error:', error);
-                    // Don't throw - allow order to complete even if email fails
                 }
             } catch (error) {
                 console.error('Error sending email:', error);
-                // Don't throw - allow order to complete even if email fails
             }
         }
     </script>
