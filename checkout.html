@@ -64,7 +64,19 @@
         .btn-home { display: inline-block; margin-top: 1.5rem; padding: 0.8rem 2rem; background: #667eea; color: white; text-decoration: none; border-radius: 8px; }
         
         .checkout-badge { background: #667eea; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        .buynow-badge { background: #ff6b6b; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
         .selected-badge { background: #28a745; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        
+        .shipping-breakdown { background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-top: 1rem; }
+        .shipping-breakdown .info-row { padding: 0.6rem 0; }
+        .shipping-total-row { border-top: 2px solid #667eea !important; padding-top: 1rem !important; margin-top: 0.5rem; }
+        .shipping-total-row .info-label { font-size: 1.2rem; color: #667eea; }
+        .shipping-total-row .info-value { font-size: 1.3rem; color: #667eea; font-weight: bold; }
+        
+        @media (max-width: 768px) {
+            .container { padding: 0 0.5rem; }
+            .card { padding: 1rem; }
+        }
     </style>
 </head>
 <body>
@@ -102,456 +114,438 @@
                         <label for="address">Delivery Address *</label>
                         <textarea id="address" rows="3" required></textarea>
                     </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">Special Instructions (Optional)</label>
+                        <textarea id="notes" rows="2" placeholder="Any special requests or notes..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Shipping Cost Calculation -->
+                <div class="card" id="shippingCard">
+                    <h2 class="section-title">🚢 Shipping & Handling</h2>
+                    
+                    <div class="alert alert-info">
+                        <strong>ℹ️ Shipping costs apply to all orders</strong><br>
+                        Based on total order weight and current supplier rates.
+                    </div>
+                    
+                    <div id="shippingBreakdown" class="shipping-breakdown">
+                        <div class="info-row">
+                            <span class="info-label">Total Weight:</span>
+                            <span class="info-value" id="totalWeight">Calculating...</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Base Shipping:</span>
+                            <span class="info-value" id="baseShipping">RM 0.00</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">SST (6%):</span>
+                            <span class="info-value" id="sstAmount">RM 0.00</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Delivery Fee:</span>
+                            <span class="info-value" id="deliveryFee">RM 0.00</span>
+                        </div>
+                        <div class="info-row shipping-total-row">
+                            <span class="info-label">Total Shipping:</span>
+                            <span class="info-value" id="totalShipping">RM 0.00</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Payment Method -->
                 <div class="card">
                     <h2 class="section-title">💳 Payment Method</h2>
                     
-                    <div class="alert alert-warning" id="paymentWarning" style="display: none;">
-                        ⚠️ Please select a payment method below
-                    </div>
-                    
                     <div class="payment-methods">
-                        <!-- Pay at Store -->
-                        <label class="payment-option" id="storeOption" onclick="selectPayment('store')">
-                            <input type="radio" name="payment" value="store">
+                        <div class="payment-option" onclick="selectPayment('store')">
+                            <input type="radio" name="payment" id="payStore" value="store">
                             <div class="payment-option-content">
-                                <span class="payment-option-icon">🏪</span>
+                                <div class="payment-option-icon">🏪</div>
                                 <div>
                                     <div class="payment-option-title">Pay at Store</div>
-                                    <div class="payment-option-desc">Visit our store and pay at counter</div>
+                                    <div class="payment-option-desc">Pay when you collect your order</div>
                                 </div>
                             </div>
-                        </label>
-
-                        <!-- Bank Transfer -->
-                        <label class="payment-option" id="bankOption" onclick="selectPayment('bank_transfer')">
-                            <input type="radio" name="payment" value="bank_transfer">
-                            <div class="payment-option-content">
-                                <span class="payment-option-icon">🏦</span>
-                                <div>
-                                    <div class="payment-option-title">Bank Transfer</div>
-                                    <div class="payment-option-desc">Transfer to bank and upload receipt</div>
-                                </div>
-                            </div>
-                        </label>
-                    </div>
-
-                    <!-- STORE DETAILS (NO UPLOAD) -->
-                    <div id="storeDetails" class="payment-details">
-                        <h3>🏪 Store Information</h3>
-                        <div class="info-row">
-                            <span class="info-label">Address:</span>
-                            <span class="info-value" id="storeAddress">Loading...</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Hours:</span>
-                            <span class="info-value" id="storeHours">Loading...</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Phone:</span>
-                            <span class="info-value" id="storePhone">Loading...</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Amount to Pay:</span>
-                            <span class="info-value" style="color: #667eea; font-size: 1.2rem;" id="storeAmount">RM0.00</span>
                         </div>
                         
-                        <div class="alert alert-success">
-                            <strong>✅ HOW IT WORKS:</strong>
-                            <ol style="margin: 0.5rem 0 0 1.5rem; padding: 0;">
-                                <li>Click "Place Order" below to reserve your items</li>
-                                <li>You'll receive a confirmation email with your order number</li>
-                                <li>Visit our store at the address above</li>
-                                <li>Make payment at counter and collect your items</li>
-                                <li>Show your order number to our staff</li>
-                            </ol>
+                        <div class="payment-option" onclick="selectPayment('bank')">
+                            <input type="radio" name="payment" id="payBank" value="bank">
+                            <div class="payment-option-content">
+                                <div class="payment-option-icon">🏦</div>
+                                <div>
+                                    <div class="payment-option-title">Bank Transfer</div>
+                                    <div class="payment-option-desc">Transfer to our bank account</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- BANK TRANSFER DETAILS (WITH RECEIPT UPLOAD) -->
-                    <div id="bankDetails" class="payment-details">
-                        <h3>🏦 Bank Transfer Details</h3>
+                    
+                    <!-- Bank Transfer Details -->
+                    <div class="payment-details" id="bankDetails">
+                        <h3>Bank Transfer Details</h3>
                         <div class="info-row">
                             <span class="info-label">Bank Name:</span>
-                            <span class="info-value" id="bankName">Loading...</span>
+                            <span class="info-value">Maybank</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Account Number:</span>
-                            <span class="info-value" id="accountNumber">Loading...</span>
+                            <span class="info-value">564159877473</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Account Holder:</span>
-                            <span class="info-value" id="accountHolder">Loading...</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Amount to Transfer:</span>
-                            <span class="info-value" style="color: #667eea; font-size: 1.2rem;" id="transferAmount">RM0.00</span>
+                            <span class="info-label">Account Name:</span>
+                            <span class="info-value">STELLA LIM PEI LI</span>
                         </div>
                         
-                        <div class="alert alert-warning">
-                            <strong>⚠️ IMPORTANT STEPS:</strong>
-                            <ol style="margin: 0.5rem 0 0 1.5rem; padding: 0;">
-                                <li>Transfer the EXACT amount shown above</li>
-                                <li>Take a screenshot of your transfer confirmation</li>
-                                <li>Upload the screenshot below</li>
-                                <li>Click "Place Order"</li>
-                                <li>Wait for admin approval (usually within 24 hours)</li>
-                            </ol>
-                        </div>
-
                         <div class="file-upload">
-                            <label class="file-upload-label">📸 Upload Bank Transfer Receipt *</label>
-                            <input type="file" id="bankReceipt" accept="image/*,.pdf" onchange="handleFileUpload(this, 'bankPreview')">
-                            <div class="file-info">Accepted: JPG, PNG, PDF • Max 5MB</div>
-                            <div id="bankPreview" class="file-preview"></div>
+                            <label class="file-upload-label">Upload Payment Receipt *</label>
+                            <input type="file" id="receiptUpload" accept="image/*" onchange="handleFileSelect(event)">
+                            <p class="file-info">Please upload a clear image of your payment receipt (JPG, PNG)</p>
+                        </div>
+                        
+                        <div class="file-preview" id="filePreview">
+                            ✅ Receipt uploaded successfully!
                         </div>
                     </div>
-
-                    <button type="submit" class="submit-btn" id="submitBtn">Place Order</button>
                 </div>
 
+                <!-- Order Summary -->
+                <div class="card">
+                    <h2 class="section-title">📋 Order Summary</h2>
+                    
+                    <div id="orderItems"></div>
+                    
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #e0e0e0;">
+                        <div style="display: flex; justify-content: space-between; padding: 0.8rem 0; font-size: 1.1rem;">
+                            <span>Subtotal (Items):</span>
+                            <span id="orderSubtotal">RM 0.00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 0.8rem 0; font-size: 1.1rem; color: #667eea;">
+                            <span>Shipping & Handling:</span>
+                            <span id="orderShipping">RM 0.00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 1rem 0; font-size: 1.5rem; font-weight: bold; border-top: 2px solid #667eea; color: #667eea;">
+                            <span>Total:</span>
+                            <span id="orderTotal">RM 0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    🛒 Place Order
+                </button>
             </form>
         </div>
     </div>
 
     <!-- Success Modal -->
-    <div id="successModal" class="success-modal">
+    <div class="success-modal" id="successModal">
         <div class="success-content">
-            <div class="success-icon">✅</div>
+            <div class="success-icon">🎉</div>
             <h2>Order Placed Successfully!</h2>
-            <p style="font-size: 1.1rem; margin: 1rem 0;">Order Number: <strong id="orderNumber" style="color: #667eea;"></strong></p>
-            <p id="successMessage" style="color: #666; margin: 1rem 0;">We've sent a confirmation email to your inbox.</p>
+            <p>Thank you for your order. We'll process it shortly.</p>
+            <p><strong>Order ID:</strong> <span id="orderIdDisplay"></span></p>
             <a href="index.html" class="btn-home">Back to Home</a>
         </div>
     </div>
 
     <script>
         const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let currentUser = null;
-        let cart = [];
-        let selectedPaymentMethod = null;
-        let paymentSettings = null;
-        let checkoutMode = 'regular'; // 'regular', 'buynow', or 'selected'
+        let cartItems = [];
+        let checkoutMode = 'regular';
+        let selectedPayment = null;
+        let receiptFile = null;
+        let shippingSettings = null;
+        let shippingCost = 0;
+        let totalWeight = 0;
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', async () => {
-            await checkAuth();
-            loadCart();
-            await loadPaymentSettings();
+        document.addEventListener('DOMContentLoaded', () => {
+            loadShippingSettings();
+            loadCheckoutItems();
         });
 
-        async function checkAuth() {
-            const { data: { session } } = await supabase.auth.getSession();
-            currentUser = session?.user || null;
+        async function loadShippingSettings() {
+            try {
+                const { data, error } = await supabase
+                    .from('shipping_settings')
+                    .select('*')
+                    .single();
+                
+                if (error) throw error;
+                shippingSettings = data;
+            } catch (error) {
+                console.error('Error loading shipping settings:', error);
+                shippingSettings = {
+                    price_per_kg: 7.15,
+                    sst_percentage: 6.00,
+                    flat_delivery_fee: 5.00
+                };
+            }
         }
 
-        function loadCart() {
-            // Check checkout mode from URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            
-            if (urlParams.get('buynow') === 'true') {
-                // Buy Now mode - single item express checkout
-                checkoutMode = 'buynow';
-                cart = JSON.parse(localStorage.getItem('benzgifts_buynow') || '[]');
-                document.getElementById('checkoutSubtitle').innerHTML = 
-                    '<span class="checkout-badge">⚡ Express Checkout</span><br>Complete your purchase';
-            } else if (urlParams.get('selected') === 'true') {
-                // Selected items mode - checkout only selected items
-                checkoutMode = 'selected';
-                cart = JSON.parse(localStorage.getItem('benzgifts_checkout_items') || '[]');
-                document.getElementById('checkoutSubtitle').innerHTML = 
-                    '<span class="selected-badge">✓ Selected Items</span><br>Checking out ' + cart.length + ' selected item(s)';
-            } else {
-                // Regular mode - checkout all cart items
-                checkoutMode = 'regular';
-                cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
+        async function calculateShipping(items) {
+            if (!shippingSettings) {
+                await loadShippingSettings();
             }
             
-            if (!Array.isArray(cart)) cart = [];
+            totalWeight = 0;
+            for (const item of items) {
+                const weightGrams = item.weight_grams || 180;
+                const quantity = item.quantity || 1;
+                totalWeight += (weightGrams * quantity);
+            }
+            totalWeight = totalWeight / 1000;
             
-            if (cart.length === 0) {
+            const baseShipping = totalWeight * shippingSettings.price_per_kg;
+            const sstAmount = baseShipping * (shippingSettings.sst_percentage / 100);
+            const deliveryFee = shippingSettings.flat_delivery_fee;
+            shippingCost = baseShipping + sstAmount + deliveryFee;
+            
+            document.getElementById('totalWeight').textContent = totalWeight.toFixed(2) + ' kg';
+            document.getElementById('baseShipping').textContent = `RM ${baseShipping.toFixed(2)}`;
+            document.getElementById('sstAmount').textContent = `RM ${sstAmount.toFixed(2)}`;
+            document.getElementById('deliveryFee').textContent = `RM ${deliveryFee.toFixed(2)}`;
+            document.getElementById('totalShipping').textContent = `RM ${shippingCost.toFixed(2)}`;
+            
+            const subtotal = items.reduce((sum, item) => {
+                return sum + (item.price || 0) * (item.quantity || 1);
+            }, 0);
+            
+            document.getElementById('orderSubtotal').textContent = `RM ${subtotal.toFixed(2)}`;
+            document.getElementById('orderShipping').textContent = `RM ${shippingCost.toFixed(2)}`;
+            document.getElementById('orderTotal').textContent = `RM ${(subtotal + shippingCost).toFixed(2)}`;
+            
+            return {
+                total_weight_kg: totalWeight,
+                shipping_cost: shippingCost,
+                shipping_calculation: {
+                    weight_kg: totalWeight,
+                    base_shipping: baseShipping,
+                    sst_amount: sstAmount,
+                    delivery_fee: deliveryFee,
+                    total_shipping: shippingCost,
+                    settings_used: shippingSettings
+                }
+            };
+        }
+
+        async function loadCheckoutItems() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isBuyNowMode = urlParams.get('buynow') === 'true';
+            const isSelectedMode = urlParams.get('selected') === 'true';
+
+            let badge = '';
+            
+            if (isBuyNowMode) {
+                checkoutMode = 'buynow';
+                const buynowData = localStorage.getItem('benzgifts_buynow');
+                if (buynowData) {
+                    cartItems = [JSON.parse(buynowData)];
+                }
+                badge = '<span class="buynow-badge">⚡ Express Checkout</span>';
+            } else if (isSelectedMode) {
+                checkoutMode = 'selected';
+                const selectedData = localStorage.getItem('benzgifts_checkout_items');
+                if (selectedData) {
+                    cartItems = JSON.parse(selectedData);
+                }
+                badge = '<span class="selected-badge">✓ Selected Items</span>';
+            } else {
+                checkoutMode = 'regular';
+                const cartData = localStorage.getItem('benzgifts_cart');
+                if (cartData) {
+                    cartItems = JSON.parse(cartData);
+                }
+                badge = '<span class="checkout-badge">🛒 Regular Checkout</span>';
+            }
+
+            if (!Array.isArray(cartItems)) cartItems = [];
+
+            if (cartItems.length === 0) {
                 alert('Your cart is empty!');
                 window.location.href = 'index.html';
                 return;
             }
-            
+
+            document.getElementById('checkoutSubtitle').innerHTML = badge;
+
             displayCartSummary();
+            displayOrderItems();
+            await calculateShipping(cartItems);
         }
 
         function displayCartSummary() {
-            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const totalItems = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
             document.getElementById('cartSummary').innerHTML = `
-                <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px;">
-                    <strong style="font-size: 1.1rem;">Order Summary:</strong>
-                    <div style="margin-top: 0.5rem;">
-                        ${cart.map(item => `
-                            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #ddd;">
-                                <span>${item.name} (${item.color}/${item.size}) x${item.quantity}</span>
-                                <strong>RM${(item.price * item.quantity).toFixed(2)}</strong>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 2px solid #667eea; font-size: 1.3rem; display: flex; justify-content: space-between;">
-                        <strong>Total:</strong>
-                        <strong style="color: #667eea;">RM${total.toFixed(2)}</strong>
-                    </div>
+                <div class="alert alert-info">
+                    <strong>Your Order:</strong> ${totalItems} item(s) | Mode: ${checkoutMode}
                 </div>
             `;
-            document.getElementById('transferAmount').textContent = `RM${total.toFixed(2)}`;
-            document.getElementById('storeAmount').textContent = `RM${total.toFixed(2)}`;
         }
 
-        async function loadPaymentSettings() {
-            try {
-                const { data, error } = await supabase.from('payment_settings').select('*').single();
-                if (error) throw error;
+        function displayOrderItems() {
+            const itemsHTML = cartItems.map(item => {
+                const quantity = item.quantity || 1;
+                const price = item.price || 0;
+                const subtotal = quantity * price;
+                const weight = item.weight_grams || 180;
                 
-                paymentSettings = data;
-                
-                // Populate store info
-                document.getElementById('storeAddress').textContent = data.store_address || 'Not set';
-                document.getElementById('storeHours').textContent = data.store_hours || 'Not set';
-                document.getElementById('storePhone').textContent = data.store_phone || 'Not set';
-                
-                // Populate bank info
-                document.getElementById('bankName').textContent = data.bank_name || 'Not set';
-                document.getElementById('accountNumber').textContent = data.account_number || 'Not set';
-                document.getElementById('accountHolder').textContent = data.account_holder || 'Not set';
-            } catch (error) {
-                console.error('Error loading payment settings:', error);
-            }
+                return `
+                    <div style="display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid #e0e0e0; align-items: center;">
+                        <img src="${item.image || 'https://via.placeholder.com/80'}" 
+                             style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; margin-bottom: 0.3rem;">${item.name || 'Product'}</div>
+                            <div style="color: #666; font-size: 0.9rem;">${item.color || ''} / ${item.size || ''}</div>
+                            <div style="color: #667eea; font-weight: 600; margin-top: 0.3rem;">
+                                ${quantity} x RM${price.toFixed(2)} = RM${subtotal.toFixed(2)}
+                            </div>
+                            <div style="color: #999; font-size: 0.85rem; margin-top: 0.2rem;">
+                                📦 Weight: ${weight}g per item
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('orderItems').innerHTML = itemsHTML;
         }
 
         function selectPayment(method) {
-            selectedPaymentMethod = method;
+            selectedPayment = method;
             
-            // Hide warning
-            document.getElementById('paymentWarning').style.display = 'none';
-            
-            // Update UI
-            document.getElementById('storeOption').classList.remove('selected');
-            document.getElementById('bankOption').classList.remove('selected');
-            document.getElementById('storeDetails').classList.remove('active');
-            document.getElementById('bankDetails').classList.remove('active');
-            
-            // Select the radio button
-            document.querySelector(`input[value="${method}"]`).checked = true;
+            document.querySelectorAll('.payment-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
             
             if (method === 'store') {
-                document.getElementById('storeOption').classList.add('selected');
-                document.getElementById('storeDetails').classList.add('active');
-            } else {
-                document.getElementById('bankOption').classList.add('selected');
+                document.getElementById('payStore').checked = true;
+                document.getElementById('payStore').parentElement.parentElement.classList.add('selected');
+                document.getElementById('bankDetails').classList.remove('active');
+            } else if (method === 'bank') {
+                document.getElementById('payBank').checked = true;
+                document.getElementById('payBank').parentElement.parentElement.classList.add('selected');
                 document.getElementById('bankDetails').classList.add('active');
             }
         }
 
-        function handleFileUpload(input, previewId) {
-            const preview = document.getElementById(previewId);
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-                
-                // Check file size
-                if (file.size > 5000000) {
-                    alert('File too large! Maximum size is 5MB');
-                    input.value = '';
-                    preview.classList.remove('active');
-                    return;
-                }
-                
-                preview.innerHTML = `✅ Receipt uploaded: <strong>${file.name}</strong> (${(file.size / 1024).toFixed(0)} KB)`;
-                preview.classList.add('active');
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                receiptFile = file;
+                document.getElementById('filePreview').classList.add('active');
             }
         }
 
         async function handleCheckout(event) {
             event.preventDefault();
-            
+
+            if (!selectedPayment) {
+                alert('Please select a payment method!');
+                return;
+            }
+
+            if (selectedPayment === 'bank' && !receiptFile) {
+                alert('Please upload your payment receipt!');
+                return;
+            }
+
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Processing Order...';
+            submitBtn.textContent = 'Processing...';
 
             try {
-                // Validate payment method selection
-                if (!selectedPaymentMethod) {
-                    document.getElementById('paymentWarning').style.display = 'block';
-                    throw new Error('Please select a payment method');
-                }
-
-                // For bank transfer ONLY, require receipt upload
                 let receiptUrl = null;
-                if (selectedPaymentMethod === 'bank_transfer') {
-                    const receiptInput = document.getElementById('bankReceipt');
-                    if (!receiptInput.files[0]) {
-                        throw new Error('Please upload your bank transfer receipt');
-                    }
-                    receiptUrl = await uploadReceipt(receiptInput.files[0]);
+
+                if (selectedPayment === 'bank' && receiptFile) {
+                    const fileExt = receiptFile.name.split('.').pop();
+                    const fileName = `receipt_${Date.now()}.${fileExt}`;
+                    const filePath = `receipts/${fileName}`;
+
+                    const { error: uploadError } = await supabase.storage
+                        .from('order-receipts')
+                        .upload(filePath, receiptFile);
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: urlData } = supabase.storage
+                        .from('order-receipts')
+                        .getPublicUrl(filePath);
+
+                    receiptUrl = urlData.publicUrl;
                 }
 
-                // Check order limit
-                const canOrder = await checkOrderLimit();
-                if (!canOrder) {
-                    throw new Error('You have reached the maximum of 10 orders per day. Please try again tomorrow.');
-                }
+                const subtotal = cartItems.reduce((sum, item) => {
+                    return sum + (item.price || 0) * (item.quantity || 1);
+                }, 0);
 
-                // Generate order number
-                const orderNumber = await generateOrderNumber();
-
-                // Prepare order data
                 const orderData = {
-                    order_number: orderNumber,
-                    user_id: currentUser ? currentUser.id : null,
                     customer_name: document.getElementById('fullName').value,
                     customer_email: document.getElementById('email').value,
                     customer_phone: document.getElementById('phone').value,
-                    customer_address: document.getElementById('address').value,
-                    items: JSON.stringify(cart),
-                    total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-                    payment_method: selectedPaymentMethod,
-                    payment_proof_url: receiptUrl,
-                    status: 'pending_approval'
+                    delivery_address: document.getElementById('address').value,
+                    special_notes: document.getElementById('notes').value || null,
+                    payment_method: selectedPayment === 'store' ? 'Pay at Store' : 'Bank Transfer',
+                    receipt_url: receiptUrl,
+                    items: cartItems,
+                    total_amount: (subtotal + shippingCost).toFixed(2),
+                    subtotal_amount: subtotal.toFixed(2),
+                    total_weight_kg: totalWeight,
+                    shipping_cost: shippingCost,
+                    shipping_calculation: {
+                        weight_kg: totalWeight,
+                        base_shipping: (totalWeight * shippingSettings.price_per_kg),
+                        sst_amount: (totalWeight * shippingSettings.price_per_kg * shippingSettings.sst_percentage / 100),
+                        delivery_fee: shippingSettings.flat_delivery_fee,
+                        total_shipping: shippingCost,
+                        settings_used: shippingSettings
+                    },
+                    status: 'pending',
+                    checkout_mode: checkoutMode,
+                    created_at: new Date().toISOString()
                 };
 
-                // Save order to database
-                const { error } = await supabase.from('orders').insert([orderData]);
-                if (error) throw error;
+                const { data: orderResult, error: orderError } = await supabase
+                    .from('orders')
+                    .insert([orderData])
+                    .select();
 
-                // Send pending email notification
-                await sendOrderEmail(orderData, 'pending');
+                if (orderError) throw orderError;
 
-                // Increment order limit
-                await incrementOrderLimit();
-
-                // Clear the appropriate storage based on checkout mode
                 if (checkoutMode === 'buynow') {
                     localStorage.removeItem('benzgifts_buynow');
                 } else if (checkoutMode === 'selected') {
-                    // Remove selected items from main cart
-                    const fullCart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
-                    const checkoutItemsStr = cart.map(item => 
-                        `${item.productId}-${item.color}-${item.size}`
-                    );
+                    let mainCart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
+                    const selectedData = JSON.parse(localStorage.getItem('benzgifts_checkout_items') || '[]');
                     
-                    const updatedCart = fullCart.filter(item => 
-                        !checkoutItemsStr.includes(`${item.productId}-${item.color}-${item.size}`)
-                    );
+                    mainCart = mainCart.filter(cartItem => {
+                        return !selectedData.some(selectedItem => 
+                            selectedItem.name === cartItem.name &&
+                            selectedItem.color === cartItem.color &&
+                            selectedItem.size === cartItem.size
+                        );
+                    });
                     
-                    localStorage.setItem('benzgifts_cart', JSON.stringify(updatedCart));
+                    localStorage.setItem('benzgifts_cart', JSON.stringify(mainCart));
                     localStorage.removeItem('benzgifts_checkout_items');
                 } else {
                     localStorage.removeItem('benzgifts_cart');
                 }
 
-                // Show success modal
-                document.getElementById('orderNumber').textContent = orderNumber;
-                
-                if (selectedPaymentMethod === 'store') {
-                    document.getElementById('successMessage').innerHTML = `
-                        <strong>📧 Confirmation email sent!</strong><br><br>
-                        <strong>Next Steps:</strong><br>
-                        1. Visit our store<br>
-                        2. Pay at counter<br>
-                        3. Show this order number<br>
-                        4. Collect your items
-                    `;
-                } else {
-                    document.getElementById('successMessage').innerHTML = `
-                        <strong>📧 Confirmation email sent!</strong><br><br>
-                        We're reviewing your payment receipt.<br>
-                        You'll receive an email within 24 hours once approved.
-                    `;
-                }
-                
+                document.getElementById('orderIdDisplay').textContent = orderResult[0].id.substring(0, 8).toUpperCase();
                 document.getElementById('successModal').classList.add('active');
 
             } catch (error) {
-                console.error('Checkout Error:', error);
-                alert(error.message || 'Error placing order. Please try again.');
+                console.error('Checkout error:', error);
+                alert('Error: ' + error.message);
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Place Order';
-            }
-        }
-
-        async function uploadReceipt(file) {
-            try {
-                const fileName = `${Date.now()}_${file.name}`;
-                const { data, error } = await supabase.storage
-                    .from('payment-receipts')
-                    .upload(fileName, file);
-                
-                if (error) throw error;
-
-                const { data: { publicUrl } } = supabase.storage
-                    .from('payment-receipts')
-                    .getPublicUrl(fileName);
-
-                return publicUrl;
-            } catch (error) {
-                console.error('Error uploading receipt:', error);
-                throw new Error('Failed to upload receipt. Please try again.');
-            }
-        }
-
-        async function checkOrderLimit() {
-            try {
-                const userId = currentUser ? currentUser.id : null;
-                const ipAddress = await fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => d.ip);
-                
-                const { data, error } = await supabase.rpc('check_order_limit', {
-                    p_user_id: userId,
-                    p_ip_address: ipAddress
-                });
-                
-                if (error) throw error;
-                return data;
-            } catch (error) {
-                console.error('Error checking order limit:', error);
-                return true;
-            }
-        }
-
-        async function incrementOrderLimit() {
-            try {
-                const userId = currentUser ? currentUser.id : null;
-                const ipAddress = await fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => d.ip);
-                
-                await supabase.rpc('increment_order_limit', {
-                    p_user_id: userId,
-                    p_ip_address: ipAddress
-                });
-            } catch (error) {
-                console.error('Error incrementing limit:', error);
-            }
-        }
-
-        async function generateOrderNumber() {
-            const { data, error } = await supabase.rpc('generate_order_number');
-            if (error) throw error;
-            return data;
-        }
-
-        async function sendOrderEmail(orderData, status) {
-            try {
-                const { error } = await supabase.functions.invoke('send-order-email', {
-                    body: {
-                        orderData: orderData,
-                        emailType: status
-                    }
-                });
-                
-                if (error) {
-                    console.error('Email notification error:', error);
-                }
-            } catch (error) {
-                console.error('Error sending email:', error);
+                submitBtn.textContent = '🛒 Place Order';
             }
         }
     </script>
-
 </body>
 </html>
