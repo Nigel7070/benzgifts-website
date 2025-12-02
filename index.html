@@ -705,7 +705,7 @@
                 <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 2rem;">
                     <div style="background: rgba(255, 255, 255, 0.1); padding: 1.5rem; border-radius: 10px; min-width: 200px;">
                         <h3 style="margin-bottom: 0.5rem;">📧 Email</h3>
-                        <p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c2f283930303d723e3932263b353a282f1c3b313d3530723f3331">[email&#160;protected]</a></p>
+                        <p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="710205141d1d105f13141f0b161817050231161c10181d5f121e1c">[email&#160;protected]</a></p>
                     </div>
                     <div style="background: rgba(255, 255, 255, 0.1); padding: 1.5rem; border-radius: 10px; min-width: 200px;">
                         <h3 style="margin-bottom: 0.5rem;">📱 WhatsApp</h3>
@@ -1104,10 +1104,10 @@
                     const color = item.color || '';
                     const size = item.size || '';
                     const image = item.image || 'https://via.placeholder.com/80';
+                    const weight = item.weight_grams || 180;
                     const subtotal = price * quantity;
                     total += subtotal;
 
-                    const weight = item.weight_grams || 180;
                     return `
                         <div class="cart-item" id="cartItem-${index}">
                             <input type="checkbox" 
@@ -1119,7 +1119,7 @@
                                 <div class="cart-item-name">${name}</div>
                                 <div class="cart-item-variant">${color} / ${size}</div>
                                 <div class="cart-item-price">${quantity} x RM${price.toFixed(2)} = RM${subtotal.toFixed(2)}</div>
-                                <div style="color: #999; font-size: 0.85rem; margin-top: 0.3rem;">📦 ${weight}g</div>
+                                <div style="color: #999; font-size: 0.85rem; margin-top: 0.3rem;">📦 ${weight}g per item</div>
                             </div>
                             <button class="cart-item-remove" onclick="removeFromCart(${index})">Remove</button>
                         </div>
