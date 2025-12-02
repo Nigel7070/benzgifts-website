@@ -67,16 +67,11 @@
         .buynow-badge { background: #ff6b6b; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
         .selected-badge { background: #28a745; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
         
+        /* SHIPPING STYLES - NEW */
         .shipping-breakdown { background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-top: 1rem; }
-        .shipping-breakdown .info-row { padding: 0.6rem 0; }
         .shipping-total-row { border-top: 2px solid #667eea !important; padding-top: 1rem !important; margin-top: 0.5rem; }
         .shipping-total-row .info-label { font-size: 1.2rem; color: #667eea; }
         .shipping-total-row .info-value { font-size: 1.3rem; color: #667eea; font-weight: bold; }
-        
-        @media (max-width: 768px) {
-            .container { padding: 0 0.5rem; }
-            .card { padding: 1rem; }
-        }
     </style>
 </head>
 <body>
@@ -121,7 +116,7 @@
                     </div>
                 </div>
 
-                <!-- Shipping Cost Calculation -->
+                <!-- SHIPPING COST - NEW SECTION -->
                 <div class="card" id="shippingCard">
                     <h2 class="section-title">🚢 Shipping & Handling</h2>
                     
@@ -268,6 +263,7 @@
             loadCheckoutItems();
         });
 
+        // NEW: Load shipping settings from database
         async function loadShippingSettings() {
             try {
                 const { data, error } = await supabase
@@ -287,6 +283,7 @@
             }
         }
 
+        // NEW: Calculate shipping based on weight
         async function calculateShipping(items) {
             if (!shippingSettings) {
                 await loadShippingSettings();
