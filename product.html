@@ -57,9 +57,56 @@
         .alert-success { background: #d4edda; color: #155724; }
         .alert-error { background: #f8d7da; color: #721c24; }
         
+        /* Floating Cart Button */
+        .floating-cart {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+        .floating-cart:hover {
+            transform: scale(1.1);
+        }
+        .floating-cart-icon {
+            font-size: 1.8rem;
+            color: white;
+        }
+        .floating-cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        
         @media (max-width: 768px) {
             .product-detail { grid-template-columns: 1fr; gap: 2rem; }
             .main-image { height: 300px; }
+            .floating-cart {
+                bottom: 1rem;
+                right: 1rem;
+                width: 50px;
+                height: 50px;
+            }
+            .floating-cart-icon { font-size: 1.5rem; }
         }
     </style>
 </head>
@@ -132,12 +179,15 @@
                     <button class="btn btn-secondary" onclick="buyNow()">
                         ⚡ Buy Now
                     </button>
-                    <button class="btn btn-cart" onclick="window.location.href='index.html#cart'">
-                        🛍️ View Cart
-                    </button>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Floating Cart Button -->
+    <div class="floating-cart" onclick="window.location.href='index.html#cart'" title="View Cart">
+        <span class="floating-cart-icon">🛒</span>
+        <span class="floating-cart-badge" id="cartCount">0</span>
     </div>
 
     <script>
@@ -150,6 +200,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             loadProduct();
+            updateCartCount();
         });
 
         async function loadProduct() {
@@ -332,10 +383,7 @@
             
             localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
             showSuccess('✅ Added to cart successfully!');
-            
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
+            updateCartCount();
         }
 
         function buyNow() {
@@ -382,6 +430,16 @@
             el.textContent = message;
             el.style.display = 'block';
             document.getElementById('successMsg').style.display = 'none';
+        }
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
+            const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
+            const badge = document.getElementById('cartCount');
+            if (badge) {
+                badge.textContent = totalItems;
+                badge.style.display = totalItems > 0 ? 'flex' : 'none';
+            }
         }
     </script>
 </body>
