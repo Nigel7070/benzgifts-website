@@ -35,10 +35,11 @@
         .quantity-btn:hover { background: #667eea; color: white; }
         .quantity-display { font-size: 1.5rem; font-weight: bold; min-width: 40px; text-align: center; }
         
-        .action-buttons { display: flex; gap: 1rem; margin-top: 2rem; }
-        .btn { flex: 1; padding: 1rem; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: transform 0.3s; }
+        .action-buttons { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+        .btn { flex: 1; padding: 1rem; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: transform 0.3s; min-width: 150px; }
         .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
         .btn-secondary { background: #28a745; color: white; }
+        .btn-cart { background: #ff6b6b; color: white; }
         .btn:hover { transform: translateY(-2px); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         
@@ -130,6 +131,9 @@
                     </button>
                     <button class="btn btn-secondary" onclick="buyNow()">
                         ⚡ Buy Now
+                    </button>
+                    <button class="btn btn-cart" onclick="window.location.href='index.html#cart'">
+                        🛍️ View Cart
                     </button>
                 </div>
             </div>
