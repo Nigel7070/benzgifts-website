@@ -116,7 +116,7 @@
             position: fixed;
             top: 0;
             right: 0;
-            width: 450px;
+            width: 500px;
             max-width: 90vw;
             height: 100vh;
             background: white;
@@ -168,7 +168,7 @@
         .cart-body {
             flex: 1;
             overflow-y: auto;
-            padding: 1rem;
+            padding: 1.5rem;
         }
         .cart-empty {
             text-align: center;
@@ -179,14 +179,49 @@
             font-size: 4rem;
             margin-bottom: 1rem;
         }
+        .cart-select-all {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .cart-select-all input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .cart-select-info {
+            color: #667eea;
+            font-size: 0.9rem;
+            margin-left: auto;
+        }
         .cart-item {
             display: flex;
             gap: 1rem;
             padding: 1rem;
-            border-bottom: 1px solid #eee;
-            background: #f8f9fa;
+            border: 2px solid #eee;
             border-radius: 8px;
             margin-bottom: 1rem;
+            background: white;
+            transition: border-color 0.3s;
+        }
+        .cart-item.selected {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        .cart-item-checkbox {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+        }
+        .cart-item-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
         }
         .cart-item-image {
             width: 80px;
@@ -210,44 +245,24 @@
             font-size: 0.85rem;
             color: #666;
         }
+        .cart-item-quantity {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .cart-item-quantity-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
         .cart-item-price {
             font-weight: bold;
             color: #667eea;
             font-size: 1.1rem;
         }
-        .cart-item-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .cart-item-remove {
             margin-top: 0.5rem;
-        }
-        .cart-quantity-controls {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .cart-qty-btn {
-            width: 28px;
-            height: 28px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 6px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-        .cart-qty-btn:hover {
-            background: #667eea;
-            color: white;
-        }
-        .cart-qty-display {
-            font-weight: 600;
-            min-width: 30px;
-            text-align: center;
         }
         .cart-remove-btn {
             background: #ff6b6b;
@@ -279,20 +294,30 @@
         .cart-total-price {
             color: #667eea;
         }
-        .cart-checkout-btn {
-            width: 100%;
+        .cart-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .cart-action-btn {
+            flex: 1;
             padding: 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
             border: none;
             border-radius: 10px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.3s;
         }
-        .cart-checkout-btn:hover {
+        .cart-action-btn:hover {
             transform: translateY(-2px);
+        }
+        .cart-remove-selected-btn {
+            background: #ff6b6b;
+            color: white;
+        }
+        .cart-checkout-selected-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
         }
         
         @media (max-width: 768px) {
@@ -308,6 +333,9 @@
             .cart-modal {
                 width: 100vw;
                 max-width: 100vw;
+            }
+            .cart-actions {
+                flex-direction: column;
             }
         }
     </style>
@@ -396,7 +424,7 @@
     <div class="cart-overlay" id="cartOverlay" onclick="closeCartModal()"></div>
     <div class="cart-modal" id="cartModal">
         <div class="cart-header">
-            <h2>🛒 Your Cart</h2>
+            <h2>🛒 Shopping Cart</h2>
             <button class="cart-close" onclick="closeCartModal()">×</button>
         </div>
         <div class="cart-body" id="cartBody">
@@ -404,12 +432,17 @@
         </div>
         <div class="cart-footer" id="cartFooter" style="display: none;">
             <div class="cart-total">
-                <span>Total:</span>
+                <span>Total (All Items):</span>
                 <span class="cart-total-price" id="cartTotalPrice">RM 0.00</span>
             </div>
-            <button class="cart-checkout-btn" onclick="window.location.href='index.html#cart'">
-                Proceed to Checkout
-            </button>
+            <div class="cart-actions">
+                <button class="cart-action-btn cart-remove-selected-btn" onclick="removeSelectedItems()">
+                    🗑️ Remove Selected
+                </button>
+                <button class="cart-action-btn cart-checkout-selected-btn" onclick="checkoutSelected()">
+                    ✓ Checkout Selected
+                </button>
+            </div>
         </div>
     </div>
 
@@ -587,7 +620,8 @@
                 price: variant.price,
                 quantity: quantity,
                 image: colorObj ? colorObj.image : '',
-                weight_grams: currentProduct.weight_grams || 180
+                weight_grams: currentProduct.weight_grams || 180,
+                selected: false
             };
             
             let cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
@@ -697,29 +731,39 @@
             
             cartFooter.style.display = 'block';
             
+            // Count selected items
+            const selectedCount = cart.filter(item => item.selected).length;
+            
             let totalPrice = 0;
-            let cartHTML = '';
+            let cartHTML = `
+                <div class="cart-select-all">
+                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" ${selectedCount === cart.length ? 'checked' : ''}>
+                    <label for="selectAll">Select All</label>
+                    <span class="cart-select-info">${selectedCount} of ${cart.length} items selected</span>
+                </div>
+            `;
             
             cart.forEach((item, index) => {
                 const itemTotal = item.price * item.quantity;
                 totalPrice += itemTotal;
+                const isSelected = item.selected ? 'selected' : '';
                 
                 cartHTML += `
-                    <div class="cart-item">
+                    <div class="cart-item ${isSelected}">
+                        <div class="cart-item-checkbox">
+                            <input type="checkbox" ${item.selected ? 'checked' : ''} onchange="toggleItemSelection(${index})">
+                        </div>
                         <img src="${item.image || 'https://via.placeholder.com/80'}" alt="${item.name}" class="cart-item-image">
                         <div class="cart-item-info">
                             <div class="cart-item-name">${item.name}</div>
                             <div class="cart-item-details">
-                                Color: ${item.color} | Size: ${item.size}
+                                ${item.color} / ${item.size}
                             </div>
-                            <div class="cart-item-price">RM ${itemTotal.toFixed(2)}</div>
-                            <div class="cart-item-actions">
-                                <div class="cart-quantity-controls">
-                                    <button class="cart-qty-btn" onclick="updateCartQuantity(${index}, -1)">−</button>
-                                    <span class="cart-qty-display">${item.quantity}</span>
-                                    <button class="cart-qty-btn" onclick="updateCartQuantity(${index}, 1)">+</button>
-                                </div>
-                                <button class="cart-remove-btn" onclick="removeCartItem(${index})">🗑️ Remove</button>
+                            <div class="cart-item-quantity">
+                                <span class="cart-item-quantity-value">${item.quantity}</span> x RM${item.price.toFixed(2)} = <span class="cart-item-price">RM ${itemTotal.toFixed(2)}</span>
+                            </div>
+                            <div class="cart-item-remove">
+                                <button class="cart-remove-btn" onclick="removeCartItem(${index})">Remove</button>
                             </div>
                         </div>
                     </div>
@@ -728,6 +772,60 @@
             
             cartBody.innerHTML = cartHTML;
             document.getElementById('cartTotalPrice').textContent = `RM ${totalPrice.toFixed(2)}`;
+        }
+
+        function toggleSelectAll() {
+            let cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
+            const selectAll = document.getElementById('selectAll').checked;
+            
+            cart = cart.map(item => ({
+                ...item,
+                selected: selectAll
+            }));
+            
+            localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+            displayCartItems();
+        }
+
+        function toggleItemSelection(index) {
+            let cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
+            
+            if (cart[index]) {
+                cart[index].selected = !cart[index].selected;
+                localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+                displayCartItems();
+            }
+        }
+
+        function removeSelectedItems() {
+            let cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
+            const selectedCount = cart.filter(item => item.selected).length;
+            
+            if (selectedCount === 0) {
+                alert('Please select items to remove');
+                return;
+            }
+            
+            if (confirm(`Remove ${selectedCount} selected item(s)?`)) {
+                cart = cart.filter(item => !item.selected);
+                localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+                updateCartCount();
+                displayCartItems();
+            }
+        }
+
+        function checkoutSelected() {
+            const cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
+            const selectedItems = cart.filter(item => item.selected);
+            
+            if (selectedItems.length === 0) {
+                alert('Please select items to checkout');
+                return;
+            }
+            
+            // Save selected items for checkout
+            localStorage.setItem('benzgifts_checkout_items', JSON.stringify(selectedItems));
+            window.location.href = 'checkout.html?selected=true';
         }
 
         function updateCartQuantity(index, change) {
