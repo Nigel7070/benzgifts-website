@@ -1137,11 +1137,18 @@
                                    id="checkbox-${index}"
                                    onchange="toggleItemSelection(${index})">
                             <img src="${image}" class="cart-item-image" alt="${name}">
-                            <div class="cart-item-info">
-                                <div class="cart-item-name">${name}</div>
-                                <div class="cart-item-variant">${color} / ${size}</div>
-                                <div class="cart-item-price">${quantity} x RM${price.toFixed(2)} = RM${subtotal.toFixed(2)}</div>
-                            </div>
+                                <div class="cart-item-info">
+                                    <div class="cart-item-name">${name}</div>
+                                    <div class="cart-item-variant">${color} / ${size}</div>
+                                    <div class="cart-item-price">
+                                        <div class="quantity-selector" style="margin: 0.5rem 0; gap: 0.5rem;">
+                                            <button class="quantity-btn" style="width: 25px; height: 25px; font-size: 1rem; padding: 0;" onclick="updateCartQuantity(${index}, -1)">-</button>
+                                            <span class="quantity-display" style="font-size: 1rem; min-width: 20px;">${quantity}</span>
+                                            <button class="quantity-btn" style="width: 25px; height: 25px; font-size: 1rem; padding: 0;" onclick="updateCartQuantity(${index}, 1)">+</button>
+                                        </div>
+                                        RM${price.toFixed(2)} (Sub: RM${subtotal.toFixed(2)})
+                                    </div>
+                                </div>
                             <button class="cart-item-remove" onclick="removeFromCart(${index})">Remove</button>
                         </div>
                     `;
@@ -1298,6 +1305,26 @@
                 openCart();
                 updateCartBadge();
             }
+        }
+
+        async function updateCartQuantity(index, delta) {
+            if (!cart[index]) return;
+
+            cart[index].quantity += delta;
+
+            if (cart[index].quantity <= 0) {
+                if (confirm('Remove item from cart?')) {
+                    cart.splice(index, 1);
+                } else {
+                    cart[index].quantity = 1;
+                }
+            }
+
+            localStorage.setItem('benzgifts_cart', JSON.stringify(cart));
+            if (currentUser) await saveCartToDB();
+
+            openCart();
+            updateCartBadge();
         }
 
         function closeCart() {
