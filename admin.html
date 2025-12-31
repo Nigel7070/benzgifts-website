@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - BenzGifts</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem 0;
+        }
+
+        .sidebar h2 {
+            color: white;
+            padding: 0 1.5rem;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+        }
+
+        .nav-item {
+            padding: 1rem 1.5rem;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+            border: none;
+            width: 100%;
+            text-align: left;
+            background: none;
+            font-size: 1rem;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+        }
+
+        .header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logout-btn {
+            padding: 0.6rem 1.5rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .file-upload-area:hover {
+            background: #e9ecef;
+            border-color: #764ba2;
+        }
+
+        .file-upload-area.has-file {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .file-upload-input {
+            display: none;
+        }
+
+        .file-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin: 1rem auto;
+            border-radius: 8px;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            color: #666;
+        }
+
+        .submit-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .color-item,
+        .size-item {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .color-item input,
+        .size-item input {
+            flex: 1;
+        }
+
+        .remove-btn {
+            padding: 0.5rem 1rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .add-btn {
+            padding: 0.8rem 1.5rem;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .variant-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .variant-card {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .variant-card h4 {
+            margin-bottom: 0.5rem;
+            color: #667eea;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .product-card-body {
+            padding: 1rem;
+        }
+
+        .product-card-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-card-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .edit-btn {
+            flex: 1;
+            padding: 0.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .delete-btn {
+            flex: 1;
+            padding: 0.5rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .orders-table {
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .orders-table th {
+            background: #667eea;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+        }
+
+        .orders-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .shipping-preview {
+            background: #f0f4ff;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .uploading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h2>BenzGifts Admin</h2>
+        <button class="nav-item active" onclick="showSection('dashboard')">📊 Dashboard</button>
+        <button class="nav-item" onclick="showSection('products')">📦 Products</button>
+        <button class="nav-item" onclick="showSection('orders')">🛒 Orders</button>
+        <button class="nav-item" onclick="showSection('shipping')">🚢 Shipping</button>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1 id="pageTitle">Dashboard</h1>
+            <div style="display: flex; gap: 1rem;">
+                <button class="logout-btn" onclick="window.location.href='index.html'" style="background: #667eea;">🏠
+                    Back to Shop</button>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" class="section active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Products</h3>
+                    <div class="stat-value" id="totalProducts">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Orders</h3>
+                    <div class="stat-value" id="totalOrders">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Orders</h3>
+                    <div class="stat-value" id="pendingOrders">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Revenue</h3>
+                    <div class="stat-value" id="totalRevenue">RM 0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Section -->
+        <div id="productsSection" class="section">
+            <div class="card">
+                <h2>Add New Product</h2>
+                <form id="productForm" onsubmit="saveProduct(event)">
+                    <div class="form-group">
+                        <label for="productName">Product Name *</label>
+                        <input type="text" id="productName" required>
+                    </div>
+
+                    <!-- NEW: Description Field -->
+                    <div class="form-group">
+                        <label for="productDescription">Product Description *</label>
+                        <textarea id="productDescription" rows="4" required
+                            placeholder="Describe your product..."></textarea>
+                    </div>
+
+                    <!-- Weight Field -->
+                    <div class="form-group">
+                        <label for="productWeight">📦 Weight per Unit (grams) *</label>
+                        <input type="number" id="productWeight" min="1" step="1" value="180" required>
+                        <small style="color: #666;">Average t-shirt: 150-250g, Premium: 250-300g</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Colors & Images</label>
+                        <div id="colorsContainer">
+                            <div class="color-item">
+                                <input type="text" placeholder="Color Name (e.g., White)" class="color-name" required>
+                                <div style="flex: 1;">
+                                    <div class="file-upload-area"
+                                        onclick="document.getElementById('colorImage-0').click()">
+                                        <input type="file" id="colorImage-0"
+                                            class="file-upload-input color-image-upload" accept="image/*"
+                                            onchange="previewColorImage(this, 0)">
+                                        <div class="upload-icon">📷</div>
+                                        <div class="upload-text">Click to upload image</div>
+                                    </div>
+                                    <img class="file-preview" id="colorPreview-0" style="display: none;">
+                                </div>
+                                <button type="button" class="remove-btn" onclick="removeColor(this)">Remove</button>
+                            </div>
+                        </div>
+                        <button type="button" class="add-btn" onclick="addColor()">+ Add Color</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Sizes</label>
+                        <div id="sizesContainer">
+                            <div class="size-item">
+                                <input type="text" placeholder="Size (e.g., S, M, L)" class="size-name" required>
+                                <button type="button" class="remove-btn" onclick="removeSize(this)">Remove</button>
+                            </div>
+                        </div>
+                        <button type="button" class="add-btn" onclick="addSize()">+ Add Size</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Variants (Generated Automatically)</label>
+                        <button type="button" class="add-btn" onclick="generateVariants()">🔄 Generate Variants</button>
+                        <div id="variantsContainer" class="variant-grid"></div>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="saveProductBtn">💾 Save Product</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>All Products</h2>
+                <div id="productsGrid" class="products-grid"></div>
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div id="ordersSection" class="section">
+            <div class="card">
+                <h2>Orders Management</h2>
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Items</th>
+                            <th>Weight</th>
+                            <th>Shipping</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 2rem;">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Shipping Settings Section -->
+        <div id="shippingSection" class="section">
+            <div class="card">
+                <h2>🚢 Shipping Settings</h2>
+                <p style="color: #666; margin-bottom: 2rem;">Configure shipping calculation rates. Changes apply to new
+                    orders immediately.</p>
+
+                <form id="shippingForm" onsubmit="updateShippingSettings(event)">
+                    <div class="form-group">
+                        <label for="pricePerKg">Price per KG (RM) *</label>
+                        <input type="number" id="pricePerKg" step="0.01" min="0" required>
+                        <small style="color: #666;">Current supplier rate per kilogram</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sstPercentage">SST Percentage (%) *</label>
+                        <input type="number" id="sstPercentage" step="0.01" min="0" max="100" required>
+                        <small style="color: #666;">Sales and Service Tax percentage</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="flatDeliveryFee">Flat Delivery Fee (RM) *</label>
+                        <input type="number" id="flatDeliveryFee" step="0.01" min="0" required>
+                        <small style="color: #666;">Fixed delivery cost (e.g., bus station to shop)</small>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>💡 Live Preview:</strong>
+                        <div id="shippingPreview" class="shipping-preview" style="margin-top: 1rem;">
+                            Calculating preview...
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="saveShippingBtn">
+                        💾 Update Shipping Settings
+                    </button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>How Shipping Works</h3>
+                <div class="alert alert-info">
+                    <strong>Formula:</strong><br>
+                    Shipping Cost = (Total Weight in KG × Price per KG × (1 + SST%/100)) + Flat Delivery Fee
+                    <br><br>
+                    <strong>Example:</strong><br>
+                    Order: 5 shirts × 180g = 900g = 0.90 kg<br>
+                    Calculation: (0.90 × RM7.15 × 1.06) + RM5.00 = <strong>RM11.83</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
+
+        // Fix for local execution (file://) hang
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                persistSession: false,
+                autoRefreshToken: false,
+                detectSessionInUrl: false
+            }
+        });
+
+        let currentUser = null;
+        let editingProductId = null;
+        let colorImageIndex = 0;
+        let uploadedColorImages = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+        });
+
+        async function checkAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            currentUser = session.user;
+            const ADMIN_EMAILS = ['stella.benzgifts@gmail.com', 'himynameisblink123@gmail.com'];
+
+            if (!ADMIN_EMAILS.includes(currentUser.email)) {
+                alert('Access Denied: Admin only!');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            loadDashboard();
+            loadProducts();
+            loadOrders();
+        }
+
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            window.location.href = 'index.html';
+        }
+
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            document.getElementById(section + 'Section').classList.add('active');
+            event.target.classList.add('active');
+
+            const titles = {
+                dashboard: 'Dashboard',
+                products: 'Products Management',
+                orders: 'Orders Management',
+                shipping: 'Shipping Settings'
+            };
+            document.getElementById('pageTitle').textContent = titles[section];
+
+            if (section === 'shipping') {
+                loadShippingSettings();
+            }
+        }
+
+        async function loadDashboard() {
+            try {
+                const { data: products } = await supabaseClient.from('products').select('*');
+                const { data: orders } = await supabaseClient.from('orders').select('*');
+
+                document.getElementById('totalProducts').textContent = products?.length || 0;
+                document.getElementById('totalOrders').textContent = orders?.length || 0;
+
+                const pending = orders?.filter(o => o.status === 'pending').length || 0;
+                document.getElementById('pendingOrders').textContent = pending;
+
+                const revenue = orders?.reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0) || 0;
+                document.getElementById('totalRevenue').textContent = `RM ${revenue.toFixed(2)}`;
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        function previewColorImage(input, index) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const preview = document.getElementById(`colorPreview-${index}`);
+                    const uploadArea = input.parentElement;
+
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    uploadArea.classList.add('has-file');
+                    uploadArea.querySelector('.upload-text').textContent = '✅ Image selected';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function addColor() {
+            colorImageIndex++;
+            const container = document.getElementById('colorsContainer');
+            const colorItem = document.createElement('div');
+            colorItem.className = 'color-item';
+            colorItem.innerHTML = `
+                <input type="text" placeholder="Color Name" class="color-name" required>
+                <div style="flex: 1;">
+                    <div class="file-upload-area" onclick="document.getElementById('colorImage-${colorImageIndex}').click()">
+                        <input type="file" id="colorImage-${colorImageIndex}" class="file-upload-input color-image-upload" accept="image/*" onchange="previewColorImage(this, ${colorImageIndex})">
+                        <div class="upload-icon">📷</div>
+                        <div class="upload-text">Click to upload image</div>
+                    </div>
+                    <img class="file-preview" id="colorPreview-${colorImageIndex}" style="display: none;">
+                </div>
+                <button type="button" class="remove-btn" onclick="removeColor(this)">Remove</button>
+            `;
+            container.appendChild(colorItem);
+        }
+
+        function removeColor(btn) {
+            btn.parentElement.remove();
+        }
+
+        function addSize() {
+            const container = document.getElementById('sizesContainer');
+            const sizeItem = document.createElement('div');
+            sizeItem.className = 'size-item';
+            sizeItem.innerHTML = `
+                <input type="text" placeholder="Size" class="size-name" required>
+                <button type="button" class="remove-btn" onclick="removeSize(this)">Remove</button>
+            `;
+            container.appendChild(sizeItem);
+        }
+
+        function removeSize(btn) {
+            btn.parentElement.remove();
+        }
+
+        function generateVariants() {
+            const colors = Array.from(document.querySelectorAll('.color-name')).map(input => input.value).filter(v => v);
+            const sizes = Array.from(document.querySelectorAll('.size-name')).map(input => input.value).filter(v => v);
+
+            if (colors.length === 0 || sizes.length === 0) {
+                alert('Please add colors and sizes first!');
+                return;
+            }
+
+            const container = document.getElementById('variantsContainer');
+            container.innerHTML = '';
+
+            colors.forEach(color => {
+                sizes.forEach(size => {
+                    const variantCard = document.createElement('div');
+                    variantCard.className = 'variant-card';
+                    variantCard.innerHTML = `
+                        <h4>${color} - ${size}</h4>
+                        <input type="hidden" class="variant-color" value="${color}">
+                        <input type="hidden" class="variant-size" value="${size}">
+                        <div style="margin-top: 0.5rem;">
+                            <label style="font-size: 0.9rem; color: #666;">Price (RM)</label>
+                            <input type="number" class="variant-price" step="0.01" min="0" required style="width: 100%; padding: 0.5rem; margin-top: 0.3rem; border: 1px solid #ddd; border-radius: 5px;">
+                        </div>
+                        <div style="margin-top: 0.5rem;">
+                            <label style="font-size: 0.9rem; color: #666;">Stock</label>
+                            <input type="number" class="variant-stock" min="0" required style="width: 100%; padding: 0.5rem; margin-top: 0.3rem; border: 1px solid #ddd; border-radius: 5px;">
+                        </div>
+                    `;
+                    container.appendChild(variantCard);
+                });
+            });
+        }
+
+        async function uploadImage(file, path) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${path}_${Date.now()}.${fileExt}`;
+            const filePath = `products/${fileName}`;
+
+            const { error: uploadError } = await supabaseClient.storage
+                .from('product-images')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = supabaseClient.storage
+                .from('product-images')
+                .getPublicUrl(filePath);
+
+            return urlData.publicUrl;
+        }
+
+        async function saveProduct(event) {
+            event.preventDefault();
+            const btn = document.getElementById('saveProductBtn');
+            btn.disabled = true;
+            btn.textContent = 'Uploading images...';
+            btn.classList.add('uploading');
+
+            try {
+                const name = document.getElementById('productName').value;
+                const description = document.getElementById('productDescription').value;
+                const weight = parseInt(document.getElementById('productWeight').value) || 180;
+
+                // Upload color images
+                const colorData = [];
+                const colorItems = document.querySelectorAll('.color-item');
+
+                for (let i = 0; i < colorItems.length; i++) {
+                    const item = colorItems[i];
+                    const colorName = item.querySelector('.color-name').value;
+                    const fileInput = item.querySelector('.color-image-upload');
+
+                    if (fileInput.files && fileInput.files[0]) {
+                        btn.textContent = `Uploading ${colorName} image...`;
+                        const imageUrl = await uploadImage(fileInput.files[0], colorName);
+                        colorData.push({
+                            name: colorName,
+                            image: imageUrl
+                        });
+                    } else if (editingProductId) {
+                        // Keep existing image if editing
+                        colorData.push({
+                            name: colorName,
+                            image: item.dataset.existingImage || ''
+                        });
+                    }
+                }
+
+                const sizeData = Array.from(document.querySelectorAll('.size-name')).map(input => input.value);
+
+                const variantData = Array.from(document.querySelectorAll('.variant-card')).map(card => ({
+                    color: card.querySelector('.variant-color').value,
+                    size: card.querySelector('.variant-size').value,
+                    price: parseFloat(card.querySelector('.variant-price').value),
+                    stock: parseInt(card.querySelector('.variant-stock').value)
+                }));
+
+                const productData = {
+                    name,
+                    description,
+                    colors: colorData,
+                    sizes: sizeData,
+                    variants: variantData,
+                    weight_grams: weight
+                };
+
+                btn.textContent = 'Saving product...';
+
+                if (editingProductId) {
+                    const { error } = await supabaseClient
+                        .from('products')
+                        .update(productData)
+                        .eq('id', editingProductId);
+                    if (error) throw error;
+                    alert('✅ Product updated successfully!');
+                    editingProductId = null;
+                } else {
+                    const { error } = await supabaseClient
+                        .from('products')
+                        .insert([productData]);
+                    if (error) throw error;
+                    alert('✅ Product created successfully!');
+                }
+
+                document.getElementById('productForm').reset();
+                document.getElementById('productWeight').value = 180;
+                document.getElementById('variantsContainer').innerHTML = '';
+                document.getElementById('colorsContainer').innerHTML = `
+                    <div class="color-item">
+                        <input type="text" placeholder="Color Name (e.g., White)" class="color-name" required>
+                        <div style="flex: 1;">
+                            <div class="file-upload-area" onclick="document.getElementById('colorImage-0').click()">
+                                <input type="file" id="colorImage-0" class="file-upload-input color-image-upload" accept="image/*" onchange="previewColorImage(this, 0)">
+                                <div class="upload-icon">📷</div>
+                                <div class="upload-text">Click to upload image</div>
+                            </div>
+                            <img class="file-preview" id="colorPreview-0" style="display: none;">
+                        </div>
+                        <button type="button" class="remove-btn" onclick="removeColor(this)">Remove</button>
+                    </div>
+                `;
+
+                loadProducts();
+                loadDashboard();
+
+            } catch (error) {
+                console.error('Error saving product:', error);
+                alert('❌ Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💾 Save Product';
+                btn.classList.remove('uploading');
+            }
+        }
+
+        async function loadProducts() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('products')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const grid = document.getElementById('productsGrid');
+
+                if (!data || data.length === 0) {
+                    grid.innerHTML = '<p style="text-align: center; color: #666;">No products yet</p>';
+                    return;
+                }
+
+                grid.innerHTML = data.map(product => {
+                    const firstImage = product.colors && product.colors[0] ? product.colors[0].image : '';
+                    const totalStock = product.variants?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0;
+                    const weight = product.weight_grams || 180;
+                    const description = product.description || 'No description';
+
+                    return `
+                        <div class="product-card">
+                            <img src="${firstImage || 'https://via.placeholder.com/300'}" alt="${product.name}">
+                            <div class="product-card-body">
+                                <div class="product-card-title">${product.name}</div>
+                                <div style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+                                    ${description.substring(0, 80)}${description.length > 80 ? '...' : ''}<br><br>
+                                    📦 Weight: ${weight}g<br>
+                                    📊 Stock: ${totalStock} units<br>
+                                    🎨 Colors: ${product.colors?.length || 0}<br>
+                                    📏 Sizes: ${product.sizes?.length || 0}
+                                </div>
+                                <div class="product-card-actions">
+                                    <button class="edit-btn" onclick="editProduct('${product.id}')">Edit</button>
+                                    <button class="delete-btn" onclick="deleteProduct('${product.id}')">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
+        }
+
+        async function editProduct(id) {
+            alert('Note: When editing, you need to re-upload all images. Edit feature is simplified in this version.');
+            // Full edit with image re-upload would require more complex state management
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('Are you sure you want to delete this product?')) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('products')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                alert('✅ Product deleted successfully!');
+                loadProducts();
+                loadDashboard();
+            } catch (error) {
+                console.error('Error deleting product:', error);
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        async function loadOrders() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('orders')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const tbody = document.getElementById('ordersTableBody');
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;">No orders yet</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(order => {
+                    const orderDate = new Date(order.created_at).toLocaleDateString();
+                    const itemsCount = order.items?.length || 0;
+                    const weight = order.total_weight_kg ? `${order.total_weight_kg.toFixed(2)} kg` : 'N/A';
+                    const shipping = order.shipping_cost ? `RM ${parseFloat(order.shipping_cost).toFixed(2)}` : 'N/A';
+
+                    return `
+                        <tr>
+                            <td>#${order.id.substring(0, 8).toUpperCase()}</td>
+                            <td>
+                                ${order.customer_name}<br>
+                                <small style="color: #666;">${order.customer_email}</small>
+                            </td>
+                            <td>${itemsCount} items</td>
+                            <td>${weight}</td>
+                            <td>${shipping}</td>
+                            <td>RM ${parseFloat(order.total_amount).toFixed(2)}</td>
+                            <td>
+                                <span class="status-badge status-${order.status}">
+                                    ${order.status}
+                                </span>
+                            </td>
+                            <td>${orderDate}</td>
+                            <td>
+                                <select onchange="updateOrderStatus('${order.id}', this.value)" style="padding: 0.5rem; border-radius: 5px;">
+                                    <option value="">Change Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading orders:', error);
+            }
+        }
+
+        async function updateOrderStatus(orderId, newStatus) {
+            if (!newStatus) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('orders')
+                    .update({ status: newStatus })
+                    .eq('id', orderId);
+
+                if (error) throw error;
+
+                alert('✅ Order status updated!');
+                loadOrders();
+                loadDashboard();
+            } catch (error) {
+                console.error('Error updating order:', error);
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        async function loadShippingSettings() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('shipping_settings')
+                    .select('*')
+                    .single();
+
+                if (error) throw error;
+
+                document.getElementById('pricePerKg').value = data.price_per_kg || 7.15;
+                document.getElementById('sstPercentage').value = data.sst_percentage || 6.00;
+                document.getElementById('flatDeliveryFee').value = data.flat_delivery_fee || 5.00;
+
+                updateShippingPreview();
+            } catch (error) {
+                console.error('Error loading shipping settings:', error);
+                document.getElementById('pricePerKg').value = 7.15;
+                document.getElementById('sstPercentage').value = 6.00;
+                document.getElementById('flatDeliveryFee').value = 5.00;
+                updateShippingPreview();
+            }
+        }
+
+        function updateShippingPreview() {
+            const pricePerKg = parseFloat(document.getElementById('pricePerKg').value) || 0;
+            const sst = parseFloat(document.getElementById('sstPercentage').value) || 0;
+            const flatFee = parseFloat(document.getElementById('flatDeliveryFee').value) || 0;
+
+            const example1kg = (pricePerKg * (1 + sst / 100) + flatFee).toFixed(2);
+            const example2kg = (2 * pricePerKg * (1 + sst / 100) + flatFee).toFixed(2);
+            const example3kg = (3 * pricePerKg * (1 + sst / 100) + flatFee).toFixed(2);
+
+            document.getElementById('shippingPreview').innerHTML = `
+                <div style="font-weight: 600; margin-bottom: 0.5rem;">Shipping Cost Examples:</div>
+                <div style="display: grid; gap: 0.5rem;">
+                    <div>1.0 kg order → <strong>RM ${example1kg}</strong></div>
+                    <div>2.0 kg order → <strong>RM ${example2kg}</strong></div>
+                    <div>3.0 kg order → <strong>RM ${example3kg}</strong></div>
+                </div>
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd; font-size: 0.9rem; color: #666;">
+                    Formula: (Weight × RM${pricePerKg.toFixed(2)} × ${(1 + sst / 100).toFixed(2)}) + RM${flatFee.toFixed(2)}
+                </div>
+            `;
+        }
+
+        async function updateShippingSettings(event) {
+            event.preventDefault();
+            const btn = document.getElementById('saveShippingBtn');
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+
+            try {
+                const settings = {
+                    price_per_kg: parseFloat(document.getElementById('pricePerKg').value),
+                    sst_percentage: parseFloat(document.getElementById('sstPercentage').value),
+                    flat_delivery_fee: parseFloat(document.getElementById('flatDeliveryFee').value),
+                    updated_at: new Date().toISOString()
+                };
+
+                const { data: current } = await supabaseClient
+                    .from('shipping_settings')
+                    .select('id')
+                    .single();
+
+                const { error } = await supabaseClient
+                    .from('shipping_settings')
+                    .update(settings)
+                    .eq('id', current.id);
+
+                if (error) throw error;
+
+                alert('✅ Shipping settings updated successfully!');
+
+            } catch (error) {
+                console.error('Error updating shipping settings:', error);
+                alert('❌ Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💾 Update Shipping Settings';
+            }
+        }
+
+        // Event listeners for live preview
+        document.addEventListener('DOMContentLoaded', () => {
+            const priceInput = document.getElementById('pricePerKg');
+            const sstInput = document.getElementById('sstPercentage');
+            const feeInput = document.getElementById('flatDeliveryFee');
+
+            if (priceInput) priceInput.addEventListener('input', updateShippingPreview);
+            if (sstInput) sstInput.addEventListener('input', updateShippingPreview);
+            if (feeInput) feeInput.addEventListener('input', updateShippingPreview);
+        });
+    </script>
+</body>
+
+</html>
