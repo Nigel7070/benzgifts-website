@@ -522,7 +522,7 @@
     <script>
         const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let cartItems = [];
         let checkoutMode = 'regular';
@@ -540,7 +540,7 @@
         // NEW: Load shipping settings from database
         async function loadShippingSettings() {
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('shipping_settings')
                     .select('*')
                     .single();
@@ -745,13 +745,13 @@
                     const fileName = `receipt_${Date.now()}.${fileExt}`;
                     const filePath = `receipts/${fileName}`;
 
-                    const { error: uploadError } = await supabase.storage
+                    const { error: uploadError } = await supabaseClient.storage
                         .from('order-receipts')
                         .upload(filePath, receiptFile);
 
                     if (uploadError) throw uploadError;
 
-                    const { data: urlData } = supabase.storage
+                    const { data: urlData } = supabaseClient.storage
                         .from('order-receipts')
                         .getPublicUrl(filePath);
 
@@ -788,7 +788,7 @@
                     created_at: new Date().toISOString()
                 };
 
-                const { data: orderResult, error: orderError } = await supabase
+                const { data: orderResult, error: orderError } = await supabaseClient
                     .from('orders')
                     .insert([orderData])
                     .select();
