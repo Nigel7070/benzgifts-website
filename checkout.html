@@ -819,7 +819,7 @@
                     customer_phone: document.getElementById('phone').value,
                     customer_address: document.getElementById('address').value,
                     notes: document.getElementById('notes').value || null,
-                    payment_method: selectedPayment === 'store' ? 'Pay at Store' : 'Bank Transfer',
+                    payment_method: selectedPayment === 'store' ? 'store' : 'bank_transfer',
                     payment_proof_url: receiptUrl,
                     items: cartItems,
                     total_amount: (subtotal + shippingCost).toFixed(2),
