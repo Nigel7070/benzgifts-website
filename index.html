@@ -812,16 +812,49 @@
         </div>
     </footer>
 
+    <!-- Profile Modal -->
+    <div class="modal" id="profileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👤 Profile Settings</h2>
+                <span class="close" onclick="closeProfileModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="profileForm" onsubmit="saveProfile(event)">
+                    <div id="profileError" class="error-message"></div>
+                    <div id="profileSuccess" class="success-message"></div>
+
+                    <div class="form-group">
+                        <label for="profileName">Full Name</label>
+                        <input type="text" id="profileName" placeholder="Your full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="profilePhone">Phone Number</label>
+                        <input type="tel" id="profilePhone" placeholder="E.g., +60123456789">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="profileAddress">Delivery Address</label>
+                        <textarea id="profileAddress" rows="3"
+                            placeholder="Street, City, Postal Code, State"></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="profileSubmitBtn">Save Profile</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
 
-        // Fix for local execution (file://) hang
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             auth: {
-                persistSession: false,
-                autoRefreshToken: false,
-                detectSessionInUrl: false
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true
             }
         });
 
@@ -834,10 +867,25 @@
             console.log('DOM Content Loaded, starting auth and product load...');
             checkAuth();
             loadProducts();
+
+            // Handle URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('login') === 'true') {
+                openAuthModal();
+            }
+            if (urlParams.get('profile') === 'true') {
+                // We'll let checkAuth handle this once the session is ready
+                window.shouldOpenProfile = true;
+            }
+
             document.addEventListener('click', function (event) {
                 const userMenu = document.querySelector('.user-menu');
+                const profileModal = document.getElementById('profileModal');
                 if (userMenu && !userMenu.contains(event.target)) {
                     closeUserMenu();
+                }
+                if (event.target === profileModal) {
+                    closeProfileModal();
                 }
             });
         });
@@ -846,7 +894,8 @@
             try {
                 const hashParams = new URLSearchParams(window.location.hash.substring(1));
                 if (hashParams.get('access_token')) {
-                    await supabaseClient.auth.getSession();
+                    // Force refresh to handle magic link
+                    const { data, error } = await supabaseClient.auth.getSession();
                     if (window.location.hash) {
                         window.history.replaceState(null, '', window.location.pathname);
                     }
@@ -858,7 +907,12 @@
                     currentUser = session.user;
                     updateAuthUI(true);
                     await loadCartFromDB();
+                    await loadProfile();
                     updateCartBadge();
+                    if (window.shouldOpenProfile) {
+                        openProfileModal();
+                        window.shouldOpenProfile = false;
+                    }
                 } else {
                     updateAuthUI(false);
                     cart = JSON.parse(localStorage.getItem('benzgifts_cart') || '[]');
@@ -880,6 +934,7 @@
                     <div class="user-menu">
                         <span class="user-email" id="userEmailBtn">${currentUser.email}</span>
                         <div class="dropdown-menu" id="userDropdown">
+                            <div class="dropdown-item" onclick="openProfileModal()">Profile Settings</div>
                             <div class="dropdown-item" onclick="handleLogout()">Logout</div>
                         </div>
                     </div>
@@ -958,6 +1013,81 @@
             } catch (error) {
                 console.error('Logout error:', error);
             }
+        }
+
+        async function loadProfile() {
+            if (!currentUser) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('full_name, phone, address')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') throw error;
+
+                if (data) {
+                    userProfile = data;
+                    document.getElementById('profileName').value = data.full_name || '';
+                    document.getElementById('profilePhone').value = data.phone || '';
+                    document.getElementById('profileAddress').value = data.address || '';
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        async function saveProfile(event) {
+            event.preventDefault();
+            if (!currentUser) return;
+
+            const submitBtn = document.getElementById('profileSubmitBtn');
+            const errorMsg = document.getElementById('profileError');
+            const successMsg = document.getElementById('profileSuccess');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+
+            const profileData = {
+                id: currentUser.id,
+                full_name: document.getElementById('profileName').value,
+                phone: document.getElementById('profilePhone').value,
+                address: document.getElementById('profileAddress').value,
+                email: currentUser.email,
+                updated_at: new Date().toISOString()
+            };
+
+            try {
+                const { error } = await supabaseClient
+                    .from('profiles')
+                    .upsert(profileData);
+
+                if (error) throw error;
+
+                userProfile = profileData;
+                successMsg.textContent = 'Profile saved successfully!';
+                successMsg.style.display = 'block';
+                setTimeout(() => closeProfileModal(), 1500);
+            } catch (error) {
+                errorMsg.textContent = error.message;
+                errorMsg.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Profile';
+            }
+        }
+
+        function openProfileModal() {
+            closeUserMenu();
+            document.getElementById('profileModal').style.display = 'block';
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').style.display = 'none';
+            document.getElementById('profileError').style.display = 'none';
+            document.getElementById('profileSuccess').style.display = 'none';
         }
 
         function openAuthModal() { document.getElementById('authModal').style.display = 'block'; }
@@ -1268,6 +1398,11 @@
         }
 
         function checkoutSelected() {
+            if (!currentUser) {
+                closeCart();
+                openAuthModal();
+                return;
+            }
             if (selectedItems.size === 0) {
                 alert("Please select items to checkout!");
                 return;

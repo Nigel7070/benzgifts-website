@@ -522,7 +522,16 @@
     <script>
         const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true
+            }
+        });
+
+        let currentUser = null;
+        let userProfile = null;
 
         let cartItems = [];
         let checkoutMode = 'regular';
@@ -532,10 +541,52 @@
         let shippingCost = 0;
         let totalWeight = 0;
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
             loadShippingSettings();
             loadCheckoutItems();
         });
+
+        async function checkAuth() {
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    currentUser = session.user;
+                    await loadProfile();
+                } else {
+                    alert('Please login to proceed to checkout');
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                window.location.href = 'index.html';
+            }
+        }
+
+        async function loadProfile() {
+            if (!currentUser) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('full_name, phone, address')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') throw error;
+
+                if (data) {
+                    userProfile = data;
+                    document.getElementById('fullName').value = data.full_name || '';
+                    document.getElementById('email').value = currentUser.email || '';
+                    document.getElementById('phone').value = data.phone || '';
+                    document.getElementById('address').value = data.address || '';
+                } else {
+                    document.getElementById('email').value = currentUser.email || '';
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
 
         // NEW: Load shipping settings from database
         async function loadShippingSettings() {

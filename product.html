@@ -705,12 +705,11 @@
         const SUPABASE_URL = 'https://oomvdejocpdtqcmeacii.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbXZkZWpvY3BkdHFjbWVhY2lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzA1NjksImV4cCI6MjA3NTUwNjU2OX0.0P_dEqRlvSUVJiCF_F0mboSenqvbp64ZV9islyvcF_E';
 
-        // Fix for local execution (file://) hang
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             auth: {
-                persistSession: false,
-                autoRefreshToken: false,
-                detectSessionInUrl: false
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true
             }
         });
 
@@ -724,17 +723,98 @@
             loadProduct();
             checkAuth();
             updateCartBadge();
+            document.addEventListener('click', function (event) {
+                const userMenu = document.querySelector('.user-menu');
+                if (userMenu && !userMenu.contains(event.target)) {
+                    closeUserMenu();
+                }
+            });
         });
 
         async function checkAuth() {
             try {
+                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                if (hashParams.get('access_token')) {
+                    const { data, error } = await supabaseClient.auth.getSession();
+                    if (window.location.hash) {
+                        window.history.replaceState(null, '', window.location.pathname);
+                    }
+                }
+
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (session) {
                     currentUser = session.user;
+                    updateAuthUI(true);
                     await loadCartFromDB();
+                    await loadProfile();
+                } else {
+                    updateAuthUI(false);
                 }
             } catch (error) {
                 console.error('Error checking auth:', error);
+                updateAuthUI(false);
+            }
+        }
+
+        function updateAuthUI(isLoggedIn) {
+            const authSection = document.getElementById('authSection');
+            if (isLoggedIn && currentUser) {
+                authSection.innerHTML = `
+                    <div class="user-menu">
+                        <span class="user-email" id="userEmailBtn">${currentUser.email}</span>
+                        <div class="dropdown-menu" id="userDropdown">
+                            <div class="dropdown-item" onclick="window.location.href='index.html?profile=true'">Profile Settings</div>
+                            <div class="dropdown-item" onclick="handleLogout()">Logout</div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('userEmailBtn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleUserMenu();
+                });
+            } else {
+                authSection.innerHTML = `<button class="auth-btn" onclick="openAuthModal()">Login / Sign Up</button>`;
+            }
+        }
+
+        async function loadProfile() {
+            if (!currentUser) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('full_name, phone, address')
+                    .eq('id', currentUser.id)
+                    .single();
+                if (error && error.code !== 'PGRST116') throw error;
+                // No need to fill local inputs here as they don't exist in product.html
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        function toggleUserMenu() {
+            document.getElementById('userDropdown').classList.toggle('active');
+        }
+
+        function closeUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.classList.remove('active');
+        }
+
+        function openAuthModal() {
+            // Redirect to home with auth modal open or just alert for now
+            // But better to just redirect to index.html
+            window.location.href = 'index.html?login=true';
+        }
+
+        async function handleLogout() {
+            try {
+                if (currentUser) await saveCartToDB();
+                await supabaseClient.auth.signOut();
+                window.location.reload();
+            } catch (error) {
+                console.error('Logout error:', error);
             }
         }
 
@@ -1170,6 +1250,10 @@
         }
 
         function checkoutSelected() {
+            if (!currentUser) {
+                openAuthModal();
+                return;
+            }
             if (selectedItems.size === 0) return;
 
             const selectedCartItems = Array.from(selectedItems)
