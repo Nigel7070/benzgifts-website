@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - BenzGifts</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/data_store.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -550,6 +551,29 @@
                 white-space: nowrap;
             }
         }
+
+        /* Thread Colors */
+        .color-swatch-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1px solid #ddd;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        .thread-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.8rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .thread-row:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 
@@ -559,6 +583,7 @@
         <button class="nav-item active" onclick="showSection('dashboard')">📊 Dashboard</button>
         <button class="nav-item" onclick="showSection('products')">📦 Products</button>
         <button class="nav-item" onclick="showSection('orders')">🛒 Orders</button>
+        <button class="nav-item" onclick="showSection('threads')">🧵 Thread Colors</button>
         <button class="nav-item" onclick="showSection('shipping')">🚢 Shipping</button>
     </div>
 
@@ -694,6 +719,83 @@
             </div>
         </div>
 
+        <!-- Thread Colors Section -->
+        <div id="threadsSection" class="section">
+            <div class="card">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+                    <h2 style="border: none; margin: 0;">Thread Color Management</h2>
+                    <button class="submit-btn" onclick="openThreadModal()" style="width: auto; padding: 0.5rem 1rem;">+
+                        Add New Thread</button>
+                </div>
+
+                <div class="alert alert-info">
+                    Manage the 33 standard thread colors used by the AI Scanner. Hex codes must match physical threads.
+                </div>
+
+                <div id="threadsList" style="margin-top: 1rem;">
+                    <!-- JS injected -->
+                </div>
+            </div>
+
+            <!-- Thread Modal (Inline for now or popover) -->
+            <div id="threadModal" class="modal">
+                <div class="modal-content" style="max-width: 400px;">
+                    <h3 id="threadModalTitle">Add New Thread</h3>
+                    <form onsubmit="handleThreadSubmit(event)" style="margin-top: 1rem;">
+                        <input type="hidden" id="threadId">
+                        <div class="form-group">
+                            <label>Thread Name</label>
+                            <input type="text" id="threadName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Hex Color</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="color" id="threadHexDisplay"
+                                    oninput="document.getElementById('threadHex').value = this.value"
+                                    style="width: 50px; padding: 0;">
+                                <input type="text" id="threadHex"
+                                    oninput="document.getElementById('threadHexDisplay').value = this.value" required
+                                    placeholder="#FFFFFF" pattern="^#[0-9A-Fa-f]{6}$">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="threadCategory">
+                                <option value="Greens">Greens</option>
+                                <option value="Yellows & Creams">Yellows & Creams</option>
+                                <option value="Oranges & Browns">Oranges & Browns</option>
+                                <option value="Reds & Pinks">Reds & Pinks</option>
+                                <option value="Blues">Blues</option>
+                                <option value="Purples">Purples</option>
+                                <option value="Neutrals">Neutrals</option>
+                                <option value="Specialty">Specialty</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Service Type</label>
+                            <select id="threadService">
+                                <option value="both">Both</option>
+                                <option value="embroidery">Embroidery Only</option>
+                                <option value="screen">Screen Details</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="threadStatus">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive (Out of Stock)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="submit-btn">Save Thread</button>
+                        <button type="button" class="btn-sm btn-delete"
+                            style="width: 100%; margin-top: 0.5rem; background: #999;"
+                            onclick="document.getElementById('threadModal').style.display='none'">Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <!-- Shipping Settings Section -->
         <div id="shippingSection" class="section">
             <div class="card">
@@ -807,12 +909,16 @@
                 dashboard: 'Dashboard',
                 products: 'Products Management',
                 orders: 'Orders Management',
-                shipping: 'Shipping Settings'
+                shipping: 'Shipping Settings',
+                threads: 'Thread Color Management'
             };
             document.getElementById('pageTitle').textContent = titles[section];
 
             if (section === 'shipping') {
                 loadShippingSettings();
+            }
+            if (section === 'threads') {
+                renderThreads();
             }
         }
 
@@ -1117,6 +1223,10 @@
             }
         }
 
+
+
+        let ordersData = []; // Store globally
+
         async function loadOrders() {
             try {
                 const { data, error } = await supabaseClient
@@ -1125,6 +1235,8 @@
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
+
+                ordersData = data; // Save for modal
 
                 const tbody = document.getElementById('ordersTableBody');
 
@@ -1137,11 +1249,15 @@
                     const orderDate = new Date(order.created_at).toLocaleDateString();
                     const itemsCount = order.items?.length || 0;
                     const weight = order.total_weight_kg ? `${order.total_weight_kg.toFixed(2)} kg` : 'N/A';
-                    const shipping = order.shipping_cost ? `RM ${parseFloat(order.shipping_cost).toFixed(2)}` : 'N/A';
+                    const shipping = order.shipping_cost ? `RM ${parseFloat(order.shipping_cost).toFixed(2)} ` : 'N/A';
 
+                    // ... (rest of mapping same as replacement above) ...
                     return `
-                        <tr>
-                            <td>#${order.id.substring(0, 8).toUpperCase()}</td>
+            < tr >
+                            <td>
+                                #${order.id.substring(0, 8).toUpperCase()}<br>
+                                <button onclick="viewOrderDetails('${order.id}')" style="margin-top: 5px; font-size: 0.8rem; padding: 2px 8px; cursor: pointer; background: var(--secondary); border: none; color: white; border-radius: 4px;">View Items</button>
+                            </td>
                             <td>
                                 ${order.customer_name}<br>
                                 <small style="color: #666;">${order.customer_email}</small>
@@ -1164,12 +1280,62 @@
                                     <option value="cancelled">Cancelled</option>
                                 </select>
                             </td>
-                        </tr>
-                    `;
+                        </tr >
+            `;
                 }).join('');
             } catch (error) {
                 console.error('Error loading orders:', error);
             }
+        }
+
+        function viewOrderDetails(orderId) {
+            const order = ordersData.find(o => o.id === orderId);
+            if (!order) return;
+
+            const modal = document.getElementById('orderDetailModal');
+            const content = document.getElementById('orderDetailContent');
+
+            const itemsHtml = order.items.map(item => {
+                let customHtml = '';
+                if (item.customization) {
+                    customHtml = `
+            < div style = "font-size: 0.85rem; color: #2d3436; margin-top: 0.5rem; background: #f8fafc; padding: 0.5rem; border-left: 3px solid var(--secondary);" >
+                            <strong>Customization:</strong><br>
+                            Type: ${item.customization.method}<br>
+                            Size: ${item.customization.print_size}<br>
+                            Colors: ${item.customization.colors}
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div style="display: flex; gap: 1rem; border-bottom: 1px solid #eee; padding: 1rem 0;">
+                        <img src="${item.image}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                        <div>
+                            <div style="font-weight: 600;">${item.name}</div>
+                            <div style="font-size: 0.9rem; color: #666;">${item.color} / ${item.size}</div>
+                            ${customHtml}
+                            <div style="margin-top: 0.2rem; font-weight: 600;">x${item.quantity} (RM ${item.price})</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            content.innerHTML = `
+                <h3 style="margin-bottom: 1rem; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem;">Order #${order.id.substring(0, 8)}</h3>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    ${itemsHtml}
+                </div>
+                <div style="margin-top: 1rem; text-align: right; font-weight: bold; font-size: 1.1rem;">
+                    Total: RM ${parseFloat(order.total_amount).toFixed(2)}
+                </div>
+                ${order.payment_proof_url ? `<div style="margin-top: 1rem;"><a href="${order.payment_proof_url}" target="_blank" style="color: blue; text-decoration: underline;">View Payment Receipt</a></div>` : ''}
+                <div style="margin-top: 1.5rem; text-align: right;">
+                    <button onclick="document.getElementById('orderDetailModal').style.display='none'" style="padding: 0.5rem 1rem; cursor: pointer;">Close</button>
+                </div>
+            `;
+
+            modal.style.display = 'block';
         }
 
         async function updateOrderStatus(orderId, newStatus) {
@@ -1274,6 +1440,102 @@
             }
         }
 
+        // ==========================================
+        // THREAD MANAGEMENT LOGIC
+        // ==========================================
+        function renderThreads() {
+            const list = document.getElementById('threadsList');
+            const threads = DataStore.getThreadColors();
+
+            if (threads.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">No threads found. Add one to start.</p>';
+                return;
+            }
+
+            list.innerHTML = threads.map(t => `
+                <div class="thread-row">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="color-swatch-circle" style="background-color: ${t.hex};"></span>
+                        <div>
+                            <div style="font-weight: 600;">${t.name}</div>
+                            <div style="font-size: 0.8rem; color: #888;">${t.hex} <span class="thread-category">${t.category}</span></div>
+                        </div>
+                    </div>
+                    <div>
+                         <span class="status-badge ${t.is_active ? 'status-shipped' : 'status-pending'}">
+                            ${t.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn-sm btn-edit" onclick="editThread('${t.id}')">Edit</button>
+                        <button class="btn-sm btn-delete" onclick="deleteThread('${t.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openThreadModal(threadId = null) {
+            document.getElementById('threadModal').style.display = 'flex';
+            const form = document.getElementById('threadModal').querySelector('form');
+
+            if (threadId) {
+                // Edit Mode
+                const threads = DataStore.getThreadColors();
+                const t = threads.find(i => i.id === threadId);
+
+                document.getElementById('threadModalTitle').textContent = 'Edit Thread';
+                document.getElementById('threadId').value = t.id;
+                document.getElementById('threadName').value = t.name;
+                document.getElementById('threadHex').value = t.hex;
+                document.getElementById('threadHexDisplay').value = t.hex;
+                document.getElementById('threadCategory').value = t.category;
+                document.getElementById('threadService').value = t.service_type || 'both';
+                document.getElementById('threadStatus').value = t.is_active ? 'active' : 'inactive';
+            } else {
+                // New Mode
+                document.getElementById('threadModalTitle').textContent = 'Add New Thread';
+                document.getElementById('threadId').value = '';
+                form.reset();
+                document.getElementById('threadHexDisplay').value = '#ffffff';
+                document.getElementById('threadStatus').value = 'active';
+            }
+        }
+
+        function handleThreadSubmit(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('threadId').value;
+            const name = document.getElementById('threadName').value;
+            const hex = document.getElementById('threadHex').value;
+            const category = document.getElementById('threadCategory').value;
+            const service = document.getElementById('threadService').value;
+            const status = document.getElementById('threadStatus').value === 'active';
+
+            const threadData = {
+                id: id || null, // DataStore handles ID generation if null
+                name,
+                hex,
+                category,
+                service_type: service,
+                is_active: status
+            };
+
+            DataStore.saveThreadColor(threadData);
+            document.getElementById('threadModal').style.display = 'none';
+            alert('✅ Thread saved successfully!');
+            renderThreads();
+        }
+
+        function editThread(id) {
+            openThreadModal(id);
+        }
+
+        function deleteThread(id) {
+            if (!confirm('Are you sure? This will remove the thread from the scanner Palette.')) return;
+            DataStore.deleteThreadColor(id);
+            renderThreads();
+        }
+
         // Event listeners for live preview
         document.addEventListener('DOMContentLoaded', () => {
             const priceInput = document.getElementById('pricePerKg');
@@ -1285,6 +1547,14 @@
             if (feeInput) feeInput.addEventListener('input', updateShippingPreview);
         });
     </script>
+    <!-- Order Details Modal -->
+    <div id="orderDetailModal" class="modal"
+        style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+        <div id="orderDetailContent"
+            style="background-color: #fefefe; margin: 5% auto; padding: 2rem; border: 1px solid #888; width: 90%; max-width: 600px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <!-- Content filled by JS -->
+        </div>
+    </div>
 </body>
 
 </html>

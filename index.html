@@ -850,6 +850,17 @@
                 <a onclick="scrollToSection('shop')" class="auth-btn"
                     style="display: inline-block; text-decoration: none;">Explore Products</a>
             </div>
+
+            <!-- Search Bar -->
+            <div
+                style="margin-top: 2.5rem; position: relative; max-width: 600px; margin-left: auto; margin-right: auto;">
+                <input type="text" id="productSearch" oninput="filterProducts()"
+                    placeholder="Search for t-shirts, colors, styles..."
+                    style="width: 100%; padding: 1rem 1.5rem; padding-left: 3.5rem; border-radius: 50px; border: none; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1); outline: none; color: #333;">
+                <div
+                    style="position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem; opacity: 0.5;">
+                    🔍</div>
+            </div>
         </section>
 
         <section class="products" id="shop">
@@ -1650,6 +1661,62 @@
             if (event.target === modal) {
                 closeCart();
             }
+        }
+
+        // ==========================================
+        // SEARCH FUNCTIONALITY
+        // ==========================================
+        function filterProducts() {
+            const query = document.getElementById('productSearch').value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.product-card');
+            const grid = document.getElementById('productsGrid');
+            let hasResults = false;
+
+            // Scroll to shop if user starts typing (optional, but good UX if hero is tall)
+            // if (query.length === 1) scrollToSection('shop');
+
+            cards.forEach(card => {
+                const name = card.querySelector('.product-name')?.textContent.toLowerCase() || '';
+                // Check description if we had it, or stock status
+                const stock = card.querySelector('.stock-status')?.textContent.toLowerCase() || '';
+
+                if (name.includes(query) || stock.includes(query)) {
+                    card.style.display = 'block';
+                    hasResults = true;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Handle "No Results" message
+            let noResultsMsg = document.getElementById('noResultsMsg');
+
+            if (!hasResults && query.length > 0) {
+                if (!noResultsMsg) {
+                    noResultsMsg = document.createElement('div');
+                    noResultsMsg.id = 'noResultsMsg';
+                    noResultsMsg.style.gridColumn = '1 / -1';
+                    noResultsMsg.style.textAlign = 'center';
+                    noResultsMsg.style.padding = '3rem';
+                    noResultsMsg.style.color = '#666';
+                    noResultsMsg.innerHTML = `
+                        <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">🔍</div>
+                        <p style="font-size: 1.2rem;">No products found matching "${query}"</p>
+                        <button onclick="clearSearch()" style="margin-top: 1rem; padding: 0.5rem 1rem; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;">Clear Search</button>
+                     `;
+                    grid.appendChild(noResultsMsg);
+                } else {
+                    noResultsMsg.querySelector('p').textContent = `No products found matching "${query}"`;
+                    noResultsMsg.style.display = 'block';
+                }
+            } else {
+                if (noResultsMsg) noResultsMsg.style.display = 'none';
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('productSearch').value = '';
+            filterProducts();
         }
     </script>
 </body>

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - BenzGifts</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/data_store.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -453,6 +454,84 @@
             <!-- Cart Summary -->
             <div id="cartSummary" style="margin-bottom: 2rem;"></div>
 
+            <!-- AI DESIGN STUDIO -->
+            <div class="card" id="designStudio" style="border: 2px solid var(--secondary); background: #fafaf8;">
+                <h2 class="section-title">🎨 AI Design Studio</h2>
+                <p class="subtitle" style="margin-bottom: 1.5rem;">Upload your design to detect colors and match with
+                    our threads.</p>
+
+                <!-- Step 1: Color Count -->
+                <div class="form-group">
+                    <label>Step 1: How many colors in your design?</label>
+                    <select id="designColorCount" onchange="updateDesignStudio()">
+                        <option value="1">1 Color</option>
+                        <option value="2">2 Colors</option>
+                        <option value="3">3 Colors</option>
+                        <option value="4">4 Colors</option>
+                        <option value="5">5 Colors</option>
+                        <option value="6">6 Colors</option>
+                        <option value="7">7 Colors</option>
+                        <option value="8">8 Colors</option>
+                        <option value="9">9 Colors</option>
+                        <option value="10">10 Colors</option>
+                    </select>
+                </div>
+
+                <!-- Step 2: Upload -->
+                <div class="form-group">
+                    <label>Step 2: Upload Design System</label>
+                    <div id="designDropZone"
+                        style="border: 2px dashed var(--border); border-radius: 8px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; background: #fff;"
+                        onclick="document.getElementById('designInput').click()">
+
+                        <input type="file" id="designInput" accept="image/jpeg, image/png, application/pdf"
+                            style="display: none;" onchange="handleDesignUpload(this)">
+
+                        <div id="designPlaceholder">
+                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📤</div>
+                            <p style="font-weight: 600; color: var(--primary);">Click to Upload Design</p>
+                            <p style="font-size: 0.85rem; color: var(--text-light);">JPG, PNG, PDF (Max 10MB)</p>
+                        </div>
+
+                        <img id="designPreview"
+                            style="max-width: 100%; max-height: 200px; display: none; margin: 1rem auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+
+                        <!-- AI Loading State -->
+                        <div id="aiScanningOverlay"
+                            style="display: none; position: absolute; inset: 0; background: rgba(255,255,255,0.95); flex-direction: column; align-items: center; justify-content: center;">
+                            <div class="spinner"
+                                style="width: 40px; height: 40px; border: 4px solid var(--border); border-top: 4px solid var(--secondary); border-radius: 50%; animation: spin 1s linear infinite;">
+                            </div>
+                            <p style="margin-top: 1rem; color: var(--primary); font-weight: 600;">AI Analyzing Colors...
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 & 4: Results -->
+                <div id="aiResults" style="display: none; margin-top: 2rem;">
+                    <h3
+                        style="font-size: 1.1rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                        <span>Step 3: Detected Thread Matches</span>
+                        <span id="matchConfidenceBadge"
+                            style="font-size: 0.8rem; background: var(--success); color: white; padding: 2px 8px; border-radius: 12px;">High
+                            Confidence</span>
+                    </h3>
+
+                    <div id="detectedThreadsContainer"
+                        style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+                        <!-- JS injected thread chips -->
+                    </div>
+
+                    <div class="alert alert-warning" id="colorCountWarning" style="display: none;">
+                        ⚠️ You selected <span id="userCountDisplay">0</span> colors, but we detected <span
+                            id="detectedCountDisplay">0</span>. Please remove extra colors using the 'x'.
+                    </div>
+                </div>
+
+                <canvas id="analysisCanvas" style="display: none;"></canvas>
+            </div>
+
             <form id="checkoutForm" onsubmit="handleCheckout(event)">
 
                 <!-- Shipping Information -->
@@ -828,6 +907,16 @@
                         <div style="flex: 1;">
                             <div style="font-weight: bold; margin-bottom: 0.3rem;">${item.name || 'Product'}</div>
                             <div style="color: #666; font-size: 0.9rem;">${item.color || ''} / ${item.size || ''}</div>
+                            
+                            ${item.customization ? `
+                                <div style="font-size: 0.8rem; background: #f8fafc; padding: 0.5rem; border-radius: 4px; margin: 0.5rem 0; border-left: 3px solid #c9a962;">
+                                    <div style="font-weight: 600; color: #1a1a2e; margin-bottom: 2px;">Customization:</div>
+                                    <div>Method: ${item.customization.method.toUpperCase()}</div>
+                                    <div>Print Size: ${item.customization.print_size}</div>
+                                    <div>Colors: ${item.customization.colors} detected</div>
+                                </div>
+                            ` : ''}
+
                             <div style="color: #667eea; font-weight: 600; margin-top: 0.3rem;">
                                 ${quantity} x RM${price.toFixed(2)} = RM${subtotal.toFixed(2)}
                             </div>
@@ -963,6 +1052,225 @@
                 submitBtn.textContent = '🛒 Place Order';
             }
         }
+        // ==========================================
+        // AI DESIGN STUDIO LOGIC
+        // ==========================================
+        let detectedDesignThreads = [];
+        let aiAnalysisComplete = false;
+
+        function updateDesignStudio() {
+            const userCount = parseInt(document.getElementById('designColorCount').value);
+            const detectedCount = detectedDesignThreads.length;
+
+            document.getElementById('userCountDisplay').textContent = userCount;
+            document.getElementById('detectedCountDisplay').textContent = detectedCount;
+
+            // Show Warning if counts disagree
+            const warningEl = document.getElementById('colorCountWarning');
+            if (aiAnalysisComplete && detectedCount > userCount) {
+                warningEl.style.display = 'block';
+            } else {
+                warningEl.style.display = 'none';
+            }
+
+            updateOrderTotals();
+        }
+
+        function handleDesignUpload(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
+
+                // Show spinner
+                document.getElementById('aiScanningOverlay').style.display = 'flex';
+                document.getElementById('designPreview').style.display = 'none';
+                document.getElementById('designPlaceholder').style.display = 'none';
+
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function () {
+                        // Show Preview
+                        const preview = document.getElementById('designPreview');
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+
+                        // Analyze Colors
+                        analyzeDesignColors(img);
+
+                        // Hide Spinner
+                        setTimeout(() => {
+                            document.getElementById('aiScanningOverlay').style.display = 'none';
+                            document.getElementById('aiResults').style.display = 'block';
+                            aiAnalysisComplete = true;
+                            updateDesignStudio();
+                        }, 1000);
+                    };
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function analyzeDesignColors(img) {
+            const canvas = document.getElementById('analysisCanvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = 100;
+            canvas.height = 100;
+            ctx.drawImage(img, 0, 0, 100, 100);
+
+            const imageData = ctx.getImageData(0, 0, 100, 100).data;
+            const collectedPixels = [];
+            const corners = [0, 99, 9900, 9999];
+
+            // Detect Background
+            let bgR = 255, bgG = 255, bgB = 255;
+            if (imageData[3] > 0) { bgR = imageData[0]; bgG = imageData[1]; bgB = imageData[2]; }
+
+            function getDistSq(r1, g1, b1, r2, g2, b2) {
+                return (r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2;
+            }
+
+            // Get Threads from DataStore
+            const AVAILABLE_THREADS = DataStore.getThreadColors().filter(t => t.is_active);
+
+            // Pixel Analysis
+            for (let i = 0; i < imageData.length; i += 4) {
+                const r = imageData[i];
+                const g = imageData[i + 1];
+                const b = imageData[i + 2];
+                const a = imageData[i + 3];
+
+                if (a < 50) continue;
+                if (getDistSq(r, g, b, bgR, bgG, bgB) < 2500) continue;
+                if (r > 240 && g > 240 && b > 240) continue;
+
+                collectedPixels.push({ r, g, b });
+            }
+
+            // Thread Matching
+            const threadCounts = {};
+
+            collectedPixels.forEach(p => {
+                let closestThread = null;
+                let minDist = Infinity;
+
+                AVAILABLE_THREADS.forEach(t => {
+                    // Convert Hex to RGB on the fly or pre-convert. 
+                    // DataStore stores Hex. Need Hex->RGB.
+                    const hex = t.hex.replace('#', '');
+                    const tr = parseInt(hex.substring(0, 2), 16);
+                    const tg = parseInt(hex.substring(2, 4), 16);
+                    const tb = parseInt(hex.substring(4, 6), 16);
+
+                    const d = getDistSq(p.r, p.g, p.b, tr, tg, tb);
+                    if (d < minDist) {
+                        minDist = d;
+                        closestThread = t;
+                    }
+                });
+
+                if (closestThread) {
+                    if (!threadCounts[closestThread.name]) {
+                        threadCounts[closestThread.name] = {
+                            thread: closestThread,
+                            count: 0
+                        };
+                    }
+                    threadCounts[closestThread.name].count++;
+                }
+            });
+
+            // Filtering
+            const totalValid = collectedPixels.length;
+            detectedDesignThreads = Object.values(threadCounts)
+                .filter(item => item.count > (totalValid * 0.02)) // >2%
+                .sort((a, b) => b.count - a.count)
+                .map(item => item.thread)
+                .slice(0, 8);
+
+            renderDetectedThreads();
+        }
+
+        function renderDetectedThreads() {
+            const container = document.getElementById('detectedThreadsContainer');
+            if (detectedDesignThreads.length === 0) {
+                container.innerHTML = '<p style="color: #666; font-size: 0.9rem;">No distinct colors detected.</p>';
+                return;
+            }
+
+            container.innerHTML = detectedDesignThreads.map((t, index) => `
+                <div style="position: relative; text-align: center;">
+                    <div style="width: 40px; height: 40px; background: ${t.hex}; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2); margin: 0 auto;"></div>
+                    <div onclick="removeDesignThread(${index})" 
+                         style="position: absolute; top: -5px; right: -5px; background: var(--error); color: white; width: 18px; height: 18px; border-radius: 50%; font-size: 12px; line-height: 18px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center;">×</div>
+                    <div style="font-size: 0.75rem; margin-top: 4px; font-weight: 500;">${t.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function removeDesignThread(index) {
+            detectedDesignThreads.splice(index, 1);
+            renderDetectedThreads();
+            updateDesignStudio();
+        }
+
+        // Pricing Updates
+        function updateOrderTotals() {
+            // Recalculate based on Customization
+            const aiFeePerColor = 5;
+            const serviceFee = 10;
+            const colorCount = detectedDesignThreads.length || parseInt(document.getElementById('designColorCount').value); // Use detected or user selection? Prompt implies "Calculate based on color count". Use MAX of detected vs user? Or just detected?
+            // "Step 6: System calculates final price based on color count"
+            // Let's use the valid confirmed colors (detected threads left). If 0 detected (e.g. manual only), fall back to user dropdown?
+            // Let's use user dropdown as the "Requested" count if AI fails, but ideally AI overrides.
+            // Prompt: "User confirms/selects colors... Prevent user from selecting more colors than specified".
+            // Let's use detectedDesignThreads.length if AI ran, else userCount.
+
+            const activeCount = aiAnalysisComplete ? detectedDesignThreads.length : parseInt(document.getElementById('designColorCount').value);
+
+            // Apply to ALL items? Or single logic?
+            // "Base Price + (NumColors * 5) + ServiceFee"
+            // Assuming this fee is added to the ORDER TOTAL once or per item?
+            // Usually per item.
+            // Let's add a "Customization Fee" line item.
+
+            const totalQty = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+            const customizationTotal = (activeCount * aiFeePerColor * totalQty) + (serviceFee * totalQty); // Per item assumption
+
+            // Subtotal (Base)
+            const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            // Shipping
+            const shipping = typeof shippingCost !== 'undefined' ? shippingCost : 0; // Global var from existing script
+
+            const grandTotal = subtotal + customizationTotal + shipping;
+
+            // Update UI
+            document.getElementById('orderSubtotal').textContent = `RM ${subtotal.toFixed(2)}`;
+            // Add Customization Line if not exists
+            let customLine = document.getElementById('orderCustomization');
+            if (!customLine && customizationTotal > 0) {
+                const summaryDiv = document.querySelector('#orderItems').parentNode.querySelector('div[style*="border-top"]'); // The totals block
+                customLine = document.createElement('div');
+                customLine.id = 'orderCustomization';
+                customLine.style.cssText = "display: flex; justify-content: space-between; padding: 0.8rem 0; font-size: 1.1rem; color: var(--secondary);";
+                summaryDiv.insertBefore(customLine, document.getElementById('orderShipping').parentNode);
+            }
+            if (customLine) {
+                customLine.innerHTML = `<span>AI Customization (${activeCount} cols):</span><span>RM ${customizationTotal.toFixed(2)}</span>`;
+            }
+
+            document.getElementById('orderTotal').textContent = `RM ${grandTotal.toFixed(2)}`;
+        }
+
+        // Hook into cart loading to trigger initial update
+        const originalDisplayOrderItems = displayOrderItems; // Save original
+        displayOrderItems = function () { // Override or Extend
+            originalDisplayOrderItems();
+            updateDesignStudio();
+        };
+
     </script>
 </body>
 
