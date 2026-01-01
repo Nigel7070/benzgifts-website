@@ -741,13 +741,60 @@
         }
 
         @media (max-width: 768px) {
+            .nav {
+                flex-direction: column;
+                gap: 1.25rem;
+                padding: 1rem;
+            }
+
+            .nav-links {
+                width: 100%;
+                justify-content: center;
+                gap: 1.5rem;
+                font-size: 0.95rem;
+                flex-wrap: wrap;
+            }
+
+            .user-menu {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+
+            .auth-btn {
+                width: 100%;
+                max-width: 300px;
+                text-align: center;
+            }
+
+            .hero {
+                padding: 4rem 1.5rem;
+            }
+
             .hero h1 {
                 font-size: 2.25rem;
             }
 
-            .nav-links {
-                gap: 1.25rem;
-                font-size: 0.9rem;
+            .hero p {
+                font-size: 1rem;
+                margin-bottom: 2rem;
+            }
+
+            .container {
+                padding: 0 1.5rem;
+            }
+
+            .products {
+                padding: 3rem 1rem;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
             }
 
             .cart-float-btn {
@@ -762,8 +809,10 @@
                 flex-direction: column;
             }
 
-            .section-title {
-                font-size: 2rem;
+            .modal-content {
+                width: 94%;
+                margin: 10% auto;
+                max-height: 80vh;
             }
         }
     </style>
