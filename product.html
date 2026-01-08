@@ -736,12 +736,21 @@
 
                 <!-- Customization Note -->
                 <div
-                    style="background: #f8f9fa; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin: 2rem 0;">
+                    style="background: #f8f9fa; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin: 1.5rem 0;">
                     <p style="margin: 0; color: var(--text-light); font-size: 0.9rem;">
                         <span style="color: var(--primary);">💡 Customization Available:</span>
                         Add this item to cart, then proceed to checkout to upload your design and customize colors using
                         our AI Studio.
                     </p>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-cart" id="addToCartBtn" onclick="addToCart()">
+                        🛒 Add to Cart
+                    </button>
+                    <button class="btn btn-primary" onclick="buyNow()">
+                        ⚡ Buy Now
+                    </button>
                 </div>
 
                 <!-- Floating Cart Button -->
@@ -1154,6 +1163,38 @@
 
                         showSuccess('✅ Added to cart successfully!');
                         updateCartBadge();
+                    }
+
+                    function buyNow() {
+                        if (!currentProduct) return;
+
+                        const color = document.getElementById('colorSelect').value;
+                        const size = document.getElementById('sizeSelect').value;
+
+                        if (!color || !size) {
+                            showError('Please select both color and size');
+                            return;
+                        }
+
+                        const variant = currentProduct.variants.find(v => v.color === color && v.size === size);
+                        if (!variant) {
+                            showError('Selected variant not found');
+                            return;
+                        }
+
+                        const item = {
+                            product_id: currentProduct.id,
+                            name: currentProduct.name,
+                            image: document.querySelector('.color-swatch.active img').src,
+                            color: color,
+                            size: size,
+                            price: variant.price,
+                            quantity: quantity,
+                            weight_grams: currentProduct.weight_grams || 180
+                        };
+
+                        localStorage.setItem('benzgifts_buynow', JSON.stringify(item));
+                        window.location.href = 'checkout.html?buynow=true';
                     }
 
                     function closeCart() {

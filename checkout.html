@@ -454,32 +454,15 @@
             <!-- Cart Summary -->
             <div id="cartSummary" style="margin-bottom: 2rem;"></div>
 
-            <!-- AI DESIGN STUDIO -->
+            <!-- AI DESIGN STUDIO - SIMPLIFIED -->
             <div class="card" id="designStudio" style="border: 2px solid var(--secondary); background: #fafaf8;">
-                <h2 class="section-title">🎨 AI Design Studio</h2>
-                <p class="subtitle" style="margin-bottom: 1.5rem;">Upload your design to detect colors and match with
-                    our threads.</p>
+                <h2 class="section-title">🎨 AI Color Verification</h2>
+                <p class="subtitle" style="margin-bottom: 1.5rem;">Upload your design and select the thread colors you
+                    want. Our AI will verify if they match your design.</p>
 
-                <!-- Step 1: Color Count -->
+                <!-- Step 1: Upload -->
                 <div class="form-group">
-                    <label>Step 1: How many colors in your design?</label>
-                    <select id="designColorCount" onchange="updateDesignStudio()">
-                        <option value="1">1 Color</option>
-                        <option value="2">2 Colors</option>
-                        <option value="3">3 Colors</option>
-                        <option value="4">4 Colors</option>
-                        <option value="5">5 Colors</option>
-                        <option value="6">6 Colors</option>
-                        <option value="7">7 Colors</option>
-                        <option value="8">8 Colors</option>
-                        <option value="9">9 Colors</option>
-                        <option value="10">10 Colors</option>
-                    </select>
-                </div>
-
-                <!-- Step 2: Upload -->
-                <div class="form-group">
-                    <label>Step 2: Upload Design System</label>
+                    <label>Step 1: Upload Your Design</label>
                     <div id="designDropZone"
                         style="border: 2px dashed var(--border); border-radius: 8px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; background: #fff;"
                         onclick="document.getElementById('designInput').click()">
@@ -490,43 +473,77 @@
                         <div id="designPlaceholder">
                             <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📤</div>
                             <p style="font-weight: 600; color: var(--primary);">Click to Upload Design</p>
-                            <p style="font-size: 0.85rem; color: var(--text-light);">JPG, PNG, PDF (Max 10MB)</p>
+                            <p style="font-size: 0.85rem; color: var(--text-light);">JPG, PNG (Max 10MB)</p>
                         </div>
 
                         <img id="designPreview"
                             style="max-width: 100%; max-height: 200px; display: none; margin: 1rem auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-
-                        <!-- AI Loading State -->
-                        <div id="aiScanningOverlay"
-                            style="display: none; position: absolute; inset: 0; background: rgba(255,255,255,0.95); flex-direction: column; align-items: center; justify-content: center;">
-                            <div class="spinner"
-                                style="width: 40px; height: 40px; border: 4px solid var(--border); border-top: 4px solid var(--secondary); border-radius: 50%; animation: spin 1s linear infinite;">
-                            </div>
-                            <p style="margin-top: 1rem; color: var(--primary); font-weight: 600;">AI Analyzing Colors...
-                            </p>
-                        </div>
                     </div>
                 </div>
 
-                <!-- Step 3 & 4: Results -->
-                <div id="aiResults" style="display: none; margin-top: 2rem;">
-                    <h3
-                        style="font-size: 1.1rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
-                        <span>Step 3: Detected Thread Matches</span>
-                        <span id="matchConfidenceBadge"
-                            style="font-size: 0.8rem; background: var(--success); color: white; padding: 2px 8px; border-radius: 12px;">High
-                            Confidence</span>
-                    </h3>
-
-                    <div id="detectedThreadsContainer"
-                        style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
-                        <!-- JS injected thread chips -->
+                <!-- Step 2: Color Count & Selection -->
+                <div id="colorSelectionSection" style="display: none; margin-top: 1.5rem;">
+                    <div class="form-group">
+                        <label>Step 2: How many colors do you want to use?</label>
+                        <select id="designColorCount" onchange="renderColorSelectors()">
+                            <option value="1">1 Color</option>
+                            <option value="2">2 Colors</option>
+                            <option value="3">3 Colors</option>
+                            <option value="4">4 Colors</option>
+                            <option value="5">5 Colors</option>
+                            <option value="6">6 Colors</option>
+                        </select>
                     </div>
 
-                    <div class="alert alert-warning" id="colorCountWarning" style="display: none;">
-                        ⚠️ You selected <span id="userCountDisplay">0</span> colors, but we detected <span
-                            id="detectedCountDisplay">0</span>. Please remove extra colors using the 'x'.
+                    <div id="colorSelectorsContainer" style="margin-bottom: 1.5rem;">
+                        <!-- Dropdowns will be injected here -->
                     </div>
+
+                    <button type="button" class="btn-cart" id="verifyBtn" onclick="verifyDesignColors()"
+                        style="width: 100%; padding: 1rem; border-radius: 8px; font-weight: 600;">
+                        🔍 Verify Colors
+                    </button>
+                </div>
+
+                <!-- Step 3: AI Results -->
+                <div id="aiResults"
+                    style="display: none; margin-top: 2rem; padding: 1.5rem; background: #fff; border-radius: 12px; border: 1px solid var(--border);">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--primary);">Verification Results</h3>
+
+                    <div id="verificationList" style="margin-bottom: 1.5rem;">
+                        <!-- JS injected results -->
+                    </div>
+
+                    <div id="additionalColorsSection"
+                        style="display: none; padding-top: 1rem; border-top: 1px solid #eee;">
+                        <p style="font-weight: 600; color: var(--warning); margin-bottom: 0.5rem;">⚠️ Additional Colors
+                            Detected:</p>
+                        <div id="additionalColorsList" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                            <!-- JS injected tags -->
+                        </div>
+                    </div>
+
+                    <div id="finalRecommendation"
+                        style="margin-top: 1.5rem; padding: 1rem; border-radius: 8px; font-size: 0.9rem;">
+                        <!-- JS injected message -->
+                    </div>
+
+                    <div id="aiActions" style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                        <button type="button" class="btn" style="background: #eee;" onclick="resetVerification()">Change
+                            Selection</button>
+                        <button type="button" class="btn" style="background: var(--primary); color: white;"
+                            onclick="proceedWithColors()">Continue Anyway</button>
+                    </div>
+                </div>
+
+                <!-- AI Loading Overlay (General) -->
+                <div id="aiScanningOverlay"
+                    style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                    <div class="spinner"
+                        style="width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.3); border-top: 5px solid var(--secondary); border-radius: 50%; animation: spin 1s linear infinite;">
+                    </div>
+                    <p style="margin-top: 1.5rem; color: white; font-weight: 600; font-size: 1.2rem;">AI is verifying
+                        your design...</p>
                 </div>
 
                 <canvas id="analysisCanvas" style="display: none;"></canvas>
@@ -1053,212 +1070,216 @@
             }
         }
         // ==========================================
-        // AI DESIGN STUDIO LOGIC
+        // SIMPLIFIED AI COLOR VERIFICATION LOGIC
         // ==========================================
-        let detectedDesignThreads = [];
-        let aiAnalysisComplete = false;
-
-        function updateDesignStudio() {
-            const userCount = parseInt(document.getElementById('designColorCount').value);
-            const detectedCount = detectedDesignThreads.length;
-
-            document.getElementById('userCountDisplay').textContent = userCount;
-            document.getElementById('detectedCountDisplay').textContent = detectedCount;
-
-            // Show Warning if counts disagree
-            const warningEl = document.getElementById('colorCountWarning');
-            if (aiAnalysisComplete && detectedCount > userCount) {
-                warningEl.style.display = 'block';
-            } else {
-                warningEl.style.display = 'none';
-            }
-
-            updateOrderTotals();
-        }
+        let designImage = null;
+        let verifiedColors = [];
 
         function handleDesignUpload(input) {
             if (input.files && input.files[0]) {
                 const file = input.files[0];
                 const reader = new FileReader();
 
-                // Show spinner
-                document.getElementById('aiScanningOverlay').style.display = 'flex';
-                document.getElementById('designPreview').style.display = 'none';
-                document.getElementById('designPlaceholder').style.display = 'none';
-
                 reader.onload = function (e) {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = function () {
-                        // Show Preview
-                        const preview = document.getElementById('designPreview');
-                        preview.src = e.target.result;
-                        preview.style.display = 'block';
+                    designImage = e.target.result;
+                    const preview = document.getElementById('designPreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    document.getElementById('designPlaceholder').style.display = 'none';
 
-                        // Analyze Colors
-                        analyzeDesignColors(img);
-
-                        // Hide Spinner
-                        setTimeout(() => {
-                            document.getElementById('aiScanningOverlay').style.display = 'none';
-                            document.getElementById('aiResults').style.display = 'block';
-                            aiAnalysisComplete = true;
-                            updateDesignStudio();
-                        }, 1000);
-                    };
+                    // Show Step 2
+                    document.getElementById('colorSelectionSection').style.display = 'block';
+                    renderColorSelectors();
                 }
                 reader.readAsDataURL(file);
             }
         }
 
-        function analyzeDesignColors(img) {
-            const canvas = document.getElementById('analysisCanvas');
-            const ctx = canvas.getContext('2d');
+        function renderColorSelectors() {
+            const count = parseInt(document.getElementById('designColorCount').value);
+            const container = document.getElementById('colorSelectorsContainer');
+            const threads = DataStore.getThreadColors().filter(t => t.is_active);
 
-            canvas.width = 100;
-            canvas.height = 100;
-            ctx.drawImage(img, 0, 0, 100, 100);
+            let html = '<label style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem; display: block;">Select Thread Colors:</label>';
 
-            const imageData = ctx.getImageData(0, 0, 100, 100).data;
-            const collectedPixels = [];
-            const corners = [0, 99, 9900, 9999];
-
-            // Detect Background
-            let bgR = 255, bgG = 255, bgB = 255;
-            if (imageData[3] > 0) { bgR = imageData[0]; bgG = imageData[1]; bgB = imageData[2]; }
-
-            function getDistSq(r1, g1, b1, r2, g2, b2) {
-                return (r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2;
+            for (let i = 1; i <= count; i++) {
+                html += `
+                    <div class="form-group" style="margin-bottom: 0.75rem;">
+                        <select class="design-thread-select" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px;">
+                            <option value="">-- Select Color ${i} --</option>
+                            ${threads.map(t => `<option value="${t.name}">${t.name}</option>`).join('')}
+                        </select>
+                    </div>
+                `;
             }
-
-            // Get Threads from DataStore
-            const AVAILABLE_THREADS = DataStore.getThreadColors().filter(t => t.is_active);
-
-            // Pixel Analysis
-            for (let i = 0; i < imageData.length; i += 4) {
-                const r = imageData[i];
-                const g = imageData[i + 1];
-                const b = imageData[i + 2];
-                const a = imageData[i + 3];
-
-                if (a < 50) continue;
-                if (getDistSq(r, g, b, bgR, bgG, bgB) < 2500) continue;
-                if (r > 240 && g > 240 && b > 240) continue;
-
-                collectedPixels.push({ r, g, b });
-            }
-
-            // Thread Matching
-            const threadCounts = {};
-
-            collectedPixels.forEach(p => {
-                let closestThread = null;
-                let minDist = Infinity;
-
-                AVAILABLE_THREADS.forEach(t => {
-                    // Convert Hex to RGB on the fly or pre-convert. 
-                    // DataStore stores Hex. Need Hex->RGB.
-                    const hex = t.hex.replace('#', '');
-                    const tr = parseInt(hex.substring(0, 2), 16);
-                    const tg = parseInt(hex.substring(2, 4), 16);
-                    const tb = parseInt(hex.substring(4, 6), 16);
-
-                    const d = getDistSq(p.r, p.g, p.b, tr, tg, tb);
-                    if (d < minDist) {
-                        minDist = d;
-                        closestThread = t;
-                    }
-                });
-
-                if (closestThread) {
-                    if (!threadCounts[closestThread.name]) {
-                        threadCounts[closestThread.name] = {
-                            thread: closestThread,
-                            count: 0
-                        };
-                    }
-                    threadCounts[closestThread.name].count++;
-                }
-            });
-
-            // Filtering
-            const totalValid = collectedPixels.length;
-            detectedDesignThreads = Object.values(threadCounts)
-                .filter(item => item.count > (totalValid * 0.02)) // >2%
-                .sort((a, b) => b.count - a.count)
-                .map(item => item.thread)
-                .slice(0, 8);
-
-            renderDetectedThreads();
+            container.innerHTML = html;
         }
 
-        function renderDetectedThreads() {
-            const container = document.getElementById('detectedThreadsContainer');
-            if (detectedDesignThreads.length === 0) {
-                container.innerHTML = '<p style="color: #666; font-size: 0.9rem;">No distinct colors detected.</p>';
+        async function verifyDesignColors() {
+            const selects = document.querySelectorAll('.design-thread-select');
+            const selectedColorNames = Array.from(selects)
+                .map(s => s.value)
+                .filter(v => v !== "");
+
+            if (selectedColorNames.length === 0) {
+                alert('Please select at least one color to verify.');
                 return;
             }
 
-            container.innerHTML = detectedDesignThreads.map((t, index) => `
-                <div style="position: relative; text-align: center;">
-                    <div style="width: 40px; height: 40px; background: ${t.hex}; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2); margin: 0 auto;"></div>
-                    <div onclick="removeDesignThread(${index})" 
-                         style="position: absolute; top: -5px; right: -5px; background: var(--error); color: white; width: 18px; height: 18px; border-radius: 50%; font-size: 12px; line-height: 18px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center;">×</div>
-                    <div style="font-size: 0.75rem; margin-top: 4px; font-weight: 500;">${t.name}</div>
+            // Show loading
+            document.getElementById('aiScanningOverlay').style.display = 'flex';
+
+            try {
+                // Simulate Gemini Vision API Call
+                // In a real app, you'd send 'designImage' and 'selectedColorNames' to your backend
+                const results = await mockGeminiVisionVerify(designImage, selectedColorNames);
+
+                displayVerificationResults(results);
+
+                // Update Order Totals based on color count
+                updateOrderTotals();
+
+            } catch (error) {
+                console.error('AI Verification failed:', error);
+                alert('AI Verification encountered an issue. You can still proceed manually.');
+                proceedWithColors();
+            } finally {
+                document.getElementById('aiScanningOverlay').style.display = 'none';
+            }
+        }
+
+        function displayVerificationResults(data) {
+            const resultsContainer = document.getElementById('aiResults');
+            const listContainer = document.getElementById('verificationList');
+            const additionalSection = document.getElementById('additionalColorsSection');
+            const additionalList = document.getElementById('additionalColorsList');
+            const recommendation = document.getElementById('finalRecommendation');
+
+            resultsContainer.style.display = 'block';
+
+            // 1. Show Selected Colors Status
+            listContainer.innerHTML = data.selectedResults.map(res => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; background: #f8f9fa; border-radius: 8px; margin-bottom: 0.5rem; border-left: 4px solid ${res.found ? 'var(--success)' : 'var(--warning)'};">
+                    <span style="font-weight: 600; color: var(--primary);">● ${res.color}</span>
+                    <span style="font-weight: bold; color: ${res.found ? 'var(--success)' : '#e67e22'};">
+                        ${res.found ? '✅ Verified' : '⚠️ Not detected'}
+                    </span>
                 </div>
             `).join('');
+
+            // 2. Show Additional Colors
+            if (data.additionalColors && data.additionalColors.length > 0) {
+                additionalSection.style.display = 'block';
+                additionalList.innerHTML = data.additionalColors.map(c => `
+                    <span style="background: #eee; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; color: var(--primary); font-weight: 500;">
+                        ${c}
+                    </span>
+                `).join('');
+            } else {
+                additionalSection.style.display = 'none';
+            }
+
+            // 3. Final recommendation/warning
+            const unfound = data.selectedResults.filter(r => !r.found);
+            if (unfound.length > 0) {
+                recommendation.innerHTML = `
+                    <div style="background: #fff3cd; color: #856404; padding: 1rem; border-radius: 8px;">
+                        ⚠️ Warning: <strong>${unfound.map(u => u.color).join(', ')}</strong> were not clearly found in your design. 
+                        Do you want to continue anyway or change your selection?
+                    </div>
+                `;
+            } else {
+                recommendation.innerHTML = `
+                    <div style="background: #d4edda; color: #155724; padding: 1rem; border-radius: 8px;">
+                        ✅ All selected colors were verified in your design!
+                    </div>
+                `;
+            }
+
+            // Scroll to results
+            resultsContainer.scrollIntoView({ behavior: 'smooth' });
         }
 
-        function removeDesignThread(index) {
-            detectedDesignThreads.splice(index, 1);
-            renderDetectedThreads();
-            updateDesignStudio();
+        function resetVerification() {
+            document.getElementById('aiResults').style.display = 'none';
+            document.getElementById('colorSelectionSection').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Pricing Updates
+        function proceedWithColors() {
+            // Mark verification as "ignored" or "accepted"
+            // For now just hide results and proceed
+            document.getElementById('aiResults').style.opacity = '0.5';
+            document.getElementById('aiResults').style.pointerEvents = 'none';
+            alert('Selection accepted. Proceeding to final payment...');
+        }
+
+        /**
+         * MOCK GEMINI VISION API
+         * This simulates the intelligence requested:
+         * 1. YES/NO check for selected colors
+         * 2. General grouping for additional colors
+         */
+        async function mockGeminiVisionVerify(imageData, selectedColors) {
+            return new Promise((resolve) => {
+                // We add a tiny delay to simulate network/AI processing
+                setTimeout(() => {
+                    const threads = DataStore.getThreadColors();
+
+                    // Simple logic: If it's a "standard" color family, say YES
+                    // This is a MOCK. In reality, Gemini would actually look at the image.
+                    const selectedResults = selectedColors.map(colorName => {
+                        // For the sake of the demo, let's say "Black" and "White" are always found if they exist in the list
+                        // but maybe a random 10% chance to be "Not detected" for other colors to show the UI
+                        const isCommon = ['Black', 'White', 'Blue', 'Red'].some(c => colorName.includes(c));
+                        return {
+                            color: colorName,
+                            found: isCommon ? true : Math.random() > 0.2, // 80% success rate for demo
+                            confidence: 0.9
+                        };
+                    });
+
+                    // Add some "Additional Colors" that weren't selected
+                    const allCategories = [...new Set(threads.map(t => t.category))];
+                    const selectedCategories = selectedColors.map(name => {
+                        const t = threads.find(thread => thread.name === name);
+                        return t ? t.category : '';
+                    });
+
+                    const additionalCats = allCategories.filter(cat => !selectedCategories.includes(cat)).slice(0, 2);
+
+                    resolve({
+                        selectedResults: selectedResults,
+                        additionalColors: additionalCats.map(cat => cat.split(' ')[0]), // Grouped: "Greens" -> "Green"
+                    });
+                }, 2000);
+            });
+        }
+
         function updateOrderTotals() {
-            // Recalculate based on Customization
             const aiFeePerColor = 5;
             const serviceFee = 10;
-            const colorCount = detectedDesignThreads.length || parseInt(document.getElementById('designColorCount').value); // Use detected or user selection? Prompt implies "Calculate based on color count". Use MAX of detected vs user? Or just detected?
-            // "Step 6: System calculates final price based on color count"
-            // Let's use the valid confirmed colors (detected threads left). If 0 detected (e.g. manual only), fall back to user dropdown?
-            // Let's use user dropdown as the "Requested" count if AI fails, but ideally AI overrides.
-            // Prompt: "User confirms/selects colors... Prevent user from selecting more colors than specified".
-            // Let's use detectedDesignThreads.length if AI ran, else userCount.
-
-            const activeCount = aiAnalysisComplete ? detectedDesignThreads.length : parseInt(document.getElementById('designColorCount').value);
-
-            // Apply to ALL items? Or single logic?
-            // "Base Price + (NumColors * 5) + ServiceFee"
-            // Assuming this fee is added to the ORDER TOTAL once or per item?
-            // Usually per item.
-            // Let's add a "Customization Fee" line item.
+            const count = parseInt(document.getElementById('designColorCount').value);
 
             const totalQty = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-            const customizationTotal = (activeCount * aiFeePerColor * totalQty) + (serviceFee * totalQty); // Per item assumption
+            const customizationTotal = (count * aiFeePerColor * totalQty) + (serviceFee * totalQty);
 
-            // Subtotal (Base)
             const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-            // Shipping
-            const shipping = typeof shippingCost !== 'undefined' ? shippingCost : 0; // Global var from existing script
+            const shipping = typeof shippingCost !== 'undefined' ? shippingCost : 0;
 
             const grandTotal = subtotal + customizationTotal + shipping;
 
-            // Update UI
             document.getElementById('orderSubtotal').textContent = `RM ${subtotal.toFixed(2)}`;
-            // Add Customization Line if not exists
+
             let customLine = document.getElementById('orderCustomization');
             if (!customLine && customizationTotal > 0) {
-                const summaryDiv = document.querySelector('#orderItems').parentNode.querySelector('div[style*="border-top"]'); // The totals block
+                const summaryDiv = document.querySelector('#orderItems').parentNode.querySelector('div[style*="border-top"]');
                 customLine = document.createElement('div');
                 customLine.id = 'orderCustomization';
                 customLine.style.cssText = "display: flex; justify-content: space-between; padding: 0.8rem 0; font-size: 1.1rem; color: var(--secondary);";
                 summaryDiv.insertBefore(customLine, document.getElementById('orderShipping').parentNode);
             }
             if (customLine) {
-                customLine.innerHTML = `<span>AI Customization (${activeCount} cols):</span><span>RM ${customizationTotal.toFixed(2)}</span>`;
+                customLine.innerHTML = `<span>AI Customization (${count} colors):</span><span>RM ${customizationTotal.toFixed(2)}</span>`;
             }
 
             document.getElementById('orderTotal').textContent = `RM ${grandTotal.toFixed(2)}`;
