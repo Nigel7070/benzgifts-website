@@ -481,10 +481,29 @@
                     </div>
                 </div>
 
-                <!-- Step 2: Color Count & Selection -->
-                <div id="colorSelectionSection" style="display: none; margin-top: 1.5rem;">
+                <!-- NEW: Customization Options Selection -->
+                <div id="customizationOptionsSection" style="display: none; margin-top: 1.5rem;">
                     <div class="form-group">
-                        <label>Step 2: How many colors do you want to use?</label>
+                        <label>Step 2: Customization Method</label>
+                        <select id="customizationMethod" onchange="handleMethodChange()">
+                            <option value="printing">Printing</option>
+                            <option value="embroidery">Embroidery</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Step 3: Customization Size</label>
+                        <select id="customizationSize" onchange="updateOrderTotals()">
+                            <!-- Dynamic options -->
+                        </select>
+                        <p id="sizeWarning"
+                            style="display: none; color: var(--error); font-size: 0.85rem; margin-top: 0.5rem;">
+                            ⚠️ For sizes larger than A3, please contact Admin.
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Step 4: How many colors in your design?</label>
                         <select id="designColorCount" onchange="renderColorSelectors()">
                             <option value="1">1 Color</option>
                             <option value="2">2 Colors</option>
@@ -492,7 +511,18 @@
                             <option value="4">4 Colors</option>
                             <option value="5">5 Colors</option>
                             <option value="6">6 Colors</option>
+                            <option value="7">7 Colors</option>
+                            <option value="8">8 Colors</option>
                         </select>
+                    </div>
+                </div>
+
+                <!-- Step 2: Color Selection (Now Step 5 in logic) -->
+                <div id="colorSelectionSection" style="display: none; margin-top: 1.5rem;">
+                    <div style="margin-bottom: 1rem;">
+                        <label>Step 5: Select Thread Colors</label>
+                        <p style="font-size: 0.85rem; color: var(--text-light); margin-top: -0.2rem;">Select the colors
+                            you want us to use.</p>
                     </div>
 
                     <div id="colorSelectorsContainer" style="margin-bottom: 1.5rem;">
@@ -1025,8 +1055,16 @@
                     notes: document.getElementById('notes').value || null,
                     payment_method: selectedPayment === 'store' ? 'store' : 'bank_transfer',
                     payment_proof_url: receiptUrl,
-                    items: cartItems,
-                    total_amount: (subtotal + shippingCost).toFixed(2),
+                    items: cartItems.map(item => ({
+                        ...item,
+                        customization: (designImage && item.customization) ? {
+                            ...item.customization,
+                            method: document.getElementById('customizationMethod').value,
+                            print_size: document.getElementById('customizationSize').value,
+                            colors: parseInt(document.getElementById('designColorCount').value)
+                        } : item.customization
+                    })),
+                    total_amount: (subtotal + shippingCost + getCustomizationTotal()).toFixed(2),
                     status: 'pending',
                     checkout_mode: checkoutMode,
                     created_at: new Date().toISOString()
@@ -1087,7 +1125,9 @@
                     preview.style.display = 'block';
                     document.getElementById('designPlaceholder').style.display = 'none';
 
-                    // Show Step 2
+                    // Show Customization Options
+                    document.getElementById('customizationOptionsSection').style.display = 'block';
+                    handleMethodChange(); // Init sizes
                     document.getElementById('colorSelectionSection').style.display = 'block';
                     renderColorSelectors();
                 }
@@ -1095,12 +1135,53 @@
             }
         }
 
+        function handleMethodChange() {
+            const method = document.getElementById('customizationMethod').value;
+            const sizeSelect = document.getElementById('customizationSize');
+            const sizeWarning = document.getElementById('sizeWarning');
+            const colorCount = document.getElementById('designColorCount');
+
+            sizeSelect.innerHTML = '';
+            sizeWarning.style.display = 'none';
+
+            if (method === 'printing') {
+                sizeSelect.innerHTML = `
+                    <option value="A4">A4 Size</option>
+                    <option value="A3">A3 Size</option>
+                    <option value="larger">Larger than A3 (Contact Admin)</option>
+                `;
+            } else {
+                sizeSelect.innerHTML = `
+                    <option value="2x2">2x2 cm</option>
+                    <option value="3x3">3x3 cm</option>
+                    <option value="4x4">4x4 cm</option>
+                    <option value="5x5">5x5 cm</option>
+                    <option value="6x6">6x6 cm</option>
+                    <option value="7x7">7x7 cm</option>
+                    <option value="8x8">8x8 cm</option>
+                    <option value="9x9">9x9 cm</option>
+                    <option value="10x10">10x10 cm</option>
+                `;
+            }
+
+            sizeSelect.onchange = function () {
+                if (method === 'printing' && this.value === 'larger') {
+                    sizeWarning.style.display = 'block';
+                } else {
+                    sizeWarning.style.display = 'none';
+                }
+                updateOrderTotals();
+            };
+
+            updateOrderTotals();
+        }
+
         function renderColorSelectors() {
             const count = parseInt(document.getElementById('designColorCount').value);
             const container = document.getElementById('colorSelectorsContainer');
             const threads = DataStore.getThreadColors().filter(t => t.is_active);
 
-            let html = '<label style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem; display: block;">Select Thread Colors:</label>';
+            let html = '';
 
             for (let i = 1; i <= count; i++) {
                 html += `
@@ -1255,31 +1336,63 @@
             });
         }
 
-        function updateOrderTotals() {
-            const aiFeePerColor = 5;
-            const serviceFee = 10;
-            const count = parseInt(document.getElementById('designColorCount').value);
+        function getCustomizationTotal() {
+            if (!designImage) return 0;
 
+            const method = document.getElementById('customizationMethod').value;
+            const size = document.getElementById('customizationSize').value;
+            const colorCount = parseInt(document.getElementById('designColorCount').value);
             const totalQty = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-            const customizationTotal = (count * aiFeePerColor * totalQty) + (serviceFee * totalQty);
+
+            let total = 0;
+
+            if (method === 'printing') {
+                // block charge: RM50 per color
+                const blockCharge = colorCount * 50;
+                // RM1 per shirt for A4/A3
+                const perShirtCharge = (size === 'A4' || size === 'A3') ? (1 * totalQty) : 0;
+                total = blockCharge + perShirtCharge;
+            } else {
+                // Embroidery
+                let pricePerLogo = 0;
+                const sizeVal = parseInt(size.split('x')[0]); // get first number
+
+                if (sizeVal <= 5) {
+                    pricePerLogo = (colorCount <= 5) ? 3 : 6;
+                } else {
+                    pricePerLogo = 8;
+                }
+                total = pricePerLogo * totalQty;
+            }
+
+            return total;
+        }
+
+        function updateOrderTotals() {
+            if (typeof cartItems === 'undefined' || cartItems.length === 0) return;
 
             const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             const shipping = typeof shippingCost !== 'undefined' ? shippingCost : 0;
+            const customTotal = getCustomizationTotal();
 
-            const grandTotal = subtotal + customizationTotal + shipping;
+            const grandTotal = subtotal + customTotal + shipping;
 
             document.getElementById('orderSubtotal').textContent = `RM ${subtotal.toFixed(2)}`;
 
             let customLine = document.getElementById('orderCustomization');
-            if (!customLine && customizationTotal > 0) {
-                const summaryDiv = document.querySelector('#orderItems').parentNode.querySelector('div[style*="border-top"]');
-                customLine = document.createElement('div');
-                customLine.id = 'orderCustomization';
-                customLine.style.cssText = "display: flex; justify-content: space-between; padding: 0.8rem 0; font-size: 1.1rem; color: var(--secondary);";
-                summaryDiv.insertBefore(customLine, document.getElementById('orderShipping').parentNode);
-            }
-            if (customLine) {
-                customLine.innerHTML = `<span>AI Customization (${count} colors):</span><span>RM ${customizationTotal.toFixed(2)}</span>`;
+            if (customTotal > 0) {
+                if (!customLine) {
+                    const shippingRow = document.getElementById('orderShipping').parentNode;
+                    customLine = document.createElement('div');
+                    customLine.id = 'orderCustomization';
+                    customLine.style.cssText = "display: flex; justify-content: space-between; padding: 0.8rem 0; font-size: 1.1rem; color: var(--secondary);";
+                    shippingRow.parentNode.insertBefore(customLine, shippingRow);
+                }
+                const method = document.getElementById('customizationMethod').value;
+                const size = document.getElementById('customizationSize').value;
+                customLine.innerHTML = `<span>Customization (${method.toUpperCase()} - ${size}):</span><span>RM ${customTotal.toFixed(2)}</span>`;
+            } else if (customLine) {
+                customLine.remove();
             }
 
             document.getElementById('orderTotal').textContent = `RM ${grandTotal.toFixed(2)}`;
